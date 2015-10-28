@@ -1,3 +1,5 @@
 # Talkify
-Javascript Text to speech plugin
+A javascript text to speech (TTS) plugin.
 
+# How to use
+TBD
