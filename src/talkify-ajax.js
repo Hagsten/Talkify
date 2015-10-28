@@ -1,4 +1,4 @@
-﻿window.app.service('ajax', ['$http', 'application', function ($http, application) {
+﻿function talkifyAjax($http, application) {
 
     var calls = [];
 
@@ -32,5 +32,4 @@
         get: get,
         abort: abort
     };
-}]);
-
+}
