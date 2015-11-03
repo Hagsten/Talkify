@@ -9,7 +9,13 @@ TBD
 # Features
 
 - High qualiy voices
-- Multi lingual with built in language detection (i.e. if the text is in english, an english voice is used)
+- Multi lingual with built in language detection (i.e. if the text is in english, an english voice is used). Supported languages:
+  - English
+  - Chinese
+  - Japanese
+  - Korean
+  - Swedish
+  - German
 - Text highligting for easy read along
 - Download as mp3
 - Playback of entire websie or paragraph/s of your choice
