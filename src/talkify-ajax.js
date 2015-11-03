@@ -1,35 +1,25 @@
-﻿function talkifyAjax($http, application) {
-
-    var calls = [];
+﻿function talkifyAjax(application) {
 
     var get = function (url) {
-        var canceler = new promise.Promise();
+        var call = new promise.Promise();
 
-        var call = $http({ method: 'GET', url: application.appendAppPath(url), timeout: canceler });
-        
-        call.key = calls.length + 1;
+        promise
+          //  .get(application.appendAppPath(url))
+            .get(window.talkifyConfig.host + url)
+            .then(function(error, data) {
+                try {
+                    var jsonObj = JSON.parse(data);
+                    call.done(error, jsonObj);
+                } catch (e) {
+                    call.done(error, data);
+                } 
 
-        calls.push({ call: call, canceler: canceler });
-        
+            }); //$http({ method: 'GET', url: application.appendAppPath(url), timeout: canceler });
+                
         return call;
     };
 
-    var abort = function (call) {
-        if (!call) {
-            return;
-        }
-
-        for (var i = 0; i < calls.length; i++) {
-            if (calls[i].call.key === call.key) {
-                calls[i].canceler.done();
-
-                break;
-            }
-        }
-    };
-
     return {
-        get: get,
-        abort: abort
+        get: get
     };
 }

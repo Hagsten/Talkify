@@ -1,4 +1,4 @@
-﻿window.app.service("talkifyPlaylist", ["application", "ajax", function (application, ajax) {
+﻿function talkifyPlaylist(application, ajax) {
 
     var s = {
         useTextHighlight: false,
@@ -7,15 +7,15 @@
     };
 
     var e = {
-        onBeforeItemPlaying: function () { },
-        onSentenceComplete: function () { }
+        onBeforeItemPlaying: function() {},
+        onSentenceComplete: function() {}
     };
 
     function isSupported() {
         var a = document.createElement("audio");
 
         return (typeof a.canPlayType === "function" && (a.canPlayType("audio/mpeg") !== "" || a.canPlayType("audio/wav") !== ""));
-    }   
+    }
 
     function implementation(setting, event) {
         var id = generateGuid();
@@ -31,8 +31,8 @@
         var events = event;
 
         var internalEvents = {
-            onPause: function () { talkifyWordHighlighter.pause(); },
-            onPlay: function () { talkifyWordHighlighter.resume(); }
+            onPause: function() { talkifyWordHighlighter.pause(); },
+            onPlay: function() { talkifyWordHighlighter.resume(); }
         }
 
         var audioElement;
@@ -44,7 +44,7 @@
         }
 
         function generateGuid() {
-            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
                 var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
@@ -96,42 +96,45 @@
             return false;
         }
 
-        var playAudio = function (textToPlay, onEnded) {
+        var playAudio = function(textToPlay, onEnded) {
             var p = new promise.Promise();
 
             var sources = audioElement.getElementsByTagName("source");
 
-            sources[0].src = application.appendAppPath("/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + playlist.referenceLanguage + "&id=" + id);
-            sources[1].src = application.appendAppPath("/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + playlist.referenceLanguage + "&id=" + id);
+            sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + playlist.referenceLanguage + "&id=" + id;
+            sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + playlist.referenceLanguage + "&id=" + id;
 
             audioElement.load();
 
             //TODO: remove jquery dependency
             $(audioElement)
                 .unbind("loadeddata")
-                .bind("loadeddata", function () {
+                .bind("loadeddata", function() {
                     audioElement.pause();
 
                     ajax.get("/api/Speak/GetPositions?id=" + id)
-                        .success(function (positions) {
+                        .then(function(error, positions) {
                             talkifyWordHighlighter
                                 .start(playlist.currentlyPlaying, positions)
-                                .then(function (item) {
+                                .then(function(item) {
                                     events.onSentenceComplete(item);
                                 });
-                        })
-                        .finally(function () {
+
                             p.done();
                             audioElement.play();
                         });
+                    //.finally(function() {
+                    //    p.done();
+                    //    audioElement.play();
+                    //});
                 })
                 .unbind("ended.justForUniqueness")
-                .bind("ended.justForUniqueness", onEnded || function () { });
+                .bind("ended.justForUniqueness", onEnded || function() {});
 
             return p;
         };
 
-        var loadItemForPlayback = function (item) {
+        var loadItemForPlayback = function(item) {
             playlist.currentlyPlaying = item;
 
             var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
@@ -140,8 +143,8 @@
             item.isPlaying = true;
             item.element.addClass("playing");
 
-            playAudio(textToPlay, function () { item.isPlaying = false; })
-                .then(function () {
+            playAudio(textToPlay, function() { item.isPlaying = false; })
+                .then(function() {
                     item.isLoading = false;
                 });
         };
@@ -169,7 +172,7 @@
 
             loadItemForPlayback(item);
 
-            $(audioElement).unbind("ended").bind("ended", function () {
+            $(audioElement).unbind("ended").bind("ended", function() {
                 p.done();
             });
 
@@ -216,7 +219,7 @@
 
             var currentItem = 0;
 
-            var next = function () {
+            var next = function() {
                 currentItem++;
 
                 if (currentItem >= items.length) {
@@ -281,7 +284,7 @@
         }
 
         function continueWithNext(currentItem) {
-            var next = function (error) {
+            var next = function(error) {
                 if (error) {
                     return;
                 }
@@ -304,20 +307,30 @@
 
         function playFromBeginning() {
             return ajax.get("/api/Language?text=" + playlist.refrenceText)
-                .success(function (data) {
+                .then(function(error, data) {
+                    if (error) {
+                        playlist.referenceLanguage = -1;
+
+                        var itemToPlay = playlist.queue[0];
+
+                        continueWithNext(itemToPlay);
+
+                        return;
+                    }
+
                     playlist.referenceLanguage = data;
 
                     var itemToPlay = playlist.queue[0];
 
                     continueWithNext(itemToPlay);
-                })
-                .error(function () {
-                    playlist.referenceLanguage = -1;
-
-                    var itemToPlay = playlist.queue[0];
-
-                    continueWithNext(itemToPlay);
                 });
+            //.error(function() {
+            //    playlist.referenceLanguage = -1;
+
+            //    var itemToPlay = playlist.queue[0];
+
+            //    continueWithNext(itemToPlay);
+            //});
         }
 
         function play(item) {
@@ -359,7 +372,7 @@
 
             var documentPositionFollowing = 4;
 
-            for (var j = 0; j < playlist.queue.length ; j++) {
+            for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
 
                 var isSelectionAfterQueueItem = element[0].compareDocumentPosition(item.element[0]) == documentPositionFollowing;
@@ -397,7 +410,7 @@
         initialize();
 
         return {
-            getQueue: function () { return playlist.queue; },
+            getQueue: function() { return playlist.queue; },
             play: play,
             playText: playText,
             pause: audioElement.pause,
@@ -414,7 +427,7 @@
         },
         withTalkifyUi: function() {
             s.useGui = true;
-            
+
             return this;
         },
         withElements: function(elements) {
@@ -423,12 +436,12 @@
             return this;
         },
         subscribeTo: function(subscriptions) {
-            e.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
-            e.onSentenceComplete = subscriptions.onItemFinished || function () { };
+            e.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function() {};
+            e.onSentenceComplete = subscriptions.onItemFinished || function() {};
 
             return this;
         },
-        build: function () {
+        build: function() {
             if (!isSupported()) {
                 throw new Error("Not supported. The browser needs to support mp3 or wav HTML5 Audio.");
             }
@@ -436,5 +449,5 @@
             return new implementation(s, e);
         }
     };
-}]);
+};
 
