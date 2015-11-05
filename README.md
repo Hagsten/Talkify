@@ -4,7 +4,24 @@ A javascript text to speech (TTS) library.
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
 
 # Usage
-A simple but working Fiddle: http://jsfiddle.net/woqw6b6g/5/
+
+## Working fiddle
+http://jsfiddle.net/woqw6b6g/5/
+
+## Play all, top to bottom
+```javascript
+    var talkify = new talkifyPlaylist(new talkifyAjax())
+        .withTextHighlighting()
+        .withElements($('p')) //<--Any element you'd like. Leave blank to let Talkify make a good guess
+        .build()
+        .play();
+```
+
+## Play simple text
+
+```javascript
+talkify.playText('Hello world');
+```
 
 # Features
 
