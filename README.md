@@ -1,4 +1,4 @@
-# Talkify
+# Talkify (alpha version)
 A javascript text to speech (TTS) library.
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
@@ -35,7 +35,7 @@ talkify.playText('Hello world');
   - German
 - Text highligting for easy read along
 - Download as mp3
-- Playback of entire websie or paragraph/s of your choice
+- Playback of entire website or paragraph/s of your choice
 
 # License
 TBD
