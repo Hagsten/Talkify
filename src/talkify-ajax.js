@@ -1,4 +1,4 @@
-﻿function talkifyAjax(application) {
+﻿function talkifyAjax() {
 
     var get = function (url) {
         var call = new promise.Promise();

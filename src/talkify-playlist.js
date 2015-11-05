@@ -1,4 +1,4 @@
-﻿function talkifyPlaylist(application, ajax) {
+﻿function talkifyPlaylist(ajax) {
 
     var s = {
         useTextHighlight: false,
