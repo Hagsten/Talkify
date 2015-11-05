@@ -10,10 +10,10 @@ http://jsfiddle.net/woqw6b6g/6/
 
 ## Play all, top to bottom
 ```javascript
-    var talkify = new talkifyPlaylist(new talkifyAjax())
+    new talkifyPlaylist(new talkifyAjax())
         .withTextHighlighting()
         .withElements($('p')) //<--Any element you'd like. Leave blank to let Talkify make a good guess
-        .build()
+        .build() //<-- Returns an instance.
         .play();
 ```
 
