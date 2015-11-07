@@ -1,4 +1,4 @@
-﻿var textextractor = function () {
+﻿var TalkifyTextextractor = function () {
     var validElements = [];
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'].join();
@@ -183,4 +183,4 @@
     return {
         extract: extract
     };
-}();
+};

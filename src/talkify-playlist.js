@@ -21,6 +21,7 @@
 
     function implementation(setting, event) {
         var id = generateGuid();
+        var textextractor = new TalkifyTextextractor();
 
         var playlist = {
             queue: [],
