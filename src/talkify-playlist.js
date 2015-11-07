@@ -3,12 +3,14 @@
     var s = {
         useTextHighlight: false,
         useGui: false,
-        domElements: []
+        useTextInteraction: false,
+        domElements: [],
+        rootSelector: 'body'
     };
 
     var e = {
-        onBeforeItemPlaying: function() {},
-        onSentenceComplete: function() {}
+        onBeforeItemPlaying: function () { },
+        onSentenceComplete: function () { }
     };
 
     function isSupported() {
@@ -31,8 +33,8 @@
         var events = event;
 
         var internalEvents = {
-            onPause: function() { talkifyWordHighlighter.pause(); },
-            onPlay: function() { talkifyWordHighlighter.resume(); }
+            onPause: function () { talkifyWordHighlighter.pause(); },
+            onPlay: function () { talkifyWordHighlighter.resume(); }
         }
 
         var audioElement;
@@ -41,10 +43,11 @@
             playlist.queue = [];
             playlist.referenceLanguage = -1;
             playlist.currentlyPlaying = null;
+            playlist.refrenceText = "";
         }
 
         function generateGuid() {
-            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
                 var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
@@ -96,7 +99,7 @@
             return false;
         }
 
-        var playAudio = function(textToPlay, onEnded) {
+        var playAudio = function (textToPlay, onEnded) {
             var p = new promise.Promise();
 
             var sources = audioElement.getElementsByTagName("source");
@@ -109,32 +112,34 @@
             //TODO: remove jquery dependency
             $(audioElement)
                 .unbind("loadeddata")
-                .bind("loadeddata", function() {
+                .bind("loadeddata", function () {
                     audioElement.pause();
 
+                    if (!settings.useTextHighlight) {
+                        p.done();
+                        audioElement.play();
+                        return;
+                    }
+
                     ajax.get("/api/Speak/GetPositions?id=" + id)
-                        .then(function(error, positions) {
+                        .then(function (error, positions) {
                             talkifyWordHighlighter
                                 .start(playlist.currentlyPlaying, positions)
-                                .then(function(item) {
+                                .then(function (item) {
                                     events.onSentenceComplete(item);
                                 });
 
                             p.done();
                             audioElement.play();
                         });
-                    //.finally(function() {
-                    //    p.done();
-                    //    audioElement.play();
-                    //});
                 })
                 .unbind("ended.justForUniqueness")
-                .bind("ended.justForUniqueness", onEnded || function() {});
+                .bind("ended.justForUniqueness", onEnded || function () { });
 
             return p;
         };
 
-        var loadItemForPlayback = function(item) {
+        var loadItemForPlayback = function (item) {
             playlist.currentlyPlaying = item;
 
             var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
@@ -143,8 +148,8 @@
             item.isPlaying = true;
             item.element.addClass("playing");
 
-            playAudio(textToPlay, function() { item.isPlaying = false; })
-                .then(function() {
+            playAudio(textToPlay, function () { item.isPlaying = false; })
+                .then(function () {
                     item.isLoading = false;
                 });
         };
@@ -172,7 +177,7 @@
 
             loadItemForPlayback(item);
 
-            $(audioElement).unbind("ended").bind("ended", function() {
+            $(audioElement).unbind("ended").bind("ended", function () {
                 p.done();
             });
 
@@ -219,7 +224,7 @@
 
             var currentItem = 0;
 
-            var next = function() {
+            var next = function () {
                 currentItem++;
 
                 if (currentItem >= items.length) {
@@ -232,6 +237,25 @@
 
             playItem(items[currentItem])
                 .then(next);
+        }
+
+        function play(item) {
+            if (!item) {
+                playFromBeginning();
+
+                return;
+            }
+
+            continueWithNext(item);
+        }
+
+        function setupItemForUserInteraction(item) {
+            item.element.css("cursor", "pointer")
+                .addClass('talkify-highlight')
+                .unbind('click.talkify')
+                .bind('click.talkify', function () {
+                    play(item);
+                });
         }
 
         function initialize() {
@@ -258,7 +282,9 @@
 
             setupBindings();
 
-            playlist.refrenceText = "";
+            if (!settings.domElements || settings.domElements.length === 0) {
+                settings.domElements = textextractor.extract(settings.rootSelector);
+            }
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text;
@@ -281,10 +307,18 @@
                     playlist.refrenceText = text;
                 }
             }
+
+            if (settings.useTextInteraction) {
+                for (var j = 0; j < playlist.queue.length; j++) {
+                    var item = playlist.queue[j];
+
+                    setupItemForUserInteraction(item);
+                }
+            }
         }
 
         function continueWithNext(currentItem) {
-            var next = function(error) {
+            var next = function (error) {
                 if (error) {
                     return;
                 }
@@ -307,40 +341,19 @@
 
         function playFromBeginning() {
             return ajax.get("/api/Language?text=" + playlist.refrenceText)
-                .then(function(error, data) {
+                .then(function (error, data) {
                     if (error) {
                         playlist.referenceLanguage = -1;
 
-                        var itemToPlay = playlist.queue[0];
-
-                        continueWithNext(itemToPlay);
+                        continueWithNext(playlist.queue[0]);
 
                         return;
                     }
 
                     playlist.referenceLanguage = data;
 
-                    var itemToPlay = playlist.queue[0];
-
-                    continueWithNext(itemToPlay);
+                    continueWithNext(playlist.queue[0]);
                 });
-            //.error(function() {
-            //    playlist.referenceLanguage = -1;
-
-            //    var itemToPlay = playlist.queue[0];
-
-            //    continueWithNext(itemToPlay);
-            //});
-        }
-
-        function play(item) {
-            if (!item) {
-                playFromBeginning();
-
-                return;
-            }
-
-            continueWithNext(item);
         }
 
         function playNext() {
@@ -387,7 +400,7 @@
                     break;
                 }
 
-                var shouldAddToBottom = j == playlist.queue.length - 1;
+                var shouldAddToBottom = j === playlist.queue.length - 1;
 
                 if (shouldAddToBottom) {
                     push(queueItems);
@@ -410,7 +423,7 @@
         initialize();
 
         return {
-            getQueue: function() { return playlist.queue; },
+            getQueue: function () { return playlist.queue; },
             play: play,
             playText: playText,
             pause: audioElement.pause,
@@ -420,28 +433,38 @@
     }
 
     return {
-        withTextHighlighting: function() {
+        withTextHighlighting: function () {
             s.useTextHighlight = true;
 
             return this;
         },
-        withTalkifyUi: function() {
+        withTextInteraction: function () {
+            s.useTextInteraction = true;
+
+            return this;
+        },
+        withTalkifyUi: function () {
             s.useGui = true;
 
             return this;
         },
-        withElements: function(elements) {
+        withRootSelector: function (rootSelector) {
+            s.rootSelector = rootSelector;
+
+            return this;
+        },
+        withElements: function (elements) {
             s.domElements = elements;
 
             return this;
         },
-        subscribeTo: function(subscriptions) {
-            e.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function() {};
-            e.onSentenceComplete = subscriptions.onItemFinished || function() {};
+        subscribeTo: function (subscriptions) {
+            e.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
+            e.onSentenceComplete = subscriptions.onItemFinished || function () { };
 
             return this;
         },
-        build: function() {
+        build: function () {
             if (!isSupported()) {
                 throw new Error("Not supported. The browser needs to support mp3 or wav HTML5 Audio.");
             }
