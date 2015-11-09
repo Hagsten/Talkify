@@ -38,4 +38,6 @@ talkify.playText('Hello world');
 - Playback of entire website or paragraph/s of your choice
 
 # License
-TBD
+GPLv3
+
+Please note that this library talks with a backend that is driven by personal foundings, therefore I intend to keep it free of charge until no longer possible. A rule of thumb: If you have a commersial product with heavy traffic, then a restriction or fee might be introduced to call the server.
