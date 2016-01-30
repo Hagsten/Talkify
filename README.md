@@ -9,9 +9,13 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 http://jsfiddle.net/woqw6b6g/9/
 
 ## Play all, top to bottom
-```javascript
-    new talkifyPlaylist(new talkifyAjax())
-        .withTextHighlighting()
+```javascript		
+    var player = new TalkifyPlayer().withTextHighlighting();
+
+    new talkifyPlaylist()
+        .begin()
+        .usingPlayer(player)
+        .withTextInteraction()
         .withElements($('p')) //<--Any element you'd like. Leave blank to let Talkify make a good guess
         .build() //<-- Returns an instance.
         .play();
