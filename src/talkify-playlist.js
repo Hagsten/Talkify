@@ -1,15 +1,15 @@
-﻿function talkifyPlaylist(ajax) {
+﻿function talkifyPlaylist() {
 
-    var s = {
-        useTextHighlight: false,
+    var defaults = {
         useGui: false,
-        domElements: []
+        useTextInteraction: false,
+        domElements: [],
+        rootSelector: 'body'
     };
 
-    var e = {
-        onBeforeItemPlaying: function() {},
-        onSentenceComplete: function() {}
-    };
+    var s = JSON.parse(JSON.stringify(defaults));
+
+    var p = null;
 
     function isSupported() {
         var a = document.createElement("audio");
@@ -17,37 +17,23 @@
         return (typeof a.canPlayType === "function" && (a.canPlayType("audio/mpeg") !== "" || a.canPlayType("audio/wav") !== ""));
     }
 
-    function implementation(setting, event) {
-        var id = generateGuid();
+    function implementation(setting, player) {
+
+        var textextractor = new TalkifyTextextractor();
 
         var playlist = {
             queue: [],
-            referenceLanguage: -1,
             currentlyPlaying: null,
             refrenceText: ""
         };
 
         var settings = setting;
-        var events = event;
-
-        var internalEvents = {
-            onPause: function() { talkifyWordHighlighter.pause(); },
-            onPlay: function() { talkifyWordHighlighter.resume(); }
-        }
-
-        var audioElement;
 
         function reset() {
             playlist.queue = [];
-            playlist.referenceLanguage = -1;
+            player.withReferenceLanguage(-1);
             playlist.currentlyPlaying = null;
-        }
-
-        function generateGuid() {
-            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
+            playlist.refrenceText = "";
         }
 
         function insertAt(index, items) {
@@ -64,6 +50,7 @@
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
 
+                //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
                 item.element.removeClass("playing");
@@ -95,74 +82,18 @@
 
             return false;
         }
-
-        var playAudio = function(textToPlay, onEnded) {
-            var p = new promise.Promise();
-
-            var sources = audioElement.getElementsByTagName("source");
-
-            sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + playlist.referenceLanguage + "&id=" + id;
-            sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + playlist.referenceLanguage + "&id=" + id;
-
-            audioElement.load();
-
-            //TODO: remove jquery dependency
-            $(audioElement)
-                .unbind("loadeddata")
-                .bind("loadeddata", function() {
-                    audioElement.pause();
-
-                    ajax.get("/api/Speak/GetPositions?id=" + id)
-                        .then(function(error, positions) {
-                            talkifyWordHighlighter
-                                .start(playlist.currentlyPlaying, positions)
-                                .then(function(item) {
-                                    events.onSentenceComplete(item);
-                                });
-
-                            p.done();
-                            audioElement.play();
-                        });
-                    //.finally(function() {
-                    //    p.done();
-                    //    audioElement.play();
-                    //});
-                })
-                .unbind("ended.justForUniqueness")
-                .bind("ended.justForUniqueness", onEnded || function() {});
-
-            return p;
-        };
-
-        var loadItemForPlayback = function(item) {
-            playlist.currentlyPlaying = item;
-
-            var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
-
-            item.isLoading = true;
-            item.isPlaying = true;
-            item.element.addClass("playing");
-
-            playAudio(textToPlay, function() { item.isPlaying = false; })
-                .then(function() {
-                    item.isLoading = false;
-                });
-        };
-
         function playItem(item) {
             var p = new promise.Promise();
 
             if (item && item.isPlaying) {
-                if (audioElement.paused) {
-                    audioElement.play();
+                if (player.paused()) {
+                    player.play();
                 } else {
-                    audioElement.pause();
+                    player.pause();
                 }
 
                 return p;
             }
-
-            events.onBeforeItemPlaying(item);
 
             resetPlaybackStates();
 
@@ -170,11 +101,9 @@
                 playlist.currentlyPlaying.element.html(playlist.currentlyPlaying.originalElement.html());
             }
 
-            loadItemForPlayback(item);
+            playlist.currentlyPlaying = item;
 
-            $(audioElement).unbind("ended").bind("ended", function() {
-                p.done();
-            });
+            p = player.playItem(item);
 
             return p;
         };
@@ -200,7 +129,7 @@
             return items;
 
             function template(t, $el) {
-                var outerHtml = $el.length > 0 ? $($el[0].outerHTML) : "";
+                var outerHtml = $el.length > 0 ? $($el[0].outerHTML) : $();
 
                 return {
                     text: t,
@@ -213,52 +142,31 @@
             }
         }
 
-        function playText(text) {
-            //TODO: Okay, we cannot hook up to the regular pipeline (we don't need text highlighing and such), this is afterall a plain text player. Maybe it should not even be a part of the playlist?
-            var items = createItems(text, $());
+        function play(item) {
+            if (!item) {
+                playFromBeginning();
 
-            var currentItem = 0;
+                return;
+            }
 
-            var next = function() {
-                currentItem++;
+            continueWithNext(item);
+        }
 
-                if (currentItem >= items.length) {
-                    return;
-                }
-
-                playItem(items[currentItem])
-                    .then(next);
-            };
-
-            playItem(items[currentItem])
-                .then(next);
+        function setupItemForUserInteraction(item) {
+            item.element.css("cursor", "pointer")
+                .addClass('talkify-highlight')
+                .unbind('click.talkify')
+                .bind('click.talkify', function() {
+                    play(item);
+                });
         }
 
         function initialize() {
             reset();
 
-            audioElement = document.getElementById("talkify-audio");
-
-            if (!audioElement) {
-                var mp3Source = document.createElement("source");
-                var wavSource = document.createElement("source");
-                audioElement = document.createElement("audio");
-
-                audioElement.appendChild(mp3Source);
-                audioElement.appendChild(wavSource);
-
-                mp3Source.type = "audio/mpeg";
-                wavSource.type = "audio/wav";
-                audioElement.id = "talkify-audio";
-                audioElement.controls = true;
-                audioElement.autoplay = true;
-
-                document.body.appendChild(audioElement);
+            if (!settings.domElements || settings.domElements.length === 0) {
+                settings.domElements = textextractor.extract(settings.rootSelector);
             }
-
-            setupBindings();
-
-            playlist.refrenceText = "";
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text;
@@ -281,10 +189,18 @@
                     playlist.refrenceText = text;
                 }
             }
+
+            if (settings.useTextInteraction) {
+                for (var j = 0; j < playlist.queue.length; j++) {
+                    var item = playlist.queue[j];
+
+                    setupItemForUserInteraction(item);
+                }
+            }
         }
 
         function continueWithNext(currentItem) {
-            var next = function(error) {
+            var next = function (error) {
                 if (error) {
                     return;
                 }
@@ -306,41 +222,20 @@
         }
 
         function playFromBeginning() {
-            return ajax.get("/api/Language?text=" + playlist.refrenceText)
-                .then(function(error, data) {
+            return talkifyHttp.get("/api/Language?text=" + playlist.refrenceText)
+                .then(function (error, data) {
                     if (error) {
-                        playlist.referenceLanguage = -1;
+                        player.withReferenceLanguage(-1);
 
-                        var itemToPlay = playlist.queue[0];
-
-                        continueWithNext(itemToPlay);
+                        continueWithNext(playlist.queue[0]);
 
                         return;
                     }
 
-                    playlist.referenceLanguage = data;
+                    player.withReferenceLanguage(data);
 
-                    var itemToPlay = playlist.queue[0];
-
-                    continueWithNext(itemToPlay);
+                    continueWithNext(playlist.queue[0]);
                 });
-            //.error(function() {
-            //    playlist.referenceLanguage = -1;
-
-            //    var itemToPlay = playlist.queue[0];
-
-            //    continueWithNext(itemToPlay);
-            //});
-        }
-
-        function play(item) {
-            if (!item) {
-                playFromBeginning();
-
-                return;
-            }
-
-            continueWithNext(item);
         }
 
         function playNext() {
@@ -353,7 +248,7 @@
 
                 return p;
             }
-
+            
             return playItem(item);
         }
 
@@ -377,9 +272,9 @@
 
                 var isSelectionAfterQueueItem = element[0].compareDocumentPosition(item.element[0]) == documentPositionFollowing;
 
-                var queueItems = createItems(text, element);
-
                 if (isSelectionAfterQueueItem) {
+                    var queueItems = createItems(text, element);
+
                     insertAt(j, queueItems);
 
                     items = items.concat(queueItems);
@@ -387,67 +282,77 @@
                     break;
                 }
 
-                var shouldAddToBottom = j == playlist.queue.length - 1;
+                var shouldAddToBottom = j === playlist.queue.length - 1;
 
                 if (shouldAddToBottom) {
-                    push(queueItems);
+                    var qItems = createItems(text, element);
 
-                    items = items.concat(queueItems);
+                    push(qItems);
+
+                    items = items.concat(qItems);
+
+                    break;;
                 }
             }
 
             return items;
         }
 
-        function setupBindings() {
-            audioElement.removeEventListener("pause", internalEvents.onPause);
-            audioElement.addEventListener("pause", internalEvents.onPause);
-
-            audioElement.removeEventListener("play", internalEvents.onPlay);
-            audioElement.addEventListener("play", internalEvents.onPlay);
-        }
-
         initialize();
 
         return {
-            getQueue: function() { return playlist.queue; },
+            getQueue: function () { return playlist.queue; },
             play: play,
-            playText: playText,
-            pause: audioElement.pause,
+            pause: player.pause,
             insert: insertElement,
-            isPlaying: isPlaying,
+            isPlaying: isPlaying
         }
     }
 
     return {
-        withTextHighlighting: function() {
-            s.useTextHighlight = true;
+        begin: function() {
+            s = JSON.parse(JSON.stringify(defaults));
+            p = null;
 
-            return this;
-        },
-        withTalkifyUi: function() {
-            s.useGui = true;
+            return {
+                withTextInteraction: function () {
+                    s.useTextInteraction = true;
 
-            return this;
-        },
-        withElements: function(elements) {
-            s.domElements = elements;
+                    return this;
+                },
+                withTalkifyUi: function () {
+                    s.useGui = true;
 
-            return this;
-        },
-        subscribeTo: function(subscriptions) {
-            e.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function() {};
-            e.onSentenceComplete = subscriptions.onItemFinished || function() {};
+                    return this;
+                },
+                withRootSelector: function (rootSelector) {
+                    s.rootSelector = rootSelector;
 
-            return this;
-        },
-        build: function() {
-            if (!isSupported()) {
-                throw new Error("Not supported. The browser needs to support mp3 or wav HTML5 Audio.");
+                    return this;
+                },
+                withElements: function (elements) {
+                    s.domElements = elements;
+
+                    return this;
+                },
+                usingPlayer: function (player) {
+                    p = player;
+
+                    return this;
+                },
+                build: function () {
+                    if (!isSupported()) {
+                        throw new Error("Not supported. The browser needs to support mp3 or wav HTML5 Audio.");
+                    }
+
+                    if (!p) {
+                        throw new Error("A player must be provided. Please use the 'usingPlayer' method to provide one.");
+                    }
+
+                    return new implementation(s, p);
+                }
             }
-
-            return new implementation(s, e);
         }
+        
     };
 };
-

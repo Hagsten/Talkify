@@ -1,4 +1,4 @@
-﻿var talkifyWordHighlighter = function() {
+﻿var TalkifyWordHighlighter = function() {
     var textHighlightTimer = new Timer();
 
     function highlight(item, word, charPosition) {
@@ -14,7 +14,6 @@
     }
 
     function setupWordHightlighting(item, positions) {
-        
         var p = new promise.Promise();
 
         textHighlightTimer.cancel();
@@ -26,7 +25,6 @@
         var i = 0;
 
         var internalCallback = function () {
-
             highlight(item, positions[i].Word, positions[i].CharPosition);
 
             i++;
@@ -51,13 +49,10 @@
 
         return p;
     }
-
     
     return {
-        pause: function () { textHighlightTimer.pause(); },
-        resume: function() {
-             textHighlightTimer.resume();
-        },
-        start: setupWordHightlighting        
+        pause: textHighlightTimer.pause,
+        resume: textHighlightTimer.resume,
+        start: setupWordHightlighting
     };
-}();
+};

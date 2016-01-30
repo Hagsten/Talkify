@@ -1,3 +1,3 @@
 ﻿talkifyConfig = {
-    host: 'http://talkify.net'
+    host: ''
 }

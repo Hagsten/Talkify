@@ -14,6 +14,7 @@
 
     this.cancel = function () {
         window.clearTimeout(timerId);
+        callback = null;
     };
 
     this.start = function (cb, delay) {
