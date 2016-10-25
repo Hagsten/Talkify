@@ -4,7 +4,10 @@
         useGui: false,
         useTextInteraction: false,
         domElements: [],
-        rootSelector: 'body'
+        rootSelector: 'body',
+        events: {
+            onEnded: null
+        }
     };
 
     var s = JSON.parse(JSON.stringify(defaults));
@@ -17,21 +20,23 @@
         return (typeof a.canPlayType === "function" && (a.canPlayType("audio/mpeg") !== "" || a.canPlayType("audio/wav") !== ""));
     }
 
-    function implementation(setting, player) {
+    function implementation(_settings, player) {
 
         var textextractor = new TalkifyTextextractor();
 
         var playlist = {
             queue: [],
             currentlyPlaying: null,
-            refrenceText: ""
+            refrenceText: "",
+            referenceLanguage: { Culture: '', Language: -1 }
         };
 
-        var settings = setting;
+        var settings = _settings;
+        var playerHasBeenReplaced = false;
 
         function reset() {
             playlist.queue = [];
-            player.withReferenceLanguage(-1);
+            player.withReferenceLanguage({ Culture: '', Language: -1 });
             playlist.currentlyPlaying = null;
             playlist.refrenceText = "";
         }
@@ -82,10 +87,11 @@
 
             return false;
         }
+
         function playItem(item) {
             var p = new promise.Promise();
 
-            if (item && item.isPlaying) {
+            if (!playerHasBeenReplaced && item && item.isPlaying) {
                 if (player.paused()) {
                     player.play();
                 } else {
@@ -94,6 +100,8 @@
 
                 return p;
             }
+
+            playerHasBeenReplaced = false;
 
             resetPlaybackStates();
 
@@ -113,13 +121,16 @@
 
             var items = [];
 
-            //TODO: Smart split, should really split at the first end of sentence (.) that is < safeLength
             if (text.length > safeMaxQuerystringLength) {
-                var f = text.substr(0, safeMaxQuerystringLength);
+                var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); //TODO: What about ckj characters?
+
+                breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
+
+                var f = text.substr(0, breakAt);
 
                 items.push(template(f, $element));
 
-                items = items.concat(createItems(text.substr(safeMaxQuerystringLength, text.length - 1), $element));
+                items = items.concat(createItems(text.substr(breakAt, text.length - 1), $element));
 
                 return items;
             }
@@ -156,7 +167,7 @@
             item.element.css("cursor", "pointer")
                 .addClass('talkify-highlight')
                 .unbind('click.talkify')
-                .bind('click.talkify', function() {
+                .bind('click.talkify', function () {
                     play(item);
                 });
         }
@@ -200,8 +211,11 @@
         }
 
         function continueWithNext(currentItem) {
-            var next = function (error) {
-                if (error) {
+            var next = function (completed) {
+
+                if (completed) {
+                    settings.events.onEnded();
+
                     return;
                 }
 
@@ -225,13 +239,15 @@
             return talkifyHttp.get("/api/Language?text=" + playlist.refrenceText)
                 .then(function (error, data) {
                     if (error) {
-                        player.withReferenceLanguage(-1);
+                        playlist.referenceLanguage = { Culture: '', Language: -1 };
+                        player.withReferenceLanguage({ Culture: '', Language: -1 });
 
                         continueWithNext(playlist.queue[0]);
 
                         return;
                     }
 
+                    playlist.referenceLanguage = data;
                     player.withReferenceLanguage(data);
 
                     continueWithNext(playlist.queue[0]);
@@ -244,7 +260,7 @@
             var item = getNextItem();
 
             if (!item) {
-                p.done("error");
+                p.done("Completed");
 
                 return p;
             }
@@ -298,14 +314,25 @@
             return items;
         }
 
+        function replayCurrent() {
+            playlist.currentlyPlaying.isPlaying = false;
+            play(playlist.currentlyPlaying);
+        }
+
         initialize();
 
         return {
             getQueue: function () { return playlist.queue; },
             play: play,
             pause: player.pause,
+            replayCurrent: replayCurrent,
             insert: insertElement,
-            isPlaying: isPlaying
+            isPlaying: isPlaying,
+            setPlayer: function(p) {
+                player = p;
+                player.withReferenceLanguage(playlist.referenceLanguage);
+                playerHasBeenReplaced = true;
+            }
         }
     }
 
@@ -340,6 +367,11 @@
 
                     return this;
                 },
+                subscribeTo: function (events) {
+                    s.events.onEnded = events.onEnded || function () { };
+
+                    return this;
+                },
                 build: function () {
                     if (!isSupported()) {
                         throw new Error("Not supported. The browser needs to support mp3 or wav HTML5 Audio.");
@@ -348,6 +380,8 @@
                     if (!p) {
                         throw new Error("A player must be provided. Please use the 'usingPlayer' method to provide one.");
                     }
+
+                    s.events.onEnded = s.events.onEnded || function () { };
 
                     return new implementation(s, p);
                 }

@@ -11,7 +11,7 @@
                     var jsonObj = JSON.parse(data);
                     call.done(error, jsonObj);
                 } catch (e) {
-                    call.done(error, data);
+                    call.done(e, data);
                 }
 
             }); //$http({ method: 'GET', url: application.appendAppPath(url), timeout: canceler });

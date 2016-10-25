@@ -1,167 +1,65 @@
-﻿function TalkifyPlayer() {
+﻿function TtsPlayer() {
+    var me = this;
     var audioElement;
-    var wordHighlighter = new TalkifyWordHighlighter();
-    var id = generateGuid();
 
-    var settings = {
-        useTextHighlight: false,
-        referenceLanguage: -1
+    this.currentContext = {
+        item: null,
+        positions: []
     };
 
-    var events = {
-        onBeforeItemPlaying: function () { },
-        onSentenceComplete: function () { }
-    };
-
-    var internalEvents = {
-        onPause: function () { wordHighlighter.pause(); },
-        onPlay: function () { wordHighlighter.resume(); }
-    }
-
-    function createItems(text, $element) { //TODO: jQuery-dependency
-        var safeMaxQuerystringLength = 1000;
-
-        var items = [];
-
-        //TODO: Smart split, should really split at the first end of sentence (.) that is < safeLength
-        if (text.length > safeMaxQuerystringLength) {
-            var f = text.substr(0, safeMaxQuerystringLength);
-
-            items.push(template(f, $element));
-
-            items = items.concat(createItems(text.substr(safeMaxQuerystringLength, text.length - 1), $element));
-
-            return items;
+    this.audioSource = {
+        play: function () {
+            audioElement.play();
+        },
+        pause: function () {
+            audioElement.pause();
+        },
+        isPlaying: function () {
+            return audioElement.duration > 0 && !audioElement.paused;
+        },
+        paused: function () { return audioElement.paused; },
+        currentTime: function () { return audioElement.currentTime; },
+        stop: function () {
+            audioElement.pause();
+            audioElement.currentTime = 0;
         }
-
-        items.push(template(text, $element));
-
-        return items;
-
-        function template(t, $el) {
-            var outerHtml = $el.length > 0 ? $($el[0].outerHTML) : $();
-
-            return {
-                text: t,
-                preview: t.substr(0, 40),
-                element: $el,
-                originalElement: outerHtml,
-                isPlaying: false,
-                isLoading: false
-            };
-        }
-    }
-
-    var playAudio = function (item, onEnded) {
-        var p = new promise.Promise();
-
-        var sources = audioElement.getElementsByTagName("source");
-
-        var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
-
-        sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + settings.referenceLanguage + "&id=" + id;
-        sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + settings.referenceLanguage + "&id=" + id;
-
-        audioElement.load();
-
-        //TODO: remove jquery dependency
-        $(audioElement)
-            .unbind("loadeddata")
-            .bind("loadeddata", function () {
-                audioElement.pause();
-
-                if (!settings.useTextHighlight) {
-                    p.done();
-                    audioElement.play();
-                    return;
-                }
-
-                talkifyHttp.get("/api/Speak/GetPositions?id=" + id)
-                    .then(function (error, positions) {
-                        wordHighlighter
-                            .start(item, positions)
-                            .then(function (completedItem) {
-                                events.onSentenceComplete(completedItem);
-                            });
-
-                        p.done();
-                        audioElement.play();
-                    });
-            })
-            .unbind("ended.justForUniqueness")
-            .bind("ended.justForUniqueness", onEnded || function () { });
-
-        return p;
     };
 
-    var loadItemForPlayback = function (item) {
-        item.isLoading = true;
-        item.isPlaying = true;
-        item.element.addClass("playing");
-
-        playAudio(item, function () { item.isPlaying = false; })
-            .then(function () {
-                item.isLoading = false;
-            });
-    };
-
-    function generateGuid() {
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    function playItem(item) {
-        var p = new promise.Promise();
-
-        if (item && item.isPlaying) {
-            if (audioElement.paused) {
-                audioElement.play();
-            } else {
-                audioElement.pause();
-            }
-
-            return p;
-        }
-
-        events.onBeforeItemPlaying(item);
-
-        loadItemForPlayback(item);
-
-        $(audioElement).unbind("ended").bind("ended", function () {
-            p.done();
-        });
-
-        return p;
-    };
-
-    function playText(text) {
-        var items = createItems(text, $());
-
-        var currentItem = 0;
-
-        var next = function () {
-            currentItem++;
-
-            if (currentItem >= items.length) {
-                return;
-            }
-
-            playItem(items[currentItem])
-                .then(next);
-        };
-
-        playItem(items[currentItem])
-            .then(next);
-    }
+    this.forcedVoice = '';
 
     function setupBindings() {
-        audioElement.removeEventListener("pause", internalEvents.onPause);
-        audioElement.addEventListener("pause", internalEvents.onPause);
+        audioElement.addEventListener("pause", onPause);
+        audioElement.addEventListener("play", onPlay);
+    }
 
-        audioElement.removeEventListener("play", internalEvents.onPlay);
-        audioElement.addEventListener("play", internalEvents.onPlay);
+    function onPause() {
+        me.internalEvents.onPause();
+
+        me.wordHighlighter.pause();
+    }
+
+    function onPlay() {
+        me.internalEvents.onPlay();
+
+        if (!me.currentContext.positions.length) {
+            return;
+        }
+
+        if (me.audioSource.currentTime() > 0) {
+            me.wordHighlighter.resume();
+        } else {
+            var interval = setInterval(function () {
+                if (me.audioSource.currentTime() > 0) {
+                    clearInterval(interval);
+
+                    me.wordHighlighter
+                        .start(me.currentContext.item, me.currentContext.positions)
+                        .then(function (completedItem) {
+                            me.events.onSentenceComplete(completedItem);
+                        });
+                }
+            }, 20);
+        }
     }
 
     function initialize() {
@@ -184,36 +82,76 @@
             document.body.appendChild(audioElement);
         }
 
-        setupBindings();
+        var clonedAudio = audioElement.cloneNode(true);
+        audioElement.parentNode.replaceChild(clonedAudio, audioElement);
+
+        audioElement = clonedAudio;
     }
 
     initialize();
+    this.audioElement = audioElement;
 
-    return {
-        playItem: playItem,
-        playText: playText,
-        pause: function () {
-            audioElement.pause();
-        },
-        play: function() {
-            audioElement.play();
-        },
-        paused: function () { return audioElement.paused; },
-        withReferenceLanguage: function(refLang) {
-            settings.referenceLanguage = refLang;
+    this.__proto__.__proto__ = new BasePlayer(this.audioSource);
 
-            return this;
-        },
-        withTextHighlighting: function () {
-            settings.useTextHighlight = true;
+    setupBindings();
+};
 
-            return this;
-        },
-        subscribeTo: function (subscriptions) {
-            events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
-            events.onSentenceComplete = subscriptions.onItemFinished || function () { };
+TtsPlayer.prototype.getPositions = function () {
+    var me = this;
+    var p = new promise.Promise();
 
-            return this;
-        }
-    }
-}
+    talkifyHttp.get("/api/Speak/GetPositions?id=" + me.id)
+        .then(function (error, positions) {
+            p.done(null, positions);
+        });
+
+    return p;
+};
+
+TtsPlayer.prototype.playAudio = function (item, onEnded) {
+    var me = this;
+
+    me.currentContext.item = item;
+    me.currentContext.positions = [];
+
+    var p = new promise.Promise();
+
+    var sources = this.audioElement.getElementsByTagName("source");
+
+    var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
+
+    sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || '');
+    sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || '');
+
+    this.audioElement.load();
+
+    //TODO: remove jquery dependency
+    $(this.audioElement)
+        .unbind("loadeddata")
+        .bind("loadeddata", function () {
+            me.audioSource.pause();
+
+            if (!me.settings.useTextHighlight) {
+                p.done();
+                me.audioSource.play();
+                return;
+            }
+
+            me.getPositions().then(function (error, positions) {
+                me.currentContext.positions = positions;
+
+                p.done();
+                me.audioSource.play();
+            });
+        })
+        .unbind("ended.justForUniqueness")
+        .bind("ended.justForUniqueness", onEnded || function () { });
+
+    return p;
+};
+
+TtsPlayer.prototype.forceVoice = function (voice) {
+    this.forcedVoice = voice;
+
+    return this;
+};

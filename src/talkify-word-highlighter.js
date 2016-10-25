@@ -1,7 +1,11 @@
 ﻿var TalkifyWordHighlighter = function() {
     var textHighlightTimer = new Timer();
+    var currentItem = null;
 
     function highlight(item, word, charPosition) {
+        resetCurrentItem();
+
+        currentItem = item;
         var text = item.element.text().trim();
 
         if (charPosition === 0) {
@@ -17,6 +21,7 @@
         var p = new promise.Promise();
 
         textHighlightTimer.cancel();
+        resetCurrentItem();
 
         if (!positions.length) {
             return p.done(item);
@@ -30,6 +35,8 @@
             i++;
 
             if (i >= positions.length) {
+                textHighlightTimer.cancel();
+
                 window.setTimeout(function () {
                     item.element.html(item.originalElement.html());
 
@@ -39,7 +46,7 @@
                 return;
             }
 
-            var next = positions[i].Position - positions[i - 1].Position;
+            var next = (positions[i].Position - positions[i - 1].Position) + 0;
 
             textHighlightTimer.cancel();
             textHighlightTimer.start(internalCallback, next);
@@ -49,10 +56,24 @@
 
         return p;
     }
+
+    function cancel() {
+        textHighlightTimer.cancel();
+
+        resetCurrentItem();
+    }
+
+    function resetCurrentItem() {
+        if (currentItem) {
+            currentItem.element.html(currentItem.originalElement.html());
+        }
+    }
     
     return {
         pause: textHighlightTimer.pause,
         resume: textHighlightTimer.resume,
-        start: setupWordHightlighting
+        start: setupWordHightlighting,
+        highlight: highlight,
+        cancel: cancel
     };
 };
