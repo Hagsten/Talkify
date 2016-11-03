@@ -55,6 +55,35 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | subscribeTo | Json object | | Event subscriptions |    No |
 | build | | | Finalizes and creates the playlist instance |    Yes |
 
+## Playlist
+
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| getQueue | | | Returns the playlist queue |
+| play | | | Begins playback of playlist |
+| pause | | | Pauses playlist |
+| replayCurrent | | | Replays the current item in the playlist |
+| insert | jQuery element | | Inserts new html elements to play. Useful for elements that Talkify were unable to locate. Elements will be inserted in correct order with respect to the page. |
+| isPlaying | | | True if any item is currently in a playing state |
+| setPlayer | TtsPlayer/Html5Player | | Sets the player that the playlist is using |
+
+## Player (valid for all players)
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| withTextHighlighting | | | Tells the player to use text highlighting. For Html5Player this only works on localVoice. |
+| subscribeTo | Json object | | Event listeners |
+| playText | string | | Plays a text |
+| paused | | | True if paused |
+| isPlaying | | | True if playing |
+| play | | | Play |
+| pause | | | Pause |
+| forceVoice | string | | For Talkify hosted voices, this is the name of the voice from /api/Voices. For browser voices, this is the actual voice from window.speechSynthesis.getVoices() |
+
+## Html5Player only
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| forceLanguage | string | | Force the usage of a specific language. Use standard cultures like se-SE for Swedish and so on. Talkify will select a voice that matches the culture. |
+
 # License
 GPLv3
 
