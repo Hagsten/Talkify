@@ -41,6 +41,20 @@ talkify.playText('Hello world');
 - Download as mp3
 - Playback of entire website or paragraph/s of your choice
 
+# API
+## Playlist fluent builder
+Playlist builder is Talkifys way to instantiate your playlist. It comes with a fluent API.	
+
+| Method   | Parameters | Default |      Description      |  Mandatory |
+|----------|:------ |:------|:-------------|------:|
+| begin |  | |  Entry point. Call this to start building your playlist | Yes |
+| usingPlayer | TtsPlayer/Html5Player  | |   Specify which player to be used. |   Yes |
+| withTextInteraction | | | Enables you to click on paragraphs (and other text) to play |    No |
+| withElements | jQuery element | | Specifies with elements to play. If omitted, Talkify will crawl the page and select for you |    No |
+| withRootSelector | string | 'body' | Sets the scope from where Talkify will start to crawl the page for text to play |    No |
+| subscribeTo | Json object | | Event subscriptions |    No |
+| build | | | Finalizes and creates the playlist instance |    Yes |
+
 # License
 GPLv3
 
