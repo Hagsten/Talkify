@@ -83,6 +83,13 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
 | forceLanguage | string | | Force the usage of a specific language. Use standard cultures like se-SE for Swedish and so on. Talkify will select a voice that matches the culture. |
+| setRate | double | 1 | Playback rate. A value between 0.0 - 2.0 |
+| setVolume | double | 1 | Volume. A value between 0.0 - 1.0 |
+
+## Talkify hosted only
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| setRate | int | 1 | Playback rate. A value between 1 and 3 |
 
 # License
 GPLv3
