@@ -25,7 +25,7 @@
         }
     };
 
-    this.forcedVoice = '';
+    this.forcedVoice = "";
 
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
@@ -63,24 +63,27 @@
     }
 
     function initialize() {
-        audioElement = document.getElementById("talkify-audio");
+        audioElement = null;
+        var existingElement = document.getElementById("talkify-audio");
 
-        if (!audioElement) {
-            var mp3Source = document.createElement("source");
-            var wavSource = document.createElement("source");
-            audioElement = document.createElement("audio");
-
-            audioElement.appendChild(mp3Source);
-            audioElement.appendChild(wavSource);
-
-            mp3Source.type = "audio/mpeg";
-            wavSource.type = "audio/wav";
-            audioElement.id = "talkify-audio";
-            audioElement.controls = true;
-            audioElement.autoplay = true;
-
-            document.body.appendChild(audioElement);
+        if (existingElement) {
+            existingElement.outerHTML = "";
         }
+
+        var mp3Source = document.createElement("source");
+        var wavSource = document.createElement("source");
+        audioElement = document.createElement("audio");
+
+        audioElement.appendChild(mp3Source);
+        audioElement.appendChild(wavSource);
+
+        mp3Source.type = "audio/mpeg";
+        wavSource.type = "audio/wav";
+        audioElement.id = "talkify-audio";
+        audioElement.controls = true;
+        audioElement.autoplay = true;
+
+        document.body.appendChild(audioElement);
 
         var clonedAudio = audioElement.cloneNode(true);
         audioElement.parentNode.replaceChild(clonedAudio, audioElement);
@@ -120,8 +123,8 @@ TtsPlayer.prototype.playAudio = function (item, onEnded) {
 
     var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
 
-    sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || '');
-    sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || '');
+    sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || "") + "&rate=" + this.settings.rate;
+    sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || "") + "&rate=" + this.settings.rate;
 
     this.audioElement.load();
 
@@ -138,7 +141,7 @@ TtsPlayer.prototype.playAudio = function (item, onEnded) {
             }
 
             me.getPositions().then(function (error, positions) {
-                me.currentContext.positions = positions;
+                me.currentContext.positions = positions || [];
 
                 p.done();
                 me.audioSource.play();

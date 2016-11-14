@@ -6,8 +6,9 @@
 
     this.settings = {
         useTextHighlight: false,
-        referenceLanguage: { Culture: '', Language: -1 },
-        lockedLanguage: null
+        referenceLanguage: { Culture: "", Language: -1 },
+        lockedLanguage: null,
+        rate: 0
     };
 
     this.events = {
@@ -50,6 +51,12 @@ BasePlayer.prototype.withTextHighlighting = function () {
 
     return this;
 };
+
+BasePlayer.prototype.setRate = function(r) {
+    this.settings.rate = r;
+
+    return this;
+}
 
 BasePlayer.prototype.subscribeTo = function (subscriptions) {
     this.events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };

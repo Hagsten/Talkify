@@ -4,7 +4,7 @@
         useGui: false,
         useTextInteraction: false,
         domElements: [],
-        rootSelector: 'body',
+        rootSelector: "body",
         events: {
             onEnded: null
         }
@@ -155,12 +155,20 @@
 
         function play(item) {
             if (!item) {
+                if (playlist.queue.length === 0) {
+                    return;
+                }
+
                 playFromBeginning();
 
                 return;
             }
 
             continueWithNext(item);
+        }
+
+        function pause() {
+            player.pause();
         }
 
         function setupItemForUserInteraction(item) {
@@ -204,6 +212,14 @@
             if (settings.useTextInteraction) {
                 for (var j = 0; j < playlist.queue.length; j++) {
                     var item = playlist.queue[j];
+
+                    if (j > 0) {
+                        var isSameAsPrevious = item.element.is(playlist.queue[j - 1].element);
+
+                        if (isSameAsPrevious) {
+                            continue;
+                        }
+                    }
 
                     setupItemForUserInteraction(item);
                 }
@@ -264,7 +280,7 @@
 
                 return p;
             }
-            
+
             return playItem(item);
         }
 
@@ -324,11 +340,11 @@
         return {
             getQueue: function () { return playlist.queue; },
             play: play,
-            pause: player.pause,
+            pause: pause,
             replayCurrent: replayCurrent,
             insert: insertElement,
             isPlaying: isPlaying,
-            setPlayer: function(p) {
+            setPlayer: function (p) {
                 player = p;
                 player.withReferenceLanguage(playlist.referenceLanguage);
                 playerHasBeenReplaced = true;
@@ -337,7 +353,7 @@
     }
 
     return {
-        begin: function() {
+        begin: function () {
             s = JSON.parse(JSON.stringify(defaults));
             p = null;
 
@@ -387,6 +403,6 @@
                 }
             }
         }
-        
+
     };
 };

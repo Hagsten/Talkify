@@ -1,6 +1,7 @@
 ﻿var Html5Player = function () {
     this.isStopped = false;
     this.forcedVoice = null;
+    this.volume = 1;
 
     this.currentContext = {
         item: null,
@@ -40,7 +41,7 @@
         },
         stop: function () {
             me.stop();
-        }
+       } 
     };
 
     this.__proto__.__proto__ = new BasePlayer(this.audioSource);
@@ -226,6 +227,8 @@ Html5Player.prototype.playCurrentContext = function () {
 
         utterance.text = chunck;
         utterance.lang = me.settings.lockedLanguage || me.settings.referenceLanguage.Culture;
+        utterance.rate = me.settings.rate;
+        utterance.volume = me.volume;
 
         me.currentContext.utterances.push(utterance);
     });
@@ -336,3 +339,9 @@ Html5Player.prototype.forceVoice = function (voice) {
 
     return this;
 };
+
+Html5Player.prototype.setVolume = function (volume) {
+    this.volume = volume;
+
+    return this;
+}
