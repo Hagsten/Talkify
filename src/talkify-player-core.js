@@ -8,7 +8,7 @@
         useTextHighlight: false,
         referenceLanguage: { Culture: "", Language: -1 },
         lockedLanguage: null,
-        rate: 0
+        rate: 1
     };
 
     this.events = {
