@@ -32,6 +32,8 @@ talkify.playText('Hello world');
 - High qualiy voices
 - Multi lingual with built in language detection (i.e. if the text is in english, an english voice is used). Supported languages:
   - English
+  - Spanish
+  - French
   - Chinese
   - Japanese
   - Korean
