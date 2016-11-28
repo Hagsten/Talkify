@@ -81,7 +81,7 @@
         mp3Source.type = "audio/mpeg";
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
-        audioElement.controls = true; //TODO: Depends on if the client wants to use the talkify ui
+        audioElement.controls = !talkifyConfig.ui.audioControls.enabled;
         audioElement.autoplay = true; //TODO: Can be a setting?
 
         document.body.appendChild(audioElement);

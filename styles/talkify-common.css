@@ -5,3 +5,12 @@
 .talkify-hidden{
     display: none !important;
 }
+
+.talkify-disabled {
+    color: #ffffff !important;
+    color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.talkify-clickable {
+    cursor: pointer;
+}
