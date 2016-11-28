@@ -331,6 +331,10 @@
         }
 
         function replayCurrent() {
+            if (!playlist.currentlyPlaying) {
+                return;
+            }
+
             playlist.currentlyPlaying.isPlaying = false;
             play(playlist.currentlyPlaying);
         }
@@ -348,6 +352,7 @@
                 player = p;
                 player.withReferenceLanguage(playlist.referenceLanguage);
                 playerHasBeenReplaced = true;
+                replayCurrent();
             }
         }
     }

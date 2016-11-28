@@ -7,6 +7,10 @@
         positions: []
     };
 
+    this.playbar = {
+        instance: null
+    };
+
     this.audioSource = {
         play: function () {
             audioElement.play();
@@ -25,8 +29,6 @@
         }
     };
 
-    this.forcedVoice = "";
-
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
         audioElement.addEventListener("play", onPlay);
@@ -34,7 +36,6 @@
 
     function onPause() {
         me.internalEvents.onPause();
-
         me.wordHighlighter.pause();
     }
 
@@ -80,8 +81,8 @@
         mp3Source.type = "audio/mpeg";
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
-        audioElement.controls = true;
-        audioElement.autoplay = true;
+        audioElement.controls = true; //TODO: Depends on if the client wants to use the talkify ui
+        audioElement.autoplay = true; //TODO: Can be a setting?
 
         document.body.appendChild(audioElement);
 
@@ -89,12 +90,35 @@
         audioElement.parentNode.replaceChild(clonedAudio, audioElement);
 
         audioElement = clonedAudio;
+
+        me.mutateControls(function () {
+            me.playbar.instance.subscribeTo({
+                onPlayClicked: function () {
+                    me.play();
+                },
+                onPauseClicked: function () {
+                    me.audioElement.pause();
+                },
+                onVolumeChanged: function (volume) {
+                    me.audioElement.volume = volume / 10;
+                },
+                onRateChanged: function (rate) {
+                    me.settings.rate = rate;
+                }
+            })
+                .setRate(1)
+                .setMinRate(1)
+                .setMaxRate(3)
+                .setVoice(me.forcedVoice)
+                .setAudioSource(audioElement);
+        });
     }
 
-    initialize();
-    this.audioElement = audioElement;
+    this.__proto__.__proto__ = new BasePlayer(this.audioSource, this.playbar);
 
-    this.__proto__.__proto__ = new BasePlayer(this.audioSource);
+    initialize.apply(this);
+
+    this.audioElement = audioElement;
 
     setupBindings();
 };
@@ -122,9 +146,10 @@ TtsPlayer.prototype.playAudio = function (item, onEnded) {
     var sources = this.audioElement.getElementsByTagName("source");
 
     var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
+    var voice = this.forcedVoice ? this.forcedVoice.name : "";
 
-    sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || "") + "&rate=" + this.settings.rate;
-    sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (this.forcedVoice || "") + "&rate=" + this.settings.rate;
+    sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+    sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
 
     this.audioElement.load();
 
@@ -151,10 +176,4 @@ TtsPlayer.prototype.playAudio = function (item, onEnded) {
         .bind("ended.justForUniqueness", onEnded || function () { });
 
     return p;
-};
-
-TtsPlayer.prototype.forceVoice = function (voice) {
-    this.forcedVoice = voice;
-
-    return this;
 };

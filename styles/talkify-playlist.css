@@ -14,8 +14,8 @@
 }
 
 .talkify-highlight:hover {
-    background-color: #3D0328;
-    color: white;
+    background-color: #3D0328 !important;
+    color: white !important;
 }
 
 .talkify-word-highlight {

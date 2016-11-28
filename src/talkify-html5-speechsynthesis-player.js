@@ -1,6 +1,5 @@
 ﻿var Html5Player = function () {
     this.isStopped = false;
-    this.forcedVoice = null;
     this.volume = 1;
 
     this.currentContext = {
@@ -11,6 +10,10 @@
     };
 
     var me = this;
+
+    this.playbar = {
+        instance: null
+    };
 
     this.audioSource = {
         play: function () {
@@ -26,6 +29,8 @@
         },
         pause: function () {
             window.speechSynthesis.pause();
+
+            me.internalEvents.onPause();
         },
         ended: function () { return !window.speechSynthesis.speaking; },
         isPlaying: function () { return window.speechSynthesis.speaking; },
@@ -35,16 +40,32 @@
             if (asPause) {
                 me.stop();
             } else {
-                console.log('FOOOO');
                 window.speechSynthesis.cancel();
             }
         },
         stop: function () {
             me.stop();
-       } 
+        }
     };
 
-    this.__proto__.__proto__ = new BasePlayer(this.audioSource);
+    this.__proto__.__proto__ = new BasePlayer(this.audioSource, this.playbar);
+
+    me.mutateControls(function (c) {
+        c.subscribeTo({
+            onPlayClicked: function () {
+                me.audioSource.play();
+            },
+            onPauseClicked: function () {
+                me.pause();
+            },
+            onVolumeChanged: function (volume) {
+                me.volume = volume / 10;
+            },
+            onRateChanged: function (rate) {
+                me.settings.rate = rate / 5;
+            }
+        }).setVoice(this.forcedVoice);
+    });
 };
 
 Html5Player.prototype.extractWords = function (text, language) {
@@ -257,7 +278,7 @@ Html5Player.prototype.playCurrentContext = function () {
 
     me.currentContext.utterances.forEach(function (u, index) {
         if (index === 0) {
-            u.onstart = function(e) {
+            u.onstart = function (e) {
                 me.currentContext.currentUtterance = e.utterance;
                 p.done();
                 me.internalEvents.onPlay();
@@ -275,17 +296,22 @@ Html5Player.prototype.playCurrentContext = function () {
         u.onresume = function () { };
 
         u.onboundary = function (e) {
-            if (!me.settings.useTextHighlight || !u.voice.localService) {
-                return;
-            }
-
             if (e.name !== "word" || !words[wordIndex]) {
                 return;
             }
 
-            if (!words[wordIndex]) {
+            me.mutateControls(function (c) {
+                c.setProgress((wordIndex + 1) / words.length);
+            });
+
+            if (!me.settings.useTextHighlight || !u.voice.localService) {
                 return;
             }
+
+
+            //if (!words[wordIndex]) {
+            //    return;
+            //}
 
             var fromIndex = 0;
 
@@ -313,7 +339,12 @@ Html5Player.prototype.playCurrentContext = function () {
             u.voice = voice;
 
             console.log(u); //Keep this, speech bugs out otherwise
+
             window.speechSynthesis.cancel();
+
+            me.mutateControls(function (c) {
+                c.setVoice(voice);
+            });
 
             window.setTimeout(function () {
                 window.speechSynthesis.speak(u);
@@ -326,6 +357,7 @@ Html5Player.prototype.playCurrentContext = function () {
 
 Html5Player.prototype.stop = function () {
     this.isStopped = true;
+    this.internalEvents.onPause();
     window.speechSynthesis.cancel();
 
     if (this.currentContext.utterances.indexOf(this.currentContext.currentUtterance) < this.currentContext.utterances.length - 1) {
@@ -334,14 +366,8 @@ Html5Player.prototype.stop = function () {
     }
 };
 
-Html5Player.prototype.forceVoice = function (voice) {
-    this.forcedVoice = voice;
-
-    return this;
-};
-
 Html5Player.prototype.setVolume = function (volume) {
     this.volume = volume;
 
     return this;
-}
+};

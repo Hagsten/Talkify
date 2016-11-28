@@ -1,4 +1,4 @@
-﻿var BasePlayer = function (_audiosource) {
+﻿var BasePlayer = function (_audiosource, _playbar) {
     this.audioSource = _audiosource;
     this.wordHighlighter = new TalkifyWordHighlighter();
     this.id = this.generateGuid();
@@ -8,8 +8,12 @@
         useTextHighlight: false,
         referenceLanguage: { Culture: "", Language: -1 },
         lockedLanguage: null,
-        rate: 1
+        rate: 1,
+        useControls: false
     };
+
+    this.playbar = _playbar;
+    this.forcedVoice = null;
 
     this.events = {
         onBeforeItemPlaying: function () { },
@@ -21,8 +25,12 @@
     };
 
     this.internalEvents = {
-        onPause: function() {
+        onPause: function () {
             //me.wordHighlighter.pause();
+            me.mutateControls(function(c) {
+                c.markAsPaused();
+            });
+            //me.playbar.markAsPaused();
 
             if (!me.audioSource.ended && me.audioSource.currentTime() > 0) {
                 me.events.onPause();
@@ -30,17 +38,40 @@
         },
         onPlay: function () {
             //me.wordHighlighter.resume();
+            me.mutateControls(function (c) {
+                c.markAsPlaying();
+            });
 
             if (me.audioSource.currentTime() > 0) {
                 me.events.onResume();
             } else {
                 me.events.onPlay();
             }
+        },
+        onStop: function () {
+            me.mutateControls(function (c) {
+                c.markAsPaused();
+            });
         }
     };
+
+    this.mutateControls = function(mutator) {
+        if (this.playbar.instance) {
+            mutator(this.playbar.instance);
+        }
+    }
+
+    if (talkifyConfig.ui.audioControls.enabled) {
+        this.playbar.instance = talkifyPlaybar().subscribeTo({
+            onTextHighlightingClicked: function() {
+                me.settings.useTextHighlight = !me.settings.useTextHighlight;
+            }
+        });
+    }
+
 };
 
-BasePlayer.prototype.withReferenceLanguage = function(refLang) {
+BasePlayer.prototype.withReferenceLanguage = function (refLang) {
     this.settings.referenceLanguage = refLang;
 
     return this;
@@ -48,11 +79,14 @@ BasePlayer.prototype.withReferenceLanguage = function(refLang) {
 
 BasePlayer.prototype.withTextHighlighting = function () {
     this.settings.useTextHighlight = true;
+    this.mutateControls(function (c) {
+        c.setTextHighlight(true);
+    });
 
     return this;
 };
 
-BasePlayer.prototype.setRate = function(r) {
+BasePlayer.prototype.setRate = function (r) {
     this.settings.rate = r;
 
     return this;
@@ -97,11 +131,11 @@ BasePlayer.prototype.playItem = function (item) {
     item.isPlaying = true;
     item.element.addClass("playing");
 
-    this.playAudio(item, function() {
-            item.isPlaying = false;
-            p.done();
-        })
-        .then(function() {
+    this.playAudio(item, function () {
+        item.isPlaying = false;
+        p.done();
+    })
+        .then(function () {
             item.isLoading = false;
             me.events.onItemLoaded();
         });
@@ -187,10 +221,21 @@ BasePlayer.prototype.pause = function () {
 BasePlayer.prototype.dispose = function () {
     this.wordHighlighter.cancel();
     this.audioSource.stop();
+    this.internalEvents.onStop();
 };
 
 BasePlayer.prototype.forceLanguage = function (culture) {
     this.settings.lockedLanguage = culture;
+
+    return this;
+};
+
+BasePlayer.prototype.forceVoice = function (voice) {
+    this.forcedVoice = voice;
+
+    this.mutateControls(function (c) {
+        c.setVoice(voice);
+    });
 
     return this;
 };

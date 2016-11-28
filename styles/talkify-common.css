@@ -1,0 +1,7 @@
+﻿.talkify-inline {
+    display: inline-block;
+}
+
+.talkify-hidden{
+    display: none !important;
+}
