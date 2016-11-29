@@ -6,7 +6,7 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/woqw6b6g/21/
+http://jsfiddle.net/woqw6b6g/23/
 
 ## Play all, top to bottom
 ```javascript		
@@ -30,6 +30,7 @@ talkify.playText('Hello world');
 # Features
 
 - High qualiy voices
+- Light weight (15-25Kb minified)
 - Multi lingual with built in language detection (i.e. if the text is in english, an english voice is used). Supported languages:
   - English
   - Spanish
