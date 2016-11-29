@@ -44,6 +44,20 @@ talkify.playText('Hello world');
 - Download as mp3
 - Playback of entire website or paragraph/s of your choice
 
+# Configuration
+```javascript
+talkifyConfig = {
+    host: 'http://talkify.net', //Host of streamed audio media.
+    ui:
+    {
+        audioControls: { //If enabled, replaces the built in audio controls. Especially good for the Web Speech API bits
+            enabled: false,
+            container: document.body
+        }
+    }
+}
+```
+
 # API
 ## Playlist fluent builder
 Playlist builder is Talkifys way to instantiate your playlist. It comes with a fluent API.	
