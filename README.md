@@ -6,7 +6,7 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/woqw6b6g/20/
+http://jsfiddle.net/woqw6b6g/21/
 
 ## Play all, top to bottom
 ```javascript		
