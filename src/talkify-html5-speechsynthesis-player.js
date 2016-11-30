@@ -17,11 +17,13 @@
 
     this.audioSource = {
         play: function () {
-            if (window.speechSynthesis.paused) {
-                window.speechSynthesis.resume();
+            //Pause flag only works for "native" voice but resume does not work. Better to always play the current context.
+            //if (window.speechSynthesis.paused) {
+            //    console.log("Paused here");
+            //    window.speechSynthesis.resume();
 
-                return;
-            }
+            //    return;
+            //}
 
             if (me.currentContext.item) {
                 me.playCurrentContext();
