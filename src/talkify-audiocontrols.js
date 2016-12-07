@@ -293,6 +293,13 @@
         },
         setAudioSource: function (src) {
             listenToAudioSrc(src);
-        }
+        },
+		dispose: function(){
+		    var existingControl = document.getElementById("htmlPlaybar");
+
+			if (existingControl) {
+				existingControl.parentNode.removeChild(existingControl);
+			}
+		}
     }
 }

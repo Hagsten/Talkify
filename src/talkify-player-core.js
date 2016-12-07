@@ -68,7 +68,6 @@
             }
         });
     }
-
 };
 
 BasePlayer.prototype.withReferenceLanguage = function (refLang) {
@@ -77,10 +76,19 @@ BasePlayer.prototype.withReferenceLanguage = function (refLang) {
     return this;
 };
 
-BasePlayer.prototype.withTextHighlighting = function () {
+BasePlayer.prototype.enableTextHighlighting = function () {
     this.settings.useTextHighlight = true;
     this.mutateControls(function (c) {
         c.setTextHighlight(true);
+    });
+
+    return this;
+};
+
+BasePlayer.prototype.disableTextHighlighting = function () {
+    this.settings.useTextHighlight = false;
+    this.mutateControls(function (c) {
+        c.setTextHighlight(false);
     });
 
     return this;
@@ -220,8 +228,12 @@ BasePlayer.prototype.pause = function () {
 
 BasePlayer.prototype.dispose = function () {
     this.wordHighlighter.cancel();
-    this.audioSource.stop();
+    this.audioSource.stop();	
     this.internalEvents.onStop();
+	
+	this.mutateControls(function(c){
+		c.dispose();
+	});
 };
 
 BasePlayer.prototype.forceLanguage = function (culture) {
@@ -233,6 +245,8 @@ BasePlayer.prototype.forceLanguage = function (culture) {
 BasePlayer.prototype.forceVoice = function (voice) {
     this.forcedVoice = voice;
 
+	this.settings.lockedLanguage = voice.lang || voice.culture || this.settings.lockedLanguage;
+	
     this.mutateControls(function (c) {
         c.setVoice(voice);
     });

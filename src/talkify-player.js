@@ -82,7 +82,7 @@
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
         audioElement.controls = !talkifyConfig.ui.audioControls.enabled;
-        audioElement.autoplay = true; //TODO: Can be a setting?
+        audioElement.autoplay = false;
 
         document.body.appendChild(audioElement);
 
