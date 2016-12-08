@@ -90,7 +90,7 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
 | enableTextHighlighting | | | Tells the player to use text highlighting. For Html5Player this only works on localVoice. |
-| disableTextHighlighting | | | Turns off text highlighting. For Html5Player this only works on localVoice. |
+| disableTextHighlighting | | | Turns off text highlighting. |
 | subscribeTo | Json object | | Event listeners |
 | playText | string | | Plays a text |
 | paused | | | True if paused |
