@@ -3,6 +3,9 @@ A javascript text to speech (TTS) library. Originally from and used by http://ta
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
 
+# Dependencies
+jQuery
+
 # Usage
 
 ## Working fiddle
@@ -83,11 +86,14 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | insert | jQuery element | | Inserts new html elements to play. Useful for elements that Talkify were unable to locate. Elements will be inserted in correct order with respect to the page. |
 | isPlaying | | | True if any item is currently in a playing state |
 | setPlayer | TtsPlayer/Html5Player | | Sets the player that the playlist is using |
+| enableTextInteraction | | | Enables click to play on HTML elements |
+| disableTextInteraction | | | Disables click to play on HTML elements |
 
 ## Player (valid for all players)
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
-| withTextHighlighting | | | Tells the player to use text highlighting. For Html5Player this only works on localVoice. |
+| enableTextHighlighting | | | Tells the player to use text highlighting. For Html5Player this only works on localVoice. |
+| disableTextHighlighting | | | Turns off text highlighting. |
 | subscribeTo | Json object | | Event listeners |
 | playText | string | | Plays a text |
 | paused | | | True if paused |
