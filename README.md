@@ -1,4 +1,4 @@
-# Talkify (beta version)
+# Talkify
 A javascript text to speech (TTS) library. Originally from and used by http://talkify.net.
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
