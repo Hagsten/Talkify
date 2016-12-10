@@ -9,7 +9,7 @@ jQuery
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/woqw6b6g/23/
+http://jsfiddle.net/woqw6b6g/27/
 
 ## Play all, top to bottom
 ```javascript		
