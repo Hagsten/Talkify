@@ -17,11 +17,16 @@
         item.element.html(text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1));
     }
 
+    function cancel() {
+        textHighlightTimer.cancel();
+
+        resetCurrentItem();
+    }
+
     function setupWordHightlighting(item, positions) {
         var p = new promise.Promise();
 
-        textHighlightTimer.cancel();
-        resetCurrentItem();
+        cancel();
 
         if (!positions.length) {
             return p.done(item);
@@ -55,12 +60,6 @@
         internalCallback();
 
         return p;
-    }
-
-    function cancel() {
-        textHighlightTimer.cancel();
-
-        resetCurrentItem();
     }
 
     function resetCurrentItem() {

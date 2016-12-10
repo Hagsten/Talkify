@@ -26,6 +26,13 @@
         stop: function () {
             audioElement.pause();
             audioElement.currentTime = 0;
+        },
+        dispose: function () {
+            var existingElement = document.getElementById("talkify-audio");
+
+            if (existingElement) {
+                existingElement.outerHTML = "";
+            }
         }
     };
 
@@ -46,7 +53,7 @@
             return;
         }
 
-        if (me.audioSource.currentTime() > 0) {
+        if (me.audioSource.currentTime() > 0.1) {
             me.wordHighlighter.resume();
         } else {
             var interval = setInterval(function () {
@@ -157,6 +164,10 @@ TtsPlayer.prototype.playAudio = function (item, onEnded) {
     $(this.audioElement)
         .unbind("loadeddata")
         .bind("loadeddata", function () {
+            me.mutateControls(function (instance) {
+                instance.audioLoaded();
+            });
+
             me.audioSource.pause();
 
             if (!me.settings.useTextHighlight) {

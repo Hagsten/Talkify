@@ -21,13 +21,14 @@
         onSentenceComplete: function () { },
         onPause: function () { },
         onPlay: function () { },
-        onResume: function () { }
+        onResume: function () { },
+        onTextHighligtChanged: function () { }
     };
 
     this.internalEvents = {
         onPause: function () {
             //me.wordHighlighter.pause();
-            me.mutateControls(function(c) {
+            me.mutateControls(function (c) {
                 c.markAsPaused();
             });
             //me.playbar.markAsPaused();
@@ -55,7 +56,7 @@
         }
     };
 
-    this.mutateControls = function(mutator) {
+    this.mutateControls = function (mutator) {
         if (this.playbar.instance) {
             mutator(this.playbar.instance);
         }
@@ -63,8 +64,9 @@
 
     if (talkifyConfig.ui.audioControls.enabled) {
         this.playbar.instance = talkifyPlaybar().subscribeTo({
-            onTextHighlightingClicked: function() {
+            onTextHighlightingClicked: function () {
                 me.settings.useTextHighlight = !me.settings.useTextHighlight;
+                me.events.onTextHighligtChanged(me.settings.useTextHighlight);
             }
         });
     }
@@ -107,6 +109,7 @@ BasePlayer.prototype.subscribeTo = function (subscriptions) {
     this.events.onPlay = subscriptions.onPlay || function () { };
     this.events.onResume = subscriptions.onResume || function () { };
     this.events.onItemLoaded = subscriptions.onItemLoaded || function () { };
+    this.events.onTextHighligtChanged = subscriptions.onTextHighligtChanged || function () { };
 
     return this;
 };
@@ -228,12 +231,14 @@ BasePlayer.prototype.pause = function () {
 
 BasePlayer.prototype.dispose = function () {
     this.wordHighlighter.cancel();
-    this.audioSource.stop();	
+    this.audioSource.stop();
     this.internalEvents.onStop();
-	
-	this.mutateControls(function(c){
-		c.dispose();
-	});
+
+    this.mutateControls(function (c) {
+        c.dispose();
+    });
+
+    this.audioSource.dispose();
 };
 
 BasePlayer.prototype.forceLanguage = function (culture) {
@@ -243,10 +248,10 @@ BasePlayer.prototype.forceLanguage = function (culture) {
 };
 
 BasePlayer.prototype.forceVoice = function (voice) {
-    this.forcedVoice = voice;
+    this.forcedVoice = voice !== undefined ? voice : null;
 
-	this.settings.lockedLanguage = voice.lang || voice.culture || this.settings.lockedLanguage;
-	
+    this.settings.lockedLanguage = (voice && (voice.lang || voice.culture)) || this.settings.lockedLanguage;
+
     this.mutateControls(function (c) {
         c.setVoice(voice);
     });

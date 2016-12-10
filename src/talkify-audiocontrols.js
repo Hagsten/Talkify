@@ -4,6 +4,7 @@
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, trackTimeElement, textHighlightingElement, timeWrapperElement, controlsWrapperElement, wrapper, voiceWrapperElement;
+    var audioSrcElement;
 
     var events = {
         onPlayClicked: function () { },
@@ -93,10 +94,10 @@
         backElement.className = "fa fa-backward fa-2x talkify-clickable";
 
         playElement = document.createElement("i");
-        playElement.className = "fa fa-play-circle fa-2x talkify-clickable";
+        playElement.className = "fa fa-play-circle fa-2x talkify-clickable talkify-disabled";
 
         pauseElement = document.createElement("i");
-        pauseElement.className = "fa fa-pause fa-2x talkify-clickable";
+        pauseElement.className = "fa fa-pause fa-2x talkify-clickable talkify-disabled";
 
         var forwardElement = document.createElement("i");
         forwardElement.className = "fa fa-forward fa-2x talkify-clickable";
@@ -122,7 +123,7 @@
         volumeElement.setAttribute("value", "10");
         volumeElement.setAttribute("min", "0");
         volumeElement.setAttribute("max", "10");
-        rateElement.setAttribute("title", "Adjust playback volume");
+        volumeElement.setAttribute("title", "Adjust playback volume");
 
         wrapper.appendChild(voiceWrapperElement);
         wrapper.appendChild(timeWrapperElement);
@@ -145,10 +146,18 @@
 
     function setupBindings() {
         playElement.addEventListener("click", function () {
+            if (playElement.classList.contains("talkify-disabled")) {
+                return;
+            }
+
             events.onPlayClicked();
         });
 
         pauseElement.addEventListener("click", function () {
+            if (pauseElement.classList.contains("talkify-disabled")) {
+                return;
+            }
+
             events.onPauseClicked();
         });
 
@@ -176,26 +185,31 @@
         setupBindings();
     };
 
+    function updateClock(e) {
+        progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
+
+        var current = document.getElementById("talkify-current-track-time");
+        var total = document.getElementById("talkify-track-time");
+
+        var minutes = Math.floor(e.target.currentTime / 60);
+        var seconds = Math.round(e.target.currentTime) - (minutes * 60);
+
+        current.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
+
+        minutes = !!e.target.duration ? Math.floor(e.target.duration / 60) : 0;
+        seconds = !!e.target.duration ? Math.round(e.target.duration) - (minutes * 60) : 0;
+
+        total.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
+    }
+
     function listenToAudioSrc(src) {
         if (!(src instanceof Node)) {
             return;
         }
 
-        src.addEventListener("timeupdate", function (e) {
-            progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
+        audioSrcElement = src;
 
-            var current = document.getElementById("talkify-current-track-time");
-            var total = document.getElementById("talkify-track-time");
-
-            var minutes = Math.floor(e.target.currentTime / 60);
-            var seconds = Math.round(e.target.currentTime) - (minutes * 60);
-
-            current.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
-
-            minutes = Math.floor(e.target.duration / 60);
-            seconds = Math.round(e.target.duration) - (minutes * 60);
-            total.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
-        }, true);
+        audioSrcElement.addEventListener("timeupdate", updateClock, false);
     }
 
     function arrangeControlsWhenProgressIsUnsupported() {
@@ -272,6 +286,10 @@
             rateElement.setAttribute("min", value);
             return this;
         },
+        audioLoaded: function () {
+            removeClass(pauseElement, "talkify-disabled");
+            removeClass(playElement, "talkify-disabled");
+        },
         markAsPaused: pause,
         markAsPlaying: play,
         setTextHighlight: function (enabled) {
@@ -294,12 +312,16 @@
         setAudioSource: function (src) {
             listenToAudioSrc(src);
         },
-		dispose: function(){
-		    var existingControl = document.getElementById("htmlPlaybar");
+        dispose: function () {
+            var existingControl = document.getElementById("htmlPlaybar");
 
-			if (existingControl) {
-				existingControl.parentNode.removeChild(existingControl);
-			}
-		}
+            if (existingControl) {
+                existingControl.parentNode.removeChild(existingControl);
+            }
+
+            if (audioSrcElement) {
+                audioSrcElement.removeEventListener("timeupdate", updateClock);
+            }
+        }
     }
 }

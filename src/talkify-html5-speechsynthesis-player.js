@@ -17,14 +17,6 @@
 
     this.audioSource = {
         play: function () {
-            //Pause flag only works for "native" voice but resume does not work. Better to always play the current context.
-            //if (window.speechSynthesis.paused) {
-            //    console.log("Paused here");
-            //    window.speechSynthesis.resume();
-
-            //    return;
-            //}
-
             if (me.currentContext.item) {
                 me.playCurrentContext();
             }
@@ -47,7 +39,8 @@
         },
         stop: function () {
             me.stop();
-        }
+        },
+        dispose: function () { }
     };
 
     this.__proto__.__proto__ = new BasePlayer(this.audioSource, this.playbar);
@@ -213,6 +206,10 @@ Html5Player.prototype.playAudio = function (item, onEnded) {
     this.currentContext.item = item;
     this.currentContext.utterances = [];
     this.currentContext.currentUtterance = null;
+    this.mutateControls(function (instance) {
+        instance.audioLoaded();
+    });
+
     var me = this;
 
     //if (me.settings.lockedLanguage !== null) {
