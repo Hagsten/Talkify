@@ -27,7 +27,8 @@ http://jsfiddle.net/woqw6b6g/27/
 ## Play simple text
 
 ```javascript
-talkify.playText('Hello world');
+var player = new TtsPlayer(); //or new Html5Player()
+player.playText('Hello world');
 ```
 
 # Features
