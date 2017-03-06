@@ -12,6 +12,28 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 ## Working fiddle
 http://jsfiddle.net/woqw6b6g/27/
 
+## Include the scripts
+### Minified version
+```html
+<script src="jquery.js"></script> //see dependencies
+<script src="talkify.min.js"></script>
+```
+### Non-minified version
+```html
+<script src="jquery.js"></script> //see dependencies
+<script src="promise.js"></script> //see dependencies
+<script src="talkify-config.js"></script>
+<script src="talkify-ajax.js"></script>
+<script src="talkify-timer.js"></script>
+<script src="talkify-textextractor.js"></script>
+<script src="talkify-word-highlighter.js"></script>
+<script src="talkify-player-core.js"></script>
+<script src="talkify-html5-speechsynthesis-player.js"></script>
+<script src="talkify-player.js"></script>
+<script src="talkify-playlist.js"></script>
+<script src="talkify-audiocontrols.js"></script>
+```
+
 ## Play all, top to bottom
 ```javascript		
     var player = new TtsPlayer().withTextHighlighting();
