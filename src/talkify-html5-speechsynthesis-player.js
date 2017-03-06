@@ -1,4 +1,5 @@
-﻿var Html5Player = function () {
+﻿//TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
+var Html5Player = function () {
     this.isStopped = false;
     this.volume = 1;
 

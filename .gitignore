@@ -211,3 +211,7 @@ GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
 Talkify-plugin.sln
+src/test.html
+src/jquery-2.1.1.min.js
+src/Minified-versions.txt
+src/promise.js
