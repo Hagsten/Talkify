@@ -36,7 +36,7 @@ http://jsfiddle.net/woqw6b6g/27/
 
 ## Play all, top to bottom
 ```javascript		
-    var player = new TtsPlayer().withTextHighlighting();
+    var player = new TtsPlayer().enableTextHighlighting();
 
     new talkifyPlaylist()
         .begin()
