@@ -179,12 +179,12 @@
                     play(item);
                 });
         }
-		
-		function removeUserInteractionForItem(item){
-			 item.element.css("cursor", "inherit")
-                .removeClass('talkify-highlight')
-                .unbind('click.talkify');
-		}
+
+        function removeUserInteractionForItem(item) {
+            item.element.css("cursor", "inherit")
+               .removeClass('talkify-highlight')
+               .unbind('click.talkify');
+        }
 
         function initialize() {
             reset();
@@ -237,7 +237,7 @@
 
                 if (completed) {
                     settings.events.onEnded();
-
+                    resetPlaybackStates();
                     return;
                 }
 
@@ -354,25 +354,28 @@
             replayCurrent: replayCurrent,
             insert: insertElement,
             isPlaying: isPlaying,
-			enableTextInteraction: function(){
-				settings.useTextInteraction = true;
-				
-				for(var i = 0; i < playlist.queue.length; i++){
-					setupItemForUserInteraction(playlist.queue[i]);
-				}
-			},
-			disableTextInteraction: function(){
-				settings.useTextInteraction = false;
-				
-				for(var i = 0; i < playlist.queue.length; i++){
-					removeUserInteractionForItem(playlist.queue[i]);
-				}
-			},
+            enableTextInteraction: function () {
+                settings.useTextInteraction = true;
+
+                for (var i = 0; i < playlist.queue.length; i++) {
+                    setupItemForUserInteraction(playlist.queue[i]);
+                }
+            },
+            disableTextInteraction: function () {
+                settings.useTextInteraction = false;
+
+                for (var i = 0; i < playlist.queue.length; i++) {
+                    removeUserInteractionForItem(playlist.queue[i]);
+                }
+            },
             setPlayer: function (p) {
                 player = p;
                 player.withReferenceLanguage(playlist.referenceLanguage);
                 playerHasBeenReplaced = true;
                 replayCurrent();
+            },
+            dispose: function() {
+                resetPlaybackStates();
             }
         }
     }
