@@ -5,6 +5,7 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 
 # Dependencies
 jQuery
+https://github.com/stackp/promisejs (included in the minified version)
 
 # Usage
 
