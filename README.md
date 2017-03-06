@@ -112,6 +112,7 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | setPlayer | TtsPlayer/Html5Player | | Sets the player that the playlist is using |
 | enableTextInteraction | | | Enables click to play on HTML elements |
 | disableTextInteraction | | | Disables click to play on HTML elements |
+| dispose | | | Clean up |
 
 ### Events
 | Event   |
