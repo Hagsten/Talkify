@@ -158,4 +158,4 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 # License
 GPLv3
 
-Please note that this library talks with a backend that is driven by personal foundings, therefore I intend to keep it free of charge until no longer possible. A rule of thumb: If you have a commersial product with heavy traffic, then a restriction or fee might be introduced to call the server.
+Please note that this library talks with a backend that is driven by personal fundings, therefore I intend to keep it free of charge until no longer possible. A rule of thumb: If you have a commersial product with heavy traffic, then a restriction or fee might be introduced to call the server.
