@@ -7,6 +7,10 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 - jQuery
 - https://github.com/stackp/promisejs (included in the minified version)
 
+# NPM
+A pre-release npm-package can be found @ https://www.npmjs.com/package/talkify-tts
+IMPORTANT: This version has some restructuring and does therefore not match the documentation nor the source code in this repo. This mismatch will be fixed soon.
+
 # Usage
 
 ## Working fiddle
