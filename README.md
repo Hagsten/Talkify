@@ -16,12 +16,11 @@ $ npm install talkify-tts
 
 # Dependencies
 - jQuery
-- https://github.com/stackp/promisejs (included in the minified version)
 
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/woqw6b6g/27/
+http://jsfiddle.net/woqw6b6g/48/
 
 ## Include the scripts
 ### Minified version
