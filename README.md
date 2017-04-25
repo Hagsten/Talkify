@@ -31,24 +31,14 @@ http://jsfiddle.net/woqw6b6g/48/
 ### Non-minified version
 ```html
 <script src="jquery.js"></script> //see dependencies
-<script src="promise.js"></script> //see dependencies
-<script src="talkify-config.js"></script>
-<script src="talkify-ajax.js"></script>
-<script src="talkify-timer.js"></script>
-<script src="talkify-textextractor.js"></script>
-<script src="talkify-word-highlighter.js"></script>
-<script src="talkify-player-core.js"></script>
-<script src="talkify-html5-speechsynthesis-player.js"></script>
-<script src="talkify-player.js"></script>
-<script src="talkify-playlist.js"></script>
-<script src="talkify-audiocontrols.js"></script>
+<script src="talkify.js"></script>
 ```
 
 ## Play all, top to bottom
 ```javascript		
-    var player = new TtsPlayer().enableTextHighlighting();
+    var player = new talkify.TtsPlayer().enableTextHighlighting();
 
-    new talkifyPlaylist()
+    new talkify.playlist()
         .begin()
         .usingPlayer(player)
         .withTextInteraction()
@@ -60,7 +50,7 @@ http://jsfiddle.net/woqw6b6g/48/
 ## Play simple text
 
 ```javascript
-var player = new TtsPlayer(); //or new Html5Player()
+var player = new talkify.TtsPlayer(); //or new talkify.Html5Player()
 player.playText('Hello world');
 ```
 
@@ -83,7 +73,7 @@ player.playText('Hello world');
 
 # Configuration
 ```javascript
-talkifyConfig = {
+talkify.config = {
     host: 'http://talkify.net', //Host of streamed audio media.
     ui:
     {
@@ -96,6 +86,7 @@ talkifyConfig = {
 ```
 
 # API
+Talkify lives in its own namespace - talkify. Hence, everything below is scoped to that namespace (i.e. talkify.playlist, etc).
 ## Playlist fluent builder
 Playlist builder is Talkifys way to instantiate your playlist. It comes with a fluent API.	
 
