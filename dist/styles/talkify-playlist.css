@@ -1,0 +1,24 @@
+﻿.talkify .playing {
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+    background: #ccc !important;
+    color: black !important;
+}
+
+.talkify-highlight {
+    -webkit-transition: background-color 0.25s;
+    -moz-transition: background-color 0.25s;
+    -ms-transition: background-color 0.25s;
+    -o-transition: background-color 0.25s;
+    transition: background-color 0.25s;
+}
+
+.talkify-highlight:hover {
+    background-color: #3D0328 !important;
+    color: white !important;
+}
+
+.talkify-word-highlight {
+    color: white !important;
+    background-color: black !important;
+}

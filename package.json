@@ -1,0 +1,27 @@
+{
+  "name": "talkify-tts",
+  "version": "0.9.1",
+  "description": "A JavaScript text to speech (TTS) library. Provides you with high quality TTS voices in many languages and a high quality language. These voices and engines runs on a Talkify hosted server. This lib also supports browser built in voices via the SpeechSynthesis API if you rather not rely on Talkify servers.",
+  "main": "talkify.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hagsten/Talkify.git"
+  },
+  "keywords": [
+    "tts",
+    "text to speech",
+    "speech synthesis"
+  ],
+  "author": "Andreas Hagsten andreas.hagsten@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Hagsten/Talkify/issues"
+  },
+  "dependencies" : { 
+	"jquery" : ">=2.0.0"
+  },
+  "homepage": "https://github.com/Hagsten/Talkify#readme"
+}

@@ -1,10 +1,11 @@
-﻿var talkifyHttp = (function ajax() {
+﻿talkify = talkify || {};
+talkify.http = (function ajax() {
 
     var get = function(url) {
         var call = new promise.Promise();
 
         promise
-            .get(window.talkifyConfig.host + url)
+            .get(window.talkify.config.host + url)
             .then(function(error, data) {
                 try {
                     var jsonObj = JSON.parse(data);

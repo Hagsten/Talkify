@@ -1,0 +1,141 @@
+﻿.talkify-audio-control {
+    padding: 10px;
+    width: 100%;
+    background-color: rgba(56, 49, 47, 0.96);
+    border-top: 2px solid white;
+    text-align: center;
+    /*position: fixed;
+    bottom: 0;*/
+    width: 100%;
+    /*z-index: 10001;*/
+}
+
+    .talkify-audio-control > *, .talkify-audio-control input[type=range] {
+        vertical-align: middle;
+    }
+
+    .talkify-audio-control progress {
+        width: 50%;
+        background-color: white;
+    }
+
+        .talkify-audio-control progress::-webkit-progress-bar {
+            background-color: rgba(255,255,255, 0.7);
+        }
+
+        .talkify-audio-control progress::-webkit-progress-value {
+            background-color: #FF9800;
+        }
+
+        .talkify-audio-control progress::-moz-progress-bar {
+            /* style rules */
+            background-color: #FF9800;
+        }
+
+
+    .talkify-audio-control i, .talkify-audio-control input, .talkify-audio-control span {
+        margin: 0 5px;
+    }
+
+    .talkify-audio-control .talkify-audio-control-voice-wrapper {
+        margin-bottom: 5px;
+    }
+
+
+    .talkify-audio-control input[type=range] {
+        /*removes default webkit styles*/
+        -webkit-appearance: none;
+        /*required for proper track sizing in FF*/
+        width: 75px;
+        background: transparent;
+        border: 0;
+        padding: 0;
+    }
+
+        .talkify-audio-control input[type=range]::-webkit-slider-runnable-track {
+            height: 3px;
+            background: white;
+            border: none;
+            border-radius: 3px;
+        }
+
+        .talkify-audio-control input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            border: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #FF9800;
+            margin-top: -5px;
+        }
+
+        .talkify-audio-control input[type=range]:focus {
+            outline: none;
+        }
+
+            .talkify-audio-control input[type=range]:focus::-webkit-slider-runnable-track {
+                background: white;
+            }
+
+        .talkify-audio-control input[type=range]::-moz-range-track {
+            width: 75px;
+            height: 3px;
+            background: white;
+            border: none;
+            -ms-border-radius: 3px;
+            border-radius: 3px;
+        }
+
+        .talkify-audio-control input[type=range]::-moz-range-thumb {
+            border: none;
+            height: 12px;
+            width: 12px;
+            -ms-border-radius: 50%;
+            border-radius: 50%;
+            background: #FF9800;
+        }
+
+        /*hide the outline behind the border*/
+        .talkify-audio-control input[type=range]:-moz-focusring {
+            outline: 1px solid white;
+            -ms-outline-offset: -1px;
+            outline-offset: -1px;
+        }
+
+        .talkify-audio-control input[type=range]::-ms-track {
+            width: 75px;
+            height: 3px;
+            /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
+            background: transparent;
+            /*leave room for the larger thumb to overflow with a transparent border */
+            border-color: transparent;
+            border-width: 6px 0;
+        }
+
+        .talkify-audio-control input[type=range]::-ms-fill-lower {
+            border-radius: 10px;
+            background: white;
+        }
+
+        .talkify-audio-control input[type=range]::-ms-fill-upper {
+            background: #777;
+            border-radius: 10px;
+        }
+
+        .talkify-audio-control input[type=range]::-ms-thumb {
+            border: none;
+            height: 12px;
+            width: 12px;
+            -ms-border-radius: 50%;
+            border-radius: 50%;
+            background: #FF9800;
+            margin-top: -1px;
+        }
+
+        .talkify-audio-control input[type=range]:focus::-ms-fill-lower {
+            background: white;
+        }
+
+        .talkify-audio-control input[type=range]:focus::-ms-fill-upper {
+            background: #888;
+        }

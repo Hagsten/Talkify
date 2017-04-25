@@ -1,4 +1,5 @@
-﻿function Timer() {
+﻿talkify = talkify || {};
+talkify.timer = function() {
     var callback, timerId, start, remaining;
 
     this.pause = function () {

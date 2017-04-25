@@ -1,5 +1,6 @@
 ﻿//TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
-var Html5Player = function () {
+talkify = talkify || {};
+talkify.Html5Player = function () {
     this.isStopped = false;
     this.volume = 1;
 
@@ -44,7 +45,7 @@ var Html5Player = function () {
         dispose: function () { }
     };
 
-    this.__proto__.__proto__ = new BasePlayer(this.audioSource, this.playbar);
+    this.__proto__.__proto__ = new talkify.BasePlayer(this.audioSource, this.playbar);
 
     me.mutateControls(function (c) {
         c.subscribeTo({
@@ -64,7 +65,7 @@ var Html5Player = function () {
     });
 };
 
-Html5Player.prototype.extractWords = function (text, language) {
+talkify.Html5Player.prototype.extractWords = function (text, language) {
     var wordRegex = new RegExp(/[&\$\-|]|([("\-&])*(\b[^\s]+[.:,"-)!&?]*)/g);
 
     if (language) {
@@ -91,7 +92,7 @@ Html5Player.prototype.extractWords = function (text, language) {
     return words;
 };
 
-Html5Player.prototype.getVoice = function () {
+talkify.Html5Player.prototype.getVoice = function () {
     var p = new promise.Promise();
     var me = this;
 
@@ -118,7 +119,7 @@ Html5Player.prototype.getVoice = function () {
     return p;
 };
 
-Html5Player.prototype.selectVoiceToPlay = function (voices) {
+talkify.Html5Player.prototype.selectVoiceToPlay = function (voices) {
     var matchingVoices = [];
     var voice = null;
 
@@ -150,7 +151,7 @@ Html5Player.prototype.selectVoiceToPlay = function (voices) {
     return voice;
 };
 
-Html5Player.prototype.chunckText = function (text) {
+talkify.Html5Player.prototype.chunckText = function (text) {
     var language = this.settings.lockedLanguage || this.settings.referenceLanguage.Culture;
     var chunckSize = language.indexOf('zh-') > -1 ? 70 :
         language.indexOf('ko-') > -1 ? 130 : 200;
@@ -202,7 +203,7 @@ Html5Player.prototype.chunckText = function (text) {
     return chuncks;
 };
 
-Html5Player.prototype.playAudio = function (item, onEnded) {
+talkify.Html5Player.prototype.playAudio = function (item, onEnded) {
     this.currentContext.endedCallback = onEnded;
     this.currentContext.item = item;
     this.currentContext.utterances = [];
@@ -232,7 +233,7 @@ Html5Player.prototype.playAudio = function (item, onEnded) {
     //return p;
 };
 
-Html5Player.prototype.playCurrentContext = function () {
+talkify.Html5Player.prototype.playCurrentContext = function () {
     var item = this.currentContext.item;
     var onEnded = this.currentContext.endedCallback;
 
@@ -355,7 +356,7 @@ Html5Player.prototype.playCurrentContext = function () {
     return p;
 };
 
-Html5Player.prototype.stop = function () {
+talkify.Html5Player.prototype.stop = function () {
     this.isStopped = true;
     this.internalEvents.onPause();
     window.speechSynthesis.cancel();
@@ -366,7 +367,7 @@ Html5Player.prototype.stop = function () {
     }
 };
 
-Html5Player.prototype.setVolume = function (volume) {
+talkify.Html5Player.prototype.setVolume = function (volume) {
     this.volume = volume;
 
     return this;

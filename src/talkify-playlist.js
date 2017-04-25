@@ -1,4 +1,5 @@
-﻿function talkifyPlaylist() {
+﻿talkify = talkify || {};
+talkify.playlist = function() {
 
     var defaults = {
         useGui: false,
@@ -22,7 +23,7 @@
 
     function implementation(_settings, player) {
 
-        var textextractor = new TalkifyTextextractor();
+        var textextractor = new talkify.textextractor();
 
         var playlist = {
             queue: [],
@@ -258,7 +259,7 @@
         }
 
         function playFromBeginning() {
-            return talkifyHttp.get("/api/Language?text=" + playlist.refrenceText)
+            return talkify.http.get("/api/Language?text=" + playlist.refrenceText)
                 .then(function (error, data) {
                     if (error) {
                         playlist.referenceLanguage = { Culture: '', Language: -1 };

@@ -1,6 +1,7 @@
-﻿var BasePlayer = function (_audiosource, _playbar) {
+﻿talkify = talkify || {};
+talkify.BasePlayer = function (_audiosource, _playbar) {
     this.audioSource = _audiosource;
-    this.wordHighlighter = new TalkifyWordHighlighter();
+    this.wordHighlighter = new talkify.wordHighlighter();
     this.id = this.generateGuid();
     var me = this;
 
@@ -62,8 +63,8 @@
         }
     }
 
-    if (talkifyConfig.ui.audioControls.enabled) {
-        this.playbar.instance = talkifyPlaybar().subscribeTo({
+    if (talkify.config.ui.audioControls.enabled) {
+        this.playbar.instance = talkify.playbar().subscribeTo({
             onTextHighlightingClicked: function () {
                 me.settings.useTextHighlight = !me.settings.useTextHighlight;
                 me.events.onTextHighligtChanged(me.settings.useTextHighlight);
@@ -72,13 +73,13 @@
     }
 };
 
-BasePlayer.prototype.withReferenceLanguage = function (refLang) {
+talkify.BasePlayer.prototype.withReferenceLanguage = function (refLang) {
     this.settings.referenceLanguage = refLang;
 
     return this;
 };
 
-BasePlayer.prototype.enableTextHighlighting = function () {
+talkify.BasePlayer.prototype.enableTextHighlighting = function () {
     this.settings.useTextHighlight = true;
     this.mutateControls(function (c) {
         c.setTextHighlight(true);
@@ -87,7 +88,7 @@ BasePlayer.prototype.enableTextHighlighting = function () {
     return this;
 };
 
-BasePlayer.prototype.disableTextHighlighting = function () {
+talkify.BasePlayer.prototype.disableTextHighlighting = function () {
     this.settings.useTextHighlight = false;
     this.mutateControls(function (c) {
         c.setTextHighlight(false);
@@ -96,13 +97,13 @@ BasePlayer.prototype.disableTextHighlighting = function () {
     return this;
 };
 
-BasePlayer.prototype.setRate = function (r) {
+talkify.BasePlayer.prototype.setRate = function (r) {
     this.settings.rate = r;
 
     return this;
 }
 
-BasePlayer.prototype.subscribeTo = function (subscriptions) {
+talkify.BasePlayer.prototype.subscribeTo = function (subscriptions) {
     this.events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
     this.events.onSentenceComplete = subscriptions.onItemFinished || function () { };
     this.events.onPause = subscriptions.onPause || function () { };
@@ -114,14 +115,14 @@ BasePlayer.prototype.subscribeTo = function (subscriptions) {
     return this;
 };
 
-BasePlayer.prototype.generateGuid = function () {
+talkify.BasePlayer.prototype.generateGuid = function () {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 };
 
-BasePlayer.prototype.playItem = function (item) {
+talkify.BasePlayer.prototype.playItem = function (item) {
     var p = new promise.Promise();
 
     if (item && item.isPlaying) {
@@ -154,7 +155,7 @@ BasePlayer.prototype.playItem = function (item) {
     return p;
 };
 
-BasePlayer.prototype.createItems = function (text, $element) { //TODO: jQuery-dependency
+talkify.BasePlayer.prototype.createItems = function (text, $element) { //TODO: jQuery-dependency
     var safeMaxQuerystringLength = 1000;
 
     var items = [];
@@ -188,7 +189,7 @@ BasePlayer.prototype.createItems = function (text, $element) { //TODO: jQuery-de
     }
 };
 
-BasePlayer.prototype.playText = function (text) {
+talkify.BasePlayer.prototype.playText = function (text) {
     var items = this.createItems(text, $());
 
     var currentItem = 0;
@@ -208,19 +209,19 @@ BasePlayer.prototype.playText = function (text) {
         .then(next);
 };
 
-BasePlayer.prototype.paused = function () {
+talkify.BasePlayer.prototype.paused = function () {
     return this.audioSource.paused();
 };
 
-BasePlayer.prototype.isPlaying = function () {
+talkify.BasePlayer.prototype.isPlaying = function () {
     return this.audioSource.isPlaying();
 };
 
-BasePlayer.prototype.play = function () {
+talkify.BasePlayer.prototype.play = function () {
     this.audioSource.play();
 };
 
-BasePlayer.prototype.pause = function () {
+talkify.BasePlayer.prototype.pause = function () {
     this.audioSource.pause();
     var me = this;
 
@@ -229,7 +230,7 @@ BasePlayer.prototype.pause = function () {
     }
 };
 
-BasePlayer.prototype.dispose = function () {
+talkify.BasePlayer.prototype.dispose = function () {
     this.wordHighlighter.cancel();
     this.audioSource.stop();
     this.internalEvents.onStop();
@@ -241,13 +242,13 @@ BasePlayer.prototype.dispose = function () {
     this.audioSource.dispose();
 };
 
-BasePlayer.prototype.forceLanguage = function (culture) {
+talkify.BasePlayer.prototype.forceLanguage = function (culture) {
     this.settings.lockedLanguage = culture;
 
     return this;
 };
 
-BasePlayer.prototype.forceVoice = function (voice) {
+talkify.BasePlayer.prototype.forceVoice = function (voice) {
     this.forcedVoice = voice !== undefined ? voice : null;
 
     this.settings.lockedLanguage = (voice && (voice.lang || voice.culture)) || this.settings.lockedLanguage;

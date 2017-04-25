@@ -1,4 +1,5 @@
-﻿var TalkifyTextextractor = function () {
+﻿talkify = talkify || {};
+talkify.textextractor = function () {
     var validElements = [];
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'].join();

@@ -1,5 +1,6 @@
-﻿var TalkifyWordHighlighter = function() {
-    var textHighlightTimer = new Timer();
+﻿talkify = talkify || {};
+talkify.wordHighlighter = function() {
+    var textHighlightTimer = new talkify.timer();
     var currentItem = null;
 
     function highlight(item, word, charPosition) {

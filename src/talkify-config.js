@@ -1,4 +1,5 @@
-﻿talkifyConfig = {
+﻿talkify = talkify || {};
+talkify.config = {
     host: '',
     ui:
     {

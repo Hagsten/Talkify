@@ -1,4 +1,5 @@
-﻿function TtsPlayer() {
+﻿talkify = talkify || {};
+talkify.TtsPlayer = function() {
     var me = this;
     var audioElement;
 
@@ -88,7 +89,7 @@
         mp3Source.type = "audio/mpeg";
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
-        audioElement.controls = !talkifyConfig.ui.audioControls.enabled;
+        audioElement.controls = !talkify.config.ui.audioControls.enabled;
         audioElement.autoplay = false;
 
         document.body.appendChild(audioElement);
@@ -121,7 +122,7 @@
         });
     }
 
-    this.__proto__.__proto__ = new BasePlayer(this.audioSource, this.playbar);
+    this.__proto__.__proto__ = new talkify.BasePlayer(this.audioSource, this.playbar);
 
     initialize.apply(this);
 
@@ -130,11 +131,11 @@
     setupBindings();
 };
 
-TtsPlayer.prototype.getPositions = function () {
+talkify.TtsPlayer.prototype.getPositions = function () {
     var me = this;
     var p = new promise.Promise();
 
-    talkifyHttp.get("/api/Speak/GetPositions?id=" + me.id)
+    talkify.http.get("/api/Speak/GetPositions?id=" + me.id)
         .then(function (error, positions) {
             p.done(null, positions);
         });
@@ -142,7 +143,7 @@ TtsPlayer.prototype.getPositions = function () {
     return p;
 };
 
-TtsPlayer.prototype.playAudio = function (item, onEnded) {
+talkify.TtsPlayer.prototype.playAudio = function (item, onEnded) {
     var me = this;
 
     me.currentContext.item = item;
@@ -155,8 +156,8 @@ TtsPlayer.prototype.playAudio = function (item, onEnded) {
     var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
     var voice = this.forcedVoice ? this.forcedVoice.name : "";
 
-    sources[0].src = talkifyConfig.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
-    sources[1].src = talkifyConfig.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+    sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+    sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
 
     this.audioElement.load();
 

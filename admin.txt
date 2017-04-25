@@ -1,0 +1,2 @@
+browserify main.js > dist/talkify.js
+browserify main.js | uglifyjs > dist/talkify.min.js

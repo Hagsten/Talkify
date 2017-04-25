@@ -1,6 +1,7 @@
-﻿function talkifyPlaybar(parent) {
+﻿talkify = talkify || {};
+talkify.playbar = function(parent) {
     var settings = {
-        parentElement: parent || talkifyConfig.ui.audioControls.container || document.body
+        parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, trackTimeElement, textHighlightingElement, timeWrapperElement, controlsWrapperElement, wrapper, voiceWrapperElement;
