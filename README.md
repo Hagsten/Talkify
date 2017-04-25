@@ -3,13 +3,20 @@ A javascript text to speech (TTS) library. Originally from and used by http://ta
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
 
+## Installation
+```
+$ bower install talkify
+```
+
+or
+
+```
+$ npm install talkify-tts
+```
+
 # Dependencies
 - jQuery
 - https://github.com/stackp/promisejs (included in the minified version)
-
-# NPM
-A pre-release npm-package can be found @ https://www.npmjs.com/package/talkify-tts
-IMPORTANT: This version has some restructuring and does therefore not match the documentation nor the source code in this repo. This mismatch will be fixed soon.
 
 # Usage
 
