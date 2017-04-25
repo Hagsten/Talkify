@@ -90,6 +90,8 @@ Talkify lives in its own namespace - talkify. Hence, everything below is scoped 
 ## Playlist fluent builder
 Playlist builder is Talkifys way to instantiate your playlist. It comes with a fluent API.	
 
+Entry point: talkify.playlist()
+
 | Method   | Parameters | Default |      Description      |  Mandatory |
 |----------|:------ |:------|:-------------|------:|
 | begin |  | |  Entry point. Call this to start building your playlist | Yes |
@@ -101,6 +103,7 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | build | | | Finalizes and creates the playlist instance |    Yes |
 
 ## Playlist
+This is the instance built from the playliste above.
 
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
@@ -115,7 +118,7 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | disableTextInteraction | | | Disables click to play on HTML elements |
 | dispose | | | Clean up |
 
-### Events
+### Playlist Events
 | Event   |
 |---------|
 | onEnded |
@@ -134,6 +137,8 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | forceVoice | string | | For Talkify hosted voices, this is the name of the voice from /api/Voices. For browser voices, this is the actual voice from window.speechSynthesis.getVoices() |
 
 ### Html5Player only
+Entry point: talkify.Html5Player().
+
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
 | forceLanguage | string | | Force the usage of a specific language. Use standard cultures like se-SE for Swedish and so on. Talkify will select a voice that matches the culture. |
@@ -141,11 +146,13 @@ Playlist builder is Talkifys way to instantiate your playlist. It comes with a f
 | setVolume | double | 1 | Volume. A value between 0.0 - 1.0 |
 
 ### Talkify hosted only
+Entry point: talkify.TtsPlayer().
+
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
 | setRate | int | 1 | Playback rate. A value between 1 and 3 |
 
-### Events
+### Player Events
 | Event   |
 |---------|
 | onBeforeItemPlaying |
