@@ -1,4 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+window.promise = require('./src/promise.js').promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
 var talkifyHttp = require('./src/talkify-ajax.js');
@@ -13,7 +14,218 @@ var talkifyPlaybar = require('./src/talkify-audiocontrols.js');
 
 
 
-},{"./src/talkify-ajax.js":2,"./src/talkify-audiocontrols.js":3,"./src/talkify-config.js":4,"./src/talkify-html5-speechsynthesis-player.js":5,"./src/talkify-player-core.js":6,"./src/talkify-player.js":7,"./src/talkify-playlist.js":8,"./src/talkify-textextractor.js":9,"./src/talkify-timer.js":10,"./src/talkify-word-highlighter.js":11,"./src/talkify.js":12}],2:[function(require,module,exports){
+},{"./src/promise.js":2,"./src/talkify-ajax.js":3,"./src/talkify-audiocontrols.js":4,"./src/talkify-config.js":5,"./src/talkify-html5-speechsynthesis-player.js":6,"./src/talkify-player-core.js":7,"./src/talkify-player.js":8,"./src/talkify-playlist.js":9,"./src/talkify-textextractor.js":10,"./src/talkify-timer.js":11,"./src/talkify-word-highlighter.js":12,"./src/talkify.js":13}],2:[function(require,module,exports){
+/*
+ *  Copyright 2012-2013 (c) Pierre Duquesne <stackp@online.fr>
+ *  Licensed under the New BSD License.
+ *  https://github.com/stackp/promisejs
+ */
+
+(function (exports) {
+
+    function Promise() {
+        this._callbacks = [];
+    }
+
+    Promise.prototype.then = function (func, context) {
+        var p;
+        if (this._isdone) {
+            p = func.apply(context, this.result);
+        } else {
+            p = new Promise();
+            this._callbacks.push(function () {
+                var res = func.apply(context, arguments);
+                if (res && typeof res.then === 'function')
+                    res.then(p.done, p);
+            });
+        }
+        return p;
+    };
+
+    Promise.prototype.done = function () {
+        this.result = arguments;
+        this._isdone = true;
+        for (var i = 0; i < this._callbacks.length; i++) {
+            this._callbacks[i].apply(null, arguments);
+        }
+        this._callbacks = [];
+    };
+
+    function join(promises) {
+        var p = new Promise();
+        var results = [];
+
+        if (!promises || !promises.length) {
+            p.done(results);
+            return p;
+        }
+
+        var numdone = 0;
+        var total = promises.length;
+
+        function notifier(i) {
+            return function () {
+                numdone += 1;
+                results[i] = Array.prototype.slice.call(arguments);
+                if (numdone === total) {
+                    p.done(results);
+                }
+            };
+        }
+
+        for (var i = 0; i < total; i++) {
+            promises[i].then(notifier(i));
+        }
+
+        return p;
+    }
+
+    function chain(funcs, args) {
+        var p = new Promise();
+        if (funcs.length === 0) {
+            p.done.apply(p, args);
+        } else {
+            funcs[0].apply(null, args).then(function () {
+                funcs.splice(0, 1);
+                chain(funcs, arguments).then(function () {
+                    p.done.apply(p, arguments);
+                });
+            });
+        }
+        return p;
+    }
+
+    /*
+     * AJAX requests
+     */
+
+    function _encode(data) {
+        var result = "";
+        if (typeof data === "string") {
+            result = data;
+        } else {
+            var e = encodeURIComponent;
+            for (var k in data) {
+                if (data.hasOwnProperty(k)) {
+                    result += '&' + e(k) + '=' + e(data[k]);
+                }
+            }
+        }
+        return result;
+    }
+
+    function new_xhr() {
+        var xhr;
+        if (window.XMLHttpRequest) {
+            xhr = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            try {
+                xhr = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+                xhr = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+        }
+        return xhr;
+    }
+
+
+    function ajax(method, url, data, headers) {
+        var p = new Promise();
+        var xhr, payload;
+        data = data || {};
+        headers = headers || {};
+
+        try {
+            xhr = new_xhr();
+        } catch (e) {
+            p.done(promise.ENOXHR, "");
+            return p;
+        }
+
+        payload = _encode(data);
+        if (method === 'GET' && payload) {
+            url += '?' + payload;
+            payload = null;
+        }
+
+        xhr.open(method, url);
+        xhr.setRequestHeader('Content-type',
+                             'application/x-www-form-urlencoded');
+        for (var h in headers) {
+            if (headers.hasOwnProperty(h)) {
+                xhr.setRequestHeader(h, headers[h]);
+            }
+        }
+
+        function onTimeout() {
+            xhr.abort();
+            p.done(promise.ETIMEOUT, "", xhr);
+        }
+
+        var timeout = promise.ajaxTimeout;
+        if (timeout) {
+            var tid = setTimeout(onTimeout, timeout);
+        }
+
+        xhr.onreadystatechange = function () {
+            if (timeout) {
+                clearTimeout(tid);
+            }
+            if (xhr.readyState === 4) {
+                var err = (!xhr.status ||
+                           (xhr.status < 200 || xhr.status >= 300) &&
+                           xhr.status !== 304);
+                p.done(err, xhr.responseText, xhr);
+            }
+        };
+
+        xhr.send(payload);
+        return p;
+    }
+
+    function _ajaxer(method) {
+        return function (url, data, headers) {
+            return ajax(method, url, data, headers);
+        };
+    }
+
+    var promise = {
+        Promise: Promise,
+        join: join,
+        chain: chain,
+        ajax: ajax,
+        get: _ajaxer('GET'),
+        post: _ajaxer('POST'),
+        put: _ajaxer('PUT'),
+        del: _ajaxer('DELETE'),
+
+        /* Error codes */
+        ENOXHR: 1,
+        ETIMEOUT: 2,
+
+        /**
+         * Configuration parameter: time in milliseconds after which a
+         * pending AJAX request is considered unresponsive and is
+         * aborted. Useful to deal with bad connectivity (e.g. on a
+         * mobile network). A 0 value disables AJAX timeouts.
+         *
+         * Aborted requests resolve the promise with a ETIMEOUT error
+         * code.
+         */
+        ajaxTimeout: 0
+    };
+
+    if (typeof define === 'function' && define.amd) {
+        /* AMD support */
+        define(function () {
+            return promise;
+        });
+    } else {
+        exports.promise = promise;
+    }
+
+})(this);
+},{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
 
@@ -39,7 +251,7 @@ talkify.http = (function ajax() {
         get: get
     };
 })();
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playbar = function(parent) {
     var settings = {
@@ -368,7 +580,7 @@ talkify.playbar = function(parent) {
         }
     }
 }
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 talkify = talkify || {};
 talkify.config = {
     host: '',
@@ -380,7 +592,7 @@ talkify.config = {
         }
     }
 }
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 //TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
 talkify = talkify || {};
 talkify.Html5Player = function () {
@@ -755,7 +967,7 @@ talkify.Html5Player.prototype.setVolume = function (volume) {
 
     return this;
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar) {
     this.audioSource = _audiosource;
@@ -1017,7 +1229,7 @@ talkify.BasePlayer.prototype.forceVoice = function (voice) {
 
     return this;
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 talkify = talkify || {};
 talkify.TtsPlayer = function() {
     var me = this;
@@ -1209,7 +1421,7 @@ talkify.TtsPlayer.prototype.playAudio = function (item, onEnded) {
 
     return p;
 };
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playlist = function() {
 
@@ -1647,7 +1859,7 @@ talkify.playlist = function() {
 
     };
 };
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 talkify = talkify || {};
 talkify.textextractor = function () {
     var validElements = [];
@@ -1835,7 +2047,7 @@ talkify.textextractor = function () {
         extract: extract
     };
 };
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 talkify = talkify || {};
 talkify.timer = function() {
     var callback, timerId, start, remaining;
@@ -1862,7 +2074,7 @@ talkify.timer = function() {
         timerId = window.setTimeout(callback, remaining);
     };
 }
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 talkify = talkify || {};
 talkify.wordHighlighter = function() {
     var textHighlightTimer = new talkify.timer();
@@ -1942,6 +2154,6 @@ talkify.wordHighlighter = function() {
         cancel: cancel
     };
 };
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 talkify = {};
 },{}]},{},[1]);
