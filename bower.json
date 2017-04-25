@@ -1,24 +1,24 @@
 {
-  "name": "talkify",
-  "description": "A JavaScript text to speech (TTS) library. High quality multilingual voices and language engine. Works with SpeechSynthesis API.",
-  "main": [
-	"dist/talkify.js",
-  ],
-  "authors": [
-    "Andreas Hagsten andreas.hagsten@gmail.com"
-  ],
-  "license": "ISC",
-  "keywords": [
-    "tts",
-    "text to speech",
-    "speech synthesis"
-  ],
-  "homepage": "https://github.com/Hagsten/Talkify",
-  "ignore": [
-    "*",
-    "!dist/*"
-  ],
-  "dependencies": {
-    "jquery": ">=2.0.0",
-  }
+	"name": "talkify",
+	"description": "A JavaScript text to speech (TTS) library. High quality multilingual voices and language engine. Works with SpeechSynthesis API.",
+	"main": [
+		"dist/talkify.js"
+	],
+	"authors": [
+		"Andreas Hagsten andreas.hagsten@gmail.com"
+	],
+	"license": "ISC",
+	"keywords": [
+		"tts",
+		"text to speech",
+		"speech synthesis"
+	],
+	"homepage": "https://github.com/Hagsten/Talkify",
+	"ignore": [
+		"*",
+		"!dist/*"
+	],
+	"dependencies": {
+		"jquery": ">=2.0.0"
+	}
 }
