@@ -588,7 +588,8 @@ talkify.playbar = function(parent) {
 },{}],5:[function(require,module,exports){
 talkify = talkify || {};
 talkify.config = {
-    host: '',
+    host: 'http://talkify.net',
+    useRemoteServices: true,
     ui:
     {
         audioControls: {
@@ -1239,6 +1240,10 @@ talkify.BasePlayer.prototype.forceVoice = function (voice) {
 },{}],8:[function(require,module,exports){
 talkify = talkify || {};
 talkify.TtsPlayer = function () {
+    if (!talkify.config.useRemoteServices) {
+        throw "This player needs to communicate to a remote service. To enable this player please set flag talkify.config.useRemoteServices to true.";
+    }
+
     var me = this;
     var audioElement;
 
@@ -1693,22 +1698,29 @@ talkify.playlist = function () {
         }
 
         function playFromBeginning() {
-            return talkify.http.get("/api/Language?text=" + playlist.refrenceText)
+            if (!talkify.config.useRemoteServices) {
+                onComplete({ Culture: '', Language: -1 });
+
+                return;
+            }
+
+            talkify.http.get("/api/Language?text=" + playlist.refrenceText)
                 .then(function (error, data) {
                     if (error) {
-                        playlist.referenceLanguage = { Culture: '', Language: -1 };
-                        player.withReferenceLanguage({ Culture: '', Language: -1 });
-
-                        continueWithNext(playlist.queue[0]);
+                        onComplete({ Culture: '', Language: -1 });
 
                         return;
                     }
 
-                    playlist.referenceLanguage = data;
-                    player.withReferenceLanguage(data);
-
-                    continueWithNext(playlist.queue[0]);
+                    onComplete(data);
                 });
+
+            function onComplete(refLang) {
+                playlist.referenceLanguage = refLang;
+                player.withReferenceLanguage(refLang);
+
+                continueWithNext(playlist.queue[0]);
+            }
         }
 
         function playNext() {

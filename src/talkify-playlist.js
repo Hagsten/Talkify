@@ -263,22 +263,29 @@ talkify.playlist = function () {
         }
 
         function playFromBeginning() {
-            return talkify.http.get("/api/Language?text=" + playlist.refrenceText)
+            if (!talkify.config.useRemoteServices) {
+                onComplete({ Culture: '', Language: -1 });
+
+                return;
+            }
+
+            talkify.http.get("/api/Language?text=" + playlist.refrenceText)
                 .then(function (error, data) {
                     if (error) {
-                        playlist.referenceLanguage = { Culture: '', Language: -1 };
-                        player.withReferenceLanguage({ Culture: '', Language: -1 });
-
-                        continueWithNext(playlist.queue[0]);
+                        onComplete({ Culture: '', Language: -1 });
 
                         return;
                     }
 
-                    playlist.referenceLanguage = data;
-                    player.withReferenceLanguage(data);
-
-                    continueWithNext(playlist.queue[0]);
+                    onComplete(data);
                 });
+
+            function onComplete(refLang) {
+                playlist.referenceLanguage = refLang;
+                player.withReferenceLanguage(refLang);
+
+                continueWithNext(playlist.queue[0]);
+            }
         }
 
         function playNext() {

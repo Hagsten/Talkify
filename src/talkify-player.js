@@ -1,5 +1,9 @@
 ﻿talkify = talkify || {};
 talkify.TtsPlayer = function () {
+    if (!talkify.config.useRemoteServices) {
+        throw "This player needs to communicate to a remote service. To enable this player please set flag talkify.config.useRemoteServices to true.";
+    }
+
     var me = this;
     var audioElement;
 

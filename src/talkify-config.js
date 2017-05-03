@@ -1,6 +1,7 @@
 ﻿talkify = talkify || {};
 talkify.config = {
-    host: '',
+    host: 'http://talkify.net',
+    useRemoteServices: true,
     ui:
     {
         audioControls: {
