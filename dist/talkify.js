@@ -444,6 +444,11 @@ talkify.playbar = function(parent) {
         progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
 
         var current = document.getElementById("talkify-current-track-time");
+
+        if (!current) {
+            return;
+        }
+
         var total = document.getElementById("talkify-track-time");
 
         var minutes = Math.floor(e.target.currentTime / 60);
@@ -1111,7 +1116,7 @@ talkify.BasePlayer.prototype.playItem = function (item) {
 
     item.isLoading = true;
     item.isPlaying = true;
-    item.element.addClass("playing");
+    item.element.classList.add("playing");
 
     this.playAudio(item, function () {
         item.isPlaying = false;
@@ -1125,7 +1130,7 @@ talkify.BasePlayer.prototype.playItem = function (item) {
     return p;
 };
 
-talkify.BasePlayer.prototype.createItems = function (text, $element) { //TODO: jQuery-dependency
+talkify.BasePlayer.prototype.createItems = function (text) {
     var safeMaxQuerystringLength = 1000;
 
     var items = [];
@@ -1134,25 +1139,27 @@ talkify.BasePlayer.prototype.createItems = function (text, $element) { //TODO: j
     if (text.length > safeMaxQuerystringLength) {
         var f = text.substr(0, safeMaxQuerystringLength);
 
-        items.push(template(f, $element));
+        items.push(template(f));
 
-        items = items.concat(this.createItems(text.substr(safeMaxQuerystringLength, text.length - 1), $element));
+        items = items.concat(this.createItems(text.substr(safeMaxQuerystringLength, text.length - 1)));
 
         return items;
     }
 
-    items.push(template(text, $element));
+    items.push(template(text));
 
     return items;
 
-    function template(t, $el) {
-        var outerHtml = $el.length > 0 ? $($el[0].outerHTML) : $();
+    function template(t) {
+        //Null-objects
+        var element = document.createElement("span");
+        var clone = element.cloneNode(true);
 
         return {
             text: t,
             preview: t.substr(0, 40),
-            element: $el,
-            originalElement: outerHtml,
+            element: element,
+            originalElement: clone,
             isPlaying: false,
             isLoading: false
         };
@@ -1160,7 +1167,7 @@ talkify.BasePlayer.prototype.createItems = function (text, $element) { //TODO: j
 };
 
 talkify.BasePlayer.prototype.playText = function (text) {
-    var items = this.createItems(text, $());
+    var items = this.createItems(text);
 
     var currentItem = 0;
 
@@ -1231,7 +1238,7 @@ talkify.BasePlayer.prototype.forceVoice = function (voice) {
 };
 },{}],8:[function(require,module,exports){
 talkify = talkify || {};
-talkify.TtsPlayer = function() {
+talkify.TtsPlayer = function () {
     var me = this;
     var audioElement;
 
@@ -1394,37 +1401,35 @@ talkify.TtsPlayer.prototype.playAudio = function (item, onEnded) {
     this.audioElement.load();
 
     //TODO: remove jquery dependency
-    $(this.audioElement)
-        .unbind("loadeddata")
-        .bind("loadeddata", function () {
-            me.mutateControls(function (instance) {
-                instance.audioLoaded();
-            });
 
-            me.audioSource.pause();
+    this.audioElement.onloadeddata = function () {
+        me.mutateControls(function (instance) {
+            instance.audioLoaded();
+        });
 
-            if (!me.settings.useTextHighlight) {
-                p.done();
-                me.audioSource.play();
-                return;
-            }
+        me.audioSource.pause();
 
-            me.getPositions().then(function (error, positions) {
-                me.currentContext.positions = positions || [];
+        if (!me.settings.useTextHighlight) {
+            p.done();
+            me.audioSource.play();
+            return;
+        }
 
-                p.done();
-                me.audioSource.play();
-            });
-        })
-        .unbind("ended.justForUniqueness")
-        .bind("ended.justForUniqueness", onEnded || function () { });
+        me.getPositions().then(function (error, positions) {
+            me.currentContext.positions = positions || [];
+
+            p.done();
+            me.audioSource.play();
+        });
+    };
+
+    this.audioElement.onended = onEnded || function () { };
 
     return p;
 };
 },{}],9:[function(require,module,exports){
 talkify = talkify || {};
-talkify.playlist = function() {
-
+talkify.playlist = function () {
     var defaults = {
         useGui: false,
         useTextInteraction: false,
@@ -1483,7 +1488,7 @@ talkify.playlist = function() {
                 //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
-                item.element.removeClass("playing");
+                item.element.classList.remove("playing");
             }
         };
 
@@ -1497,7 +1502,7 @@ talkify.playlist = function() {
             return false;
         }
 
-        function domElementExistsInQueue($element) {
+        function domElementExistsInQueue(element) { //TODO: might need to look at construct as <a><h3></h3></a> and whether "a" is "h3" since it is just a wrapper
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
 
@@ -1505,7 +1510,7 @@ talkify.playlist = function() {
                     continue;
                 }
 
-                if ($element.is(item.element)) {
+                if (element === item.element) {
                     return true;
                 }
             }
@@ -1531,7 +1536,7 @@ talkify.playlist = function() {
             resetPlaybackStates();
 
             if (playlist.currentlyPlaying) {
-                playlist.currentlyPlaying.element.html(playlist.currentlyPlaying.originalElement.html());
+                playlist.currentlyPlaying.element.innerHTML = playlist.currentlyPlaying.originalElement.innerHTML;
             }
 
             playlist.currentlyPlaying = item;
@@ -1541,7 +1546,7 @@ talkify.playlist = function() {
             return p;
         };
 
-        function createItems(text, $element) { //TODO: jQuery-dependency
+        function createItems(text, element) {
             var safeMaxQuerystringLength = 1000;
 
             var items = [];
@@ -1553,25 +1558,26 @@ talkify.playlist = function() {
 
                 var f = text.substr(0, breakAt);
 
-                items.push(template(f, $element));
+                items.push(template(f, element));
 
-                items = items.concat(createItems(text.substr(breakAt, text.length - 1), $element));
+                items = items.concat(createItems(text.substr(breakAt, text.length - 1), element));
 
                 return items;
             }
 
-            items.push(template(text, $element));
+            items.push(template(text, element));
 
             return items;
 
-            function template(t, $el) {
-                var outerHtml = $el.length > 0 ? $($el[0].outerHTML) : $();
+            function template(t, el) {
+                el = el || document.createElement("span");
+                var clone = el.cloneNode(true);
 
                 return {
                     text: t,
                     preview: t.substr(0, 40),
-                    element: $el,
-                    originalElement: outerHtml,
+                    element: el,
+                    originalElement: clone,
                     isPlaying: false,
                     isLoading: false
                 };
@@ -1597,18 +1603,22 @@ talkify.playlist = function() {
         }
 
         function setupItemForUserInteraction(item) {
-            item.element.css("cursor", "pointer")
-                .addClass('talkify-highlight')
-                .unbind('click.talkify')
-                .bind('click.talkify', function () {
-                    play(item);
-                });
+            item.element.style.cursor = "pointer";
+            item.element.classList.add("talkify-highlight");
+
+            removeEventListeners("click", item.element);
+            addEventListener("click", item.element, textInteractionEventListener);
+
+            function textInteractionEventListener() {
+                play(item);
+            }
         }
 
         function removeUserInteractionForItem(item) {
-            item.element.css("cursor", "inherit")
-               .removeClass('talkify-highlight')
-               .unbind('click.talkify');
+            item.element.style.cursor = "inherit";
+            item.element.classList.remove("talkify-highlight");
+
+            removeEventListeners("click", item.element);
         }
 
         function initialize() {
@@ -1620,13 +1630,13 @@ talkify.playlist = function() {
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text;
-                var element = $();
+                var element = null;
 
                 if (typeof settings.domElements[i] === "string") {
                     text = settings.domElements[i];
                 } else {
-                    element = $(settings.domElements[i]);
-                    text = element.text().trim();
+                    element = settings.domElements[i];
+                    text = element.innerText.trim();
                 }
 
                 if (text === "") {
@@ -1645,7 +1655,7 @@ talkify.playlist = function() {
                     var item = playlist.queue[j];
 
                     if (j > 0) {
-                        var isSameAsPrevious = item.element.is(playlist.queue[j - 1].element);
+                        var isSameAsPrevious = item.element === playlist.queue[j - 1].element;
 
                         if (isSameAsPrevious) {
                             continue;
@@ -1718,7 +1728,7 @@ talkify.playlist = function() {
         function insertElement(element) {
             var items = [];
 
-            var text = element.text();
+            var text = element.innerText;
 
             if (text.trim() === "") {
                 return items;
@@ -1733,7 +1743,7 @@ talkify.playlist = function() {
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
 
-                var isSelectionAfterQueueItem = element[0].compareDocumentPosition(item.element[0]) == documentPositionFollowing;
+                var isSelectionAfterQueueItem = element.compareDocumentPosition(item.element) == documentPositionFollowing;
 
                 if (isSelectionAfterQueueItem) {
                     var queueItems = createItems(text, element);
@@ -1770,6 +1780,30 @@ talkify.playlist = function() {
             play(playlist.currentlyPlaying);
         }
 
+        //TODO: Extract and reuse?
+        function removeEventListeners(eventType, element) {
+            if (!element.trackedEvents || !element.trackedEvents[eventType]) {
+                return;
+            }
+
+            for (var i = 0; i < element.trackedEvents[eventType].length; i++) {
+                element.removeEventListener(eventType, element.trackedEvents[eventType][i]);
+            }
+        }
+
+        function addEventListener(eventType, element, listener) {
+            if (!element.trackedEvents) {
+                element.trackedEvents = [];
+            }
+
+            if (!element.trackedEvents[eventType]) {
+                element.trackedEvents[eventType] = [];
+            }
+
+            element.trackedEvents[eventType].push(listener);
+            element.addEventListener(eventType, listener);
+        }
+
         initialize();
 
         return {
@@ -1799,7 +1833,7 @@ talkify.playlist = function() {
                 playerHasBeenReplaced = true;
                 replayCurrent();
             },
-            dispose: function() {
+            dispose: function () {
                 resetPlaybackStates();
             }
         }
@@ -1864,14 +1898,14 @@ talkify = talkify || {};
 talkify.textextractor = function () {
     var validElements = [];
 
-    var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'].join();
-    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer'].join();
+    var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
+    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer'];
 
     function getVisible(elements) {
         var result = [];
 
         for (var j = 0; j < elements.length; j++) {
-            if (elements[j].is(':hidden')) {
+            if (!isVisible(elements[j])) {
                 continue;
             }
 
@@ -1879,6 +1913,10 @@ talkify.textextractor = function () {
         }
 
         return result;
+    }
+
+    function isVisible(element) {
+        return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
     }
 
     function getStrippedText(text) {
@@ -1890,27 +1928,27 @@ talkify.textextractor = function () {
             return false;
         }
 
-        if (node.nodeName === "#text") {
+        if (node.nodeType === 3) {
             return getStrippedText(node.textContent).length >= 10;
         }
 
         return false;
     }
 
-    function isValidAnchor($node) {
-        if ($node.siblings().length >= 1) {
+    function isValidAnchor(node) {
+        var nrOfSiblings = getSiblings(node);
+
+        if (nrOfSiblings.length >= 1) {
             return true;
         }
 
-        var previous = $node[0].previousSibling;
+        var previous = node.previousSibling;
 
         if (isValidTextNode(previous)) {
             return true;
         }
 
-        var next = $node[0].nextSibling;
-
-        if (isValidTextNode(next)) {
+        if (isValidTextNode(node.nextSibling)) {
             return true;
         }
 
@@ -1918,10 +1956,10 @@ talkify.textextractor = function () {
     }
 
     function isValidForGrouping(node) {
-        var isTextNode = node.nodeName === '#text';
+        var isTextNode = node.nodeType === 3;
         var textLength = getStrippedText(node.textContent).length;
 
-        return (isTextNode && textLength >= 5) || $(node).is(inlineElements);
+        return (isTextNode && textLength >= 5) || elementIsInlineElement(node);
     }
 
     function getConnectedElements(nodes, firstIndex) {
@@ -1929,7 +1967,7 @@ talkify.textextractor = function () {
 
         for (var l = firstIndex; l < nodes.length; l++) {
             if (isValidForGrouping(nodes[l])) {
-                connectedElements.push($(nodes[l]));
+                connectedElements.push(nodes[l]);
             } else {
                 break;
             }
@@ -1940,23 +1978,29 @@ talkify.textextractor = function () {
 
     function group(elements) {
         //TODO: wrap in selectable element
-        var wrapping = $('<span class="superbar"></span>');
+        wrapping = document.createElement('span');
+        wrapping.classList.add("superbar");
 
         for (var j = 0; j < elements.length; j++) {
-            wrapping.append(elements[j].clone());
+            wrapping.appendChild(elements[j].cloneNode(true));
         }
 
         return wrapping;
     }
 
     function wrapInSelectableElement(node) {
-        return $('<span class="foobar"></span').append(node.textContent);
+        wrapping = document.createElement('span');
+        wrapping.classList.add("foobar");
+        wrapping.innerText = node.textContent;
+        return wrapping;
     }
 
     function wrapAndReplace(node) {
         var spanElement = wrapInSelectableElement(node);
 
-        $(node).replaceWith(spanElement);
+        if (node.parentNode) {
+            node.parentNode.replaceChild(spanElement, node);
+        }
 
         return spanElement;
     }
@@ -1967,24 +2011,24 @@ talkify.textextractor = function () {
         }
 
         for (var i = 0; i < nodes.length; i++) {
-            var $node = $(nodes[i]);
+            var node = nodes[i];
 
-            if ($node.is('p, h1, h2, h3, h4, h5, h6')) {
-                validElements.push($node);
+            if (elementIsParagraphOrHeader(node)) {
+                validElements.push(node);
                 continue;
             }
 
-            if ($node.is(forbiddenElementsString)) {
-                var forcedElement = $node.find('h1, h2, h3, h4');
+            if (forbiddenElementsString.indexOf(getSafeTagName(node).toLowerCase()) !== -1) {
+                var forcedElement = (node.nodeType === 1 ? node : node.parentNode).querySelectorAll('h1, h2, h3, h4');
 
-                forcedElement.each(function () {
-                    validElements.push($(this));
-                });
+                for (var k = 0; k < forcedElement.length; k++) {
+                    validElements.push(forcedElement[k]);
+                }
 
                 continue;
             }
 
-            if ($node.is('a') && !isValidAnchor($node)) {
+            if (getSafeTagName(node).toLowerCase() === 'a' && !isValidAnchor(node)) {
                 continue;
             }
 
@@ -1992,13 +2036,19 @@ talkify.textextractor = function () {
 
             if (connectedElements.length > 1) {
                 var wrapping = group(connectedElements);
-                var isAboveThreshold = getStrippedText(wrapping.text()).length >= 20;
+                var isAboveThreshold = getStrippedText(wrapping.innerText).length >= 20;
 
                 if (isAboveThreshold) {
-                    $(nodes[i]).replaceWith(wrapping);
+                    nodes[i].parentNode.replaceChild(wrapping, nodes[i]);
 
                     for (var j = 0; j < connectedElements.length; j++) {
-                        connectedElements[j].remove();
+                        var parentNode = connectedElements[j].parentNode;
+
+                        if (!parentNode) {
+                            continue;
+                        }
+
+                        connectedElements[j].parentNode.removeChild(connectedElements[j]);
                     }
 
                     validElements.push(wrapping);
@@ -2006,8 +2056,6 @@ talkify.textextractor = function () {
                     continue;
                 }
             }
-
-            var node = nodes[i];
 
             if (isValidTextNode(node)) {
                 validElements.push(wrapAndReplace(node));
@@ -2020,15 +2068,15 @@ talkify.textextractor = function () {
     function extract(rootSelector) {
         validElements = [];
 
-        var topLevelElements = $(rootSelector + ' > *:not(' + forbiddenElementsString + ')');
+        var topLevelElements = document.querySelectorAll(rootSelector + ' > ' + generateExcludesFromForbiddenElements());
 
         var date = new Date();
 
         for (var i = 0; i < topLevelElements.length; i++) {
-            var $element = $(topLevelElements[i]);
+            var element = topLevelElements[i];
 
-            if ($element.is('p, h1, h2, h3, h4, h5, h6')) {
-                validElements.push($element);
+            if (elementIsParagraphOrHeader(element)) {
+                validElements.push(element);
 
                 continue;
             }
@@ -2041,6 +2089,52 @@ talkify.textextractor = function () {
         console.log(new Date() - date);
 
         return result;
+    }
+
+    function generateExcludesFromForbiddenElements() {
+        var result = '*';
+
+        for (var i = 0; i < forbiddenElementsString.length; i++) {
+            result += ':not(' + forbiddenElementsString[i] + ')';
+        }
+
+        return result;
+    }
+
+    function elementIsParagraphOrHeader(element) {
+        if (element.nodeType === 3) {
+            return false;
+        }
+
+        return ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getSafeTagName(element).toLowerCase()) != -1;
+    }
+
+    function elementIsInlineElement(element) {
+        if (element.nodeType === 3) {
+            return false;
+        }
+
+        return inlineElements.indexOf(getSafeTagName(element).toLowerCase()) != -1;
+    }
+
+    function getSafeTagName(node) {
+        return node.tagName || '';
+    }
+
+    function getChildren(n, skipMe) {
+        var r = [];
+        for (; n; n = n.nextSibling)
+            if (n.nodeType == 1 && n != skipMe)
+                r.push(n);
+        return r;
+    };
+
+    function getSiblings(n) {
+        if (!n) {
+            return [];
+        }
+
+        return getChildren(n.parentNode.firstChild, n);
     }
 
     return {
@@ -2084,15 +2178,15 @@ talkify.wordHighlighter = function() {
         resetCurrentItem();
 
         currentItem = item;
-        var text = item.element.text().trim();
+        var text = item.element.innerText.trim();
 
         if (charPosition === 0) {
-            item.element.html('<span class="talkify-word-highlight">' + text.substring(0, word.length) + '</span> ' + text.substring(word.length + 1));
+            item.element.innerHTML = '<span class="talkify-word-highlight">' + text.substring(0, word.length) + '</span> ' + text.substring(word.length + 1);
 
             return;
         }
 
-        item.element.html(text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1));
+        item.element.innerHTML =text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1);
     }
 
     function cancel() {
@@ -2121,7 +2215,7 @@ talkify.wordHighlighter = function() {
                 textHighlightTimer.cancel();
 
                 window.setTimeout(function () {
-                    item.element.html(item.originalElement.html());
+                    item.element.innerHTML = item.originalElement.innerHTML
 
                     p.done(item);
                 }, 1000);
@@ -2142,7 +2236,7 @@ talkify.wordHighlighter = function() {
 
     function resetCurrentItem() {
         if (currentItem) {
-            currentItem.element.html(currentItem.originalElement.html());
+            currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
         }
     }
     

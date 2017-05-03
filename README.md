@@ -15,7 +15,7 @@ $ npm install talkify-tts
 ```
 
 # Dependencies
-- jQuery
+- None
 
 # Usage
 
@@ -25,12 +25,10 @@ http://jsfiddle.net/woqw6b6g/48/
 ## Include the scripts
 ### Minified version
 ```html
-<script src="jquery.js"></script> //see dependencies
 <script src="talkify.min.js"></script>
 ```
 ### Non-minified version
 ```html
-<script src="jquery.js"></script> //see dependencies
 <script src="talkify.js"></script>
 ```
 

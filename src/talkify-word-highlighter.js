@@ -7,15 +7,15 @@ talkify.wordHighlighter = function() {
         resetCurrentItem();
 
         currentItem = item;
-        var text = item.element.text().trim();
+        var text = item.element.innerText.trim();
 
         if (charPosition === 0) {
-            item.element.html('<span class="talkify-word-highlight">' + text.substring(0, word.length) + '</span> ' + text.substring(word.length + 1));
+            item.element.innerHTML = '<span class="talkify-word-highlight">' + text.substring(0, word.length) + '</span> ' + text.substring(word.length + 1);
 
             return;
         }
 
-        item.element.html(text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1));
+        item.element.innerHTML =text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1);
     }
 
     function cancel() {
@@ -44,7 +44,7 @@ talkify.wordHighlighter = function() {
                 textHighlightTimer.cancel();
 
                 window.setTimeout(function () {
-                    item.element.html(item.originalElement.html());
+                    item.element.innerHTML = item.originalElement.innerHTML
 
                     p.done(item);
                 }, 1000);
@@ -65,7 +65,7 @@ talkify.wordHighlighter = function() {
 
     function resetCurrentItem() {
         if (currentItem) {
-            currentItem.element.html(currentItem.originalElement.html());
+            currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
         }
     }
     

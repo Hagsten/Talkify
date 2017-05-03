@@ -2,14 +2,14 @@
 talkify.textextractor = function () {
     var validElements = [];
 
-    var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'].join();
-    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer'].join();
+    var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
+    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer'];
 
     function getVisible(elements) {
         var result = [];
 
         for (var j = 0; j < elements.length; j++) {
-            if (elements[j].is(':hidden')) {
+            if (!isVisible(elements[j])) {
                 continue;
             }
 
@@ -17,6 +17,10 @@ talkify.textextractor = function () {
         }
 
         return result;
+    }
+
+    function isVisible(element) {
+        return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
     }
 
     function getStrippedText(text) {
@@ -28,27 +32,27 @@ talkify.textextractor = function () {
             return false;
         }
 
-        if (node.nodeName === "#text") {
+        if (node.nodeType === 3) {
             return getStrippedText(node.textContent).length >= 10;
         }
 
         return false;
     }
 
-    function isValidAnchor($node) {
-        if ($node.siblings().length >= 1) {
+    function isValidAnchor(node) {
+        var nrOfSiblings = getSiblings(node);
+
+        if (nrOfSiblings.length >= 1) {
             return true;
         }
 
-        var previous = $node[0].previousSibling;
+        var previous = node.previousSibling;
 
         if (isValidTextNode(previous)) {
             return true;
         }
 
-        var next = $node[0].nextSibling;
-
-        if (isValidTextNode(next)) {
+        if (isValidTextNode(node.nextSibling)) {
             return true;
         }
 
@@ -56,10 +60,10 @@ talkify.textextractor = function () {
     }
 
     function isValidForGrouping(node) {
-        var isTextNode = node.nodeName === '#text';
+        var isTextNode = node.nodeType === 3;
         var textLength = getStrippedText(node.textContent).length;
 
-        return (isTextNode && textLength >= 5) || $(node).is(inlineElements);
+        return (isTextNode && textLength >= 5) || elementIsInlineElement(node);
     }
 
     function getConnectedElements(nodes, firstIndex) {
@@ -67,7 +71,7 @@ talkify.textextractor = function () {
 
         for (var l = firstIndex; l < nodes.length; l++) {
             if (isValidForGrouping(nodes[l])) {
-                connectedElements.push($(nodes[l]));
+                connectedElements.push(nodes[l]);
             } else {
                 break;
             }
@@ -78,23 +82,29 @@ talkify.textextractor = function () {
 
     function group(elements) {
         //TODO: wrap in selectable element
-        var wrapping = $('<span class="superbar"></span>');
+        wrapping = document.createElement('span');
+        wrapping.classList.add("superbar");
 
         for (var j = 0; j < elements.length; j++) {
-            wrapping.append(elements[j].clone());
+            wrapping.appendChild(elements[j].cloneNode(true));
         }
 
         return wrapping;
     }
 
     function wrapInSelectableElement(node) {
-        return $('<span class="foobar"></span').append(node.textContent);
+        wrapping = document.createElement('span');
+        wrapping.classList.add("foobar");
+        wrapping.innerText = node.textContent;
+        return wrapping;
     }
 
     function wrapAndReplace(node) {
         var spanElement = wrapInSelectableElement(node);
 
-        $(node).replaceWith(spanElement);
+        if (node.parentNode) {
+            node.parentNode.replaceChild(spanElement, node);
+        }
 
         return spanElement;
     }
@@ -105,24 +115,24 @@ talkify.textextractor = function () {
         }
 
         for (var i = 0; i < nodes.length; i++) {
-            var $node = $(nodes[i]);
+            var node = nodes[i];
 
-            if ($node.is('p, h1, h2, h3, h4, h5, h6')) {
-                validElements.push($node);
+            if (elementIsParagraphOrHeader(node)) {
+                validElements.push(node);
                 continue;
             }
 
-            if ($node.is(forbiddenElementsString)) {
-                var forcedElement = $node.find('h1, h2, h3, h4');
+            if (forbiddenElementsString.indexOf(getSafeTagName(node).toLowerCase()) !== -1) {
+                var forcedElement = (node.nodeType === 1 ? node : node.parentNode).querySelectorAll('h1, h2, h3, h4');
 
-                forcedElement.each(function () {
-                    validElements.push($(this));
-                });
+                for (var k = 0; k < forcedElement.length; k++) {
+                    validElements.push(forcedElement[k]);
+                }
 
                 continue;
             }
 
-            if ($node.is('a') && !isValidAnchor($node)) {
+            if (getSafeTagName(node).toLowerCase() === 'a' && !isValidAnchor(node)) {
                 continue;
             }
 
@@ -130,13 +140,19 @@ talkify.textextractor = function () {
 
             if (connectedElements.length > 1) {
                 var wrapping = group(connectedElements);
-                var isAboveThreshold = getStrippedText(wrapping.text()).length >= 20;
+                var isAboveThreshold = getStrippedText(wrapping.innerText).length >= 20;
 
                 if (isAboveThreshold) {
-                    $(nodes[i]).replaceWith(wrapping);
+                    nodes[i].parentNode.replaceChild(wrapping, nodes[i]);
 
                     for (var j = 0; j < connectedElements.length; j++) {
-                        connectedElements[j].remove();
+                        var parentNode = connectedElements[j].parentNode;
+
+                        if (!parentNode) {
+                            continue;
+                        }
+
+                        connectedElements[j].parentNode.removeChild(connectedElements[j]);
                     }
 
                     validElements.push(wrapping);
@@ -144,8 +160,6 @@ talkify.textextractor = function () {
                     continue;
                 }
             }
-
-            var node = nodes[i];
 
             if (isValidTextNode(node)) {
                 validElements.push(wrapAndReplace(node));
@@ -158,15 +172,15 @@ talkify.textextractor = function () {
     function extract(rootSelector) {
         validElements = [];
 
-        var topLevelElements = $(rootSelector + ' > *:not(' + forbiddenElementsString + ')');
+        var topLevelElements = document.querySelectorAll(rootSelector + ' > ' + generateExcludesFromForbiddenElements());
 
         var date = new Date();
 
         for (var i = 0; i < topLevelElements.length; i++) {
-            var $element = $(topLevelElements[i]);
+            var element = topLevelElements[i];
 
-            if ($element.is('p, h1, h2, h3, h4, h5, h6')) {
-                validElements.push($element);
+            if (elementIsParagraphOrHeader(element)) {
+                validElements.push(element);
 
                 continue;
             }
@@ -179,6 +193,52 @@ talkify.textextractor = function () {
         console.log(new Date() - date);
 
         return result;
+    }
+
+    function generateExcludesFromForbiddenElements() {
+        var result = '*';
+
+        for (var i = 0; i < forbiddenElementsString.length; i++) {
+            result += ':not(' + forbiddenElementsString[i] + ')';
+        }
+
+        return result;
+    }
+
+    function elementIsParagraphOrHeader(element) {
+        if (element.nodeType === 3) {
+            return false;
+        }
+
+        return ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getSafeTagName(element).toLowerCase()) != -1;
+    }
+
+    function elementIsInlineElement(element) {
+        if (element.nodeType === 3) {
+            return false;
+        }
+
+        return inlineElements.indexOf(getSafeTagName(element).toLowerCase()) != -1;
+    }
+
+    function getSafeTagName(node) {
+        return node.tagName || '';
+    }
+
+    function getChildren(n, skipMe) {
+        var r = [];
+        for (; n; n = n.nextSibling)
+            if (n.nodeType == 1 && n != skipMe)
+                r.push(n);
+        return r;
+    };
+
+    function getSiblings(n) {
+        if (!n) {
+            return [];
+        }
+
+        return getChildren(n.parentNode.firstChild, n);
     }
 
     return {

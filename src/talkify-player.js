@@ -1,5 +1,5 @@
 ﻿talkify = talkify || {};
-talkify.TtsPlayer = function() {
+talkify.TtsPlayer = function () {
     var me = this;
     var audioElement;
 
@@ -162,30 +162,29 @@ talkify.TtsPlayer.prototype.playAudio = function (item, onEnded) {
     this.audioElement.load();
 
     //TODO: remove jquery dependency
-    $(this.audioElement)
-        .unbind("loadeddata")
-        .bind("loadeddata", function () {
-            me.mutateControls(function (instance) {
-                instance.audioLoaded();
-            });
 
-            me.audioSource.pause();
+    this.audioElement.onloadeddata = function () {
+        me.mutateControls(function (instance) {
+            instance.audioLoaded();
+        });
 
-            if (!me.settings.useTextHighlight) {
-                p.done();
-                me.audioSource.play();
-                return;
-            }
+        me.audioSource.pause();
 
-            me.getPositions().then(function (error, positions) {
-                me.currentContext.positions = positions || [];
+        if (!me.settings.useTextHighlight) {
+            p.done();
+            me.audioSource.play();
+            return;
+        }
 
-                p.done();
-                me.audioSource.play();
-            });
-        })
-        .unbind("ended.justForUniqueness")
-        .bind("ended.justForUniqueness", onEnded || function () { });
+        me.getPositions().then(function (error, positions) {
+            me.currentContext.positions = positions || [];
+
+            p.done();
+            me.audioSource.play();
+        });
+    };
+
+    this.audioElement.onended = onEnded || function () { };
 
     return p;
 };

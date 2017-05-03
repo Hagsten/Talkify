@@ -1,6 +1,5 @@
 ﻿talkify = talkify || {};
-talkify.playlist = function() {
-
+talkify.playlist = function () {
     var defaults = {
         useGui: false,
         useTextInteraction: false,
@@ -59,7 +58,7 @@ talkify.playlist = function() {
                 //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
-                item.element.removeClass("playing");
+                item.element.classList.remove("playing");
             }
         };
 
@@ -73,7 +72,7 @@ talkify.playlist = function() {
             return false;
         }
 
-        function domElementExistsInQueue($element) {
+        function domElementExistsInQueue(element) { //TODO: might need to look at construct as <a><h3></h3></a> and whether "a" is "h3" since it is just a wrapper
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
 
@@ -81,7 +80,7 @@ talkify.playlist = function() {
                     continue;
                 }
 
-                if ($element.is(item.element)) {
+                if (element === item.element) {
                     return true;
                 }
             }
@@ -107,7 +106,7 @@ talkify.playlist = function() {
             resetPlaybackStates();
 
             if (playlist.currentlyPlaying) {
-                playlist.currentlyPlaying.element.html(playlist.currentlyPlaying.originalElement.html());
+                playlist.currentlyPlaying.element.innerHTML = playlist.currentlyPlaying.originalElement.innerHTML;
             }
 
             playlist.currentlyPlaying = item;
@@ -117,7 +116,7 @@ talkify.playlist = function() {
             return p;
         };
 
-        function createItems(text, $element) { //TODO: jQuery-dependency
+        function createItems(text, element) {
             var safeMaxQuerystringLength = 1000;
 
             var items = [];
@@ -129,25 +128,26 @@ talkify.playlist = function() {
 
                 var f = text.substr(0, breakAt);
 
-                items.push(template(f, $element));
+                items.push(template(f, element));
 
-                items = items.concat(createItems(text.substr(breakAt, text.length - 1), $element));
+                items = items.concat(createItems(text.substr(breakAt, text.length - 1), element));
 
                 return items;
             }
 
-            items.push(template(text, $element));
+            items.push(template(text, element));
 
             return items;
 
-            function template(t, $el) {
-                var outerHtml = $el.length > 0 ? $($el[0].outerHTML) : $();
+            function template(t, el) {
+                el = el || document.createElement("span");
+                var clone = el.cloneNode(true);
 
                 return {
                     text: t,
                     preview: t.substr(0, 40),
-                    element: $el,
-                    originalElement: outerHtml,
+                    element: el,
+                    originalElement: clone,
                     isPlaying: false,
                     isLoading: false
                 };
@@ -173,18 +173,22 @@ talkify.playlist = function() {
         }
 
         function setupItemForUserInteraction(item) {
-            item.element.css("cursor", "pointer")
-                .addClass('talkify-highlight')
-                .unbind('click.talkify')
-                .bind('click.talkify', function () {
-                    play(item);
-                });
+            item.element.style.cursor = "pointer";
+            item.element.classList.add("talkify-highlight");
+
+            removeEventListeners("click", item.element);
+            addEventListener("click", item.element, textInteractionEventListener);
+
+            function textInteractionEventListener() {
+                play(item);
+            }
         }
 
         function removeUserInteractionForItem(item) {
-            item.element.css("cursor", "inherit")
-               .removeClass('talkify-highlight')
-               .unbind('click.talkify');
+            item.element.style.cursor = "inherit";
+            item.element.classList.remove("talkify-highlight");
+
+            removeEventListeners("click", item.element);
         }
 
         function initialize() {
@@ -196,13 +200,13 @@ talkify.playlist = function() {
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text;
-                var element = $();
+                var element = null;
 
                 if (typeof settings.domElements[i] === "string") {
                     text = settings.domElements[i];
                 } else {
-                    element = $(settings.domElements[i]);
-                    text = element.text().trim();
+                    element = settings.domElements[i];
+                    text = element.innerText.trim();
                 }
 
                 if (text === "") {
@@ -221,7 +225,7 @@ talkify.playlist = function() {
                     var item = playlist.queue[j];
 
                     if (j > 0) {
-                        var isSameAsPrevious = item.element.is(playlist.queue[j - 1].element);
+                        var isSameAsPrevious = item.element === playlist.queue[j - 1].element;
 
                         if (isSameAsPrevious) {
                             continue;
@@ -294,7 +298,7 @@ talkify.playlist = function() {
         function insertElement(element) {
             var items = [];
 
-            var text = element.text();
+            var text = element.innerText;
 
             if (text.trim() === "") {
                 return items;
@@ -309,7 +313,7 @@ talkify.playlist = function() {
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
 
-                var isSelectionAfterQueueItem = element[0].compareDocumentPosition(item.element[0]) == documentPositionFollowing;
+                var isSelectionAfterQueueItem = element.compareDocumentPosition(item.element) == documentPositionFollowing;
 
                 if (isSelectionAfterQueueItem) {
                     var queueItems = createItems(text, element);
@@ -346,6 +350,30 @@ talkify.playlist = function() {
             play(playlist.currentlyPlaying);
         }
 
+        //TODO: Extract and reuse?
+        function removeEventListeners(eventType, element) {
+            if (!element.trackedEvents || !element.trackedEvents[eventType]) {
+                return;
+            }
+
+            for (var i = 0; i < element.trackedEvents[eventType].length; i++) {
+                element.removeEventListener(eventType, element.trackedEvents[eventType][i]);
+            }
+        }
+
+        function addEventListener(eventType, element, listener) {
+            if (!element.trackedEvents) {
+                element.trackedEvents = [];
+            }
+
+            if (!element.trackedEvents[eventType]) {
+                element.trackedEvents[eventType] = [];
+            }
+
+            element.trackedEvents[eventType].push(listener);
+            element.addEventListener(eventType, listener);
+        }
+
         initialize();
 
         return {
@@ -375,7 +403,7 @@ talkify.playlist = function() {
                 playerHasBeenReplaced = true;
                 replayCurrent();
             },
-            dispose: function() {
+            dispose: function () {
                 resetPlaybackStates();
             }
         }

@@ -141,7 +141,7 @@ talkify.BasePlayer.prototype.playItem = function (item) {
 
     item.isLoading = true;
     item.isPlaying = true;
-    item.element.addClass("playing");
+    item.element.classList.add("playing");
 
     this.playAudio(item, function () {
         item.isPlaying = false;
@@ -155,7 +155,7 @@ talkify.BasePlayer.prototype.playItem = function (item) {
     return p;
 };
 
-talkify.BasePlayer.prototype.createItems = function (text, $element) { //TODO: jQuery-dependency
+talkify.BasePlayer.prototype.createItems = function (text) {
     var safeMaxQuerystringLength = 1000;
 
     var items = [];
@@ -164,25 +164,27 @@ talkify.BasePlayer.prototype.createItems = function (text, $element) { //TODO: j
     if (text.length > safeMaxQuerystringLength) {
         var f = text.substr(0, safeMaxQuerystringLength);
 
-        items.push(template(f, $element));
+        items.push(template(f));
 
-        items = items.concat(this.createItems(text.substr(safeMaxQuerystringLength, text.length - 1), $element));
+        items = items.concat(this.createItems(text.substr(safeMaxQuerystringLength, text.length - 1)));
 
         return items;
     }
 
-    items.push(template(text, $element));
+    items.push(template(text));
 
     return items;
 
-    function template(t, $el) {
-        var outerHtml = $el.length > 0 ? $($el[0].outerHTML) : $();
+    function template(t) {
+        //Null-objects
+        var element = document.createElement("span");
+        var clone = element.cloneNode(true);
 
         return {
             text: t,
             preview: t.substr(0, 40),
-            element: $el,
-            originalElement: outerHtml,
+            element: element,
+            originalElement: clone,
             isPlaying: false,
             isLoading: false
         };
@@ -190,7 +192,7 @@ talkify.BasePlayer.prototype.createItems = function (text, $element) { //TODO: j
 };
 
 talkify.BasePlayer.prototype.playText = function (text) {
-    var items = this.createItems(text, $());
+    var items = this.createItems(text);
 
     var currentItem = 0;
 

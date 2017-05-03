@@ -17,8 +17,5 @@
 	"ignore": [
 		"*",
 		"!dist/*"
-	],
-	"dependencies": {
-		"jquery": ">=2.0.0"
-	}
+	]
 }

@@ -190,6 +190,11 @@ talkify.playbar = function(parent) {
         progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
 
         var current = document.getElementById("talkify-current-track-time");
+
+        if (!current) {
+            return;
+        }
+
         var total = document.getElementById("talkify-track-time");
 
         var minutes = Math.floor(e.target.currentTime / 60);
