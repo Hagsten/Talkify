@@ -40,7 +40,7 @@ http://jsfiddle.net/woqw6b6g/48/
         .begin()
         .usingPlayer(player)
         .withTextInteraction()
-        .withElements($('p')) //<--Any element you'd like. Leave blank to let Talkify make a good guess
+        .withElements(document.querySelectorAll('p')) //<--Any element you'd like. Leave blank to let Talkify make a good guess
         .build() //<-- Returns an instance.
         .play();
 ```
@@ -73,6 +73,7 @@ player.playText('Hello world');
 ```javascript
 talkify.config = {
     host: 'http://talkify.net', //Host of streamed audio media.
+    useRemoteServices: true, //True to use Talkifys language engine and hosted voices. False only works for Html5Player.
     ui:
     {
         audioControls: { //If enabled, replaces the built in audio controls. Especially good for the Web Speech API bits
@@ -95,7 +96,7 @@ Entry point: talkify.playlist()
 | begin |  | |  Entry point. Call this to start building your playlist | Yes |
 | usingPlayer | TtsPlayer/Html5Player  | |   Specify which player to be used. |   Yes |
 | withTextInteraction | | | Enables you to click on paragraphs (and other text) to play |    No |
-| withElements | jQuery element | | Specifies with elements to play. If omitted, Talkify will crawl the page and select for you |    No |
+| withElements | DOM elements | | Specifies with elements to play. If omitted, Talkify will crawl the page and select for you |    No |
 | withRootSelector | string | 'body' | Sets the scope from where Talkify will start to crawl the page for text to play |    No |
 | subscribeTo | Json object | | Event subscriptions |    No |
 | build | | | Finalizes and creates the playlist instance |    Yes |
@@ -109,7 +110,7 @@ This is the instance built from the playliste above.
 | play | | | Begins playback of playlist |
 | pause | | | Pauses playlist |
 | replayCurrent | | | Replays the current item in the playlist |
-| insert | jQuery element | | Inserts new html elements to play. Useful for elements that Talkify were unable to locate. Elements will be inserted in correct order with respect to the page. |
+| insert | DOM element | | Inserts new html elements to play. Useful for elements that Talkify were unable to locate. Elements will be inserted in correct order with respect to the page. |
 | isPlaying | | | True if any item is currently in a playing state |
 | setPlayer | TtsPlayer/Html5Player | | Sets the player that the playlist is using |
 | enableTextInteraction | | | Enables click to play on HTML elements |
