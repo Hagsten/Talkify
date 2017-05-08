@@ -601,6 +601,7 @@ talkify.config = {
 },{}],6:[function(require,module,exports){
 //TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
 talkify = talkify || {};
+
 talkify.Html5Player = function () {
     this.isStopped = false;
     this.volume = 1;
@@ -621,7 +622,7 @@ talkify.Html5Player = function () {
     this.audioSource = {
         play: function () {
             if (me.currentContext.item) {
-                me.playCurrentContext();
+                playCurrentContext();
             }
         },
         pause: function () {
@@ -635,20 +636,54 @@ talkify.Html5Player = function () {
         currentTime: function () { return 0; },
         cancel: function (asPause) {
             if (asPause) {
-                me.stop();
+                stop();
             } else {
                 window.speechSynthesis.cancel();
             }
         },
         stop: function () {
-            me.stop();
+            stop();
         },
         dispose: function () { }
     };
 
-    this.__proto__.__proto__ = new talkify.BasePlayer(this.audioSource, this.playbar);
+    talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
-    me.mutateControls(function (c) {
+    this.playAudio = function (item, onEnded) {
+        me.currentContext.endedCallback = onEnded;
+        me.currentContext.item = item;
+        me.currentContext.utterances = [];
+        me.currentContext.currentUtterance = null;
+        me.mutateControls(function (instance) {
+            instance.audioLoaded();
+        });
+
+        //if (me.settings.lockedLanguage !== null) {
+        return playCurrentContext();
+        //}
+
+        //TODO: Need better server side help here with refLang
+        //var p = new promise.Promise();
+
+        //talkifyHttp.get("/api/Language?text=" + item.text)
+        //    .then(function (error, data) {
+        //        me.settings.referenceLanguage = data;
+
+        //        me.playCurrentContext().then(function () {
+        //            p.done();
+        //        });
+        //    });
+
+        //return p;
+    };
+
+    this.setVolume = function (volume) {
+        me.volume = volume;
+
+        return this;
+    };
+
+    this.mutateControls(function (c) {
         c.subscribeTo({
             onPlayClicked: function () {
                 me.audioSource.play();
@@ -662,323 +697,284 @@ talkify.Html5Player = function () {
             onRateChanged: function (rate) {
                 me.settings.rate = rate / 5;
             }
-        }).setVoice(this.forcedVoice);
+        }).setVoice(me.forcedVoice);
     });
-};
 
-talkify.Html5Player.prototype.extractWords = function (text, language) {
-    var wordRegex = new RegExp(/[&\$\-|]|([("\-&])*(\b[^\s]+[.:,"-)!&?]*)/g);
+    function playCurrentContext() {
+        var item = me.currentContext.item;
+        var onEnded = me.currentContext.endedCallback;
 
-    if (language) {
-        if (language.indexOf('zh-') > -1) {
-            return text.split('，');
-        }
+        var chuncks = chunckText(item.text);
 
-        if (language.indexOf('ko-') > -1) {
-            return text.split('.');
-        }
-    }
+        me.currentContext.utterances = [];
+        me.isStopped = false;
 
-    var words = [];
-    var m;
+        chuncks.forEach(function (chunck) {
+            var utterance = new window.SpeechSynthesisUtterance();
 
-    while ((m = wordRegex.exec(text)) !== null) {
-        if (m.index === wordRegex.lastIndex) {
-            wordRegex.lastIndex++;
-        }
+            utterance.text = chunck;
+            utterance.lang = me.settings.lockedLanguage || me.settings.referenceLanguage.Culture;
+            utterance.rate = me.settings.rate;
+            utterance.volume = me.volume;
 
-        words.push(m[0]);
-    }
+            me.currentContext.utterances.push(utterance);
+        });
 
-    return words;
-};
+        var p = new promise.Promise();
 
-talkify.Html5Player.prototype.getVoice = function () {
-    var p = new promise.Promise();
-    var me = this;
+        var wordIndex = 0;
+        var previousCharIndex = 0;
+        var words = extractWords(item.text);
 
-    if (this.forcedVoice) {
-        p.done(this.forcedVoice);
+        me.currentContext.utterances[me.currentContext.utterances.length - 1].onend = function (e) {
+            me.events.onSentenceComplete(item);
 
-        return p;
-    }
-
-    if (window.speechSynthesis.getVoices().length) {
-        var voices = window.speechSynthesis.getVoices();
-
-        p.done(me.selectVoiceToPlay(voices));
-
-        return p;
-    }
-
-    window.speechSynthesis.onvoiceschanged = function () {
-        var voices = window.speechSynthesis.getVoices();
-
-        p.done(me.selectVoiceToPlay(voices));
-    };
-
-    return p;
-};
-
-talkify.Html5Player.prototype.selectVoiceToPlay = function (voices) {
-    var matchingVoices = [];
-    var voice = null;
-
-    var language = this.settings.lockedLanguage || this.settings.referenceLanguage.Culture;
-
-    for (var i = 0; i < voices.length; i++) {
-        if (voices[i].lang === language) {
-            matchingVoices.push(voices[i]);
-            voice = voices[i];
-        }
-    }
-
-    for (var j = 0; j < matchingVoices.length; j++) {
-        if (matchingVoices[j].localService) {
-            voice = matchingVoices[j];
-
-            break;
-        }
-    }
-
-    if (!voice && matchingVoices.length) {
-        voice = matchingVoices[0];
-    }
-
-    if (!voice && voices.length) {
-        voice = voices[0];
-    }
-
-    return voice;
-};
-
-talkify.Html5Player.prototype.chunckText = function (text) {
-    var language = this.settings.lockedLanguage || this.settings.referenceLanguage.Culture;
-    var chunckSize = language.indexOf('zh-') > -1 ? 70 :
-        language.indexOf('ko-') > -1 ? 130 : 200;
-
-    var chuncks = [];
-    var sentences = text.split(/(\?|\.|。)+/g); //('.');
-    var currentChunck = '';
-    var me = this;
-
-    sentences.forEach(function (sentence) {
-        if (sentence === '' || sentence === '.' || sentence === '。' || sentence === '?') {
-            if (currentChunck) {
-                currentChunck += sentence;
+            if (!me.currentContext.currentUtterance) {
+                return;
             }
 
-            return;
-        }
+            if (me.currentContext.currentUtterance.text !== e.currentTarget.text) {
+                return;
+            }
 
-        if (currentChunck && ((currentChunck.length + sentence.length) > chunckSize)) {
-            chuncks.push(currentChunck);
-            currentChunck = '';
-        }
+            if (onEnded && !me.isStopped) {
+                onEnded();
+            }
+        };
 
-        if (sentence.length > chunckSize) {
-            var words = me.extractWords(sentence, language);
+        me.currentContext.utterances.forEach(function (u, index) {
+            if (index === 0) {
+                u.onstart = function (e) {
+                    me.currentContext.currentUtterance = e.utterance;
+                    p.done();
+                    me.internalEvents.onPlay();
+                };
+            } else {
+                u.onstart = function (e) {
+                    me.currentContext.currentUtterance = e.utterance;
+                };
+            }
 
-            words.forEach(function (word) {
-                if (currentChunck.length + word.length > chunckSize) {
-                    chuncks.push(currentChunck);
-                    currentChunck = '';
+            u.onpause = function () {
+                me.internalEvents.onPause();
+            };
+
+            u.onresume = function () { };
+
+            u.onboundary = function (e) {
+                if (e.name !== "word" || !words[wordIndex]) {
+                    return;
                 }
 
-                currentChunck += word.trim() + ' ';
-            });
+                me.mutateControls(function (c) {
+                    c.setProgress((wordIndex + 1) / words.length);
+                });
 
-            if (currentChunck.trim()) {
-                chuncks.push(currentChunck.trim() + '.');
+                if (!me.settings.useTextHighlight || !u.voice.localService) {
+                    return;
+                }
+
+
+                //if (!words[wordIndex]) {
+                //    return;
+                //}
+
+                var fromIndex = 0;
+
+                for (var k = 0; k < wordIndex; k++) {
+                    fromIndex += words[k].length + 1;
+                }
+
+                var isCommaOrSimilair = previousCharIndex + 1 === e.charIndex;
+
+                if (isCommaOrSimilair) {
+                    previousCharIndex = e.charIndex;
+                    return;
+                }
+
+                me.wordHighlighter.highlight(item, words[wordIndex], fromIndex);
+                wordIndex++;
+                previousCharIndex = e.charIndex;
+            };
+
+            getVoice().then(function (voice) {
+                if (words.length && me.settings.useTextHighlight && voice.localService) {
+                    me.wordHighlighter.highlight(item, words[0], 0);
+                }
+
+                u.voice = voice;
+
+                console.log(u); //Keep this, speech bugs out otherwise
+
+                window.speechSynthesis.cancel();
+
+                me.mutateControls(function (c) {
+                    c.setVoice(voice);
+                });
+
+                window.setTimeout(function () {
+                    window.speechSynthesis.speak(u);
+                }, 100);
+            });
+        });
+
+        return p;
+    };
+
+    function chunckText(text) {
+        var language = me.settings.lockedLanguage || me.settings.referenceLanguage.Culture;
+        var chunckSize = language.indexOf('zh-') > -1 ? 70 :
+            language.indexOf('ko-') > -1 ? 130 : 200;
+
+        var chuncks = [];
+        var sentences = text.split(/(\?|\.|。)+/g); //('.');
+        var currentChunck = '';
+
+        sentences.forEach(function (sentence) {
+            if (sentence === '' || sentence === '.' || sentence === '。' || sentence === '?') {
+                if (currentChunck) {
+                    currentChunck += sentence;
+                }
+
+                return;
+            }
+
+            if (currentChunck && ((currentChunck.length + sentence.length) > chunckSize)) {
+                chuncks.push(currentChunck);
                 currentChunck = '';
             }
 
-            return;
-        }
+            if (sentence.length > chunckSize) {
+                var words = extractWords(sentence, language);
 
-        currentChunck += sentence;
-    });
+                words.forEach(function (word) {
+                    if (currentChunck.length + word.length > chunckSize) {
+                        chuncks.push(currentChunck);
+                        currentChunck = '';
+                    }
 
-    chuncks.push(currentChunck);
+                    currentChunck += word.trim() + ' ';
+                });
 
-    return chuncks;
-};
+                if (currentChunck.trim()) {
+                    chuncks.push(currentChunck.trim() + '.');
+                    currentChunck = '';
+                }
 
-talkify.Html5Player.prototype.playAudio = function (item, onEnded) {
-    this.currentContext.endedCallback = onEnded;
-    this.currentContext.item = item;
-    this.currentContext.utterances = [];
-    this.currentContext.currentUtterance = null;
-    this.mutateControls(function (instance) {
-        instance.audioLoaded();
-    });
+                return;
+            }
 
-    var me = this;
+            currentChunck += sentence;
+        });
 
-    //if (me.settings.lockedLanguage !== null) {
-    return me.playCurrentContext();
-    //}
+        chuncks.push(currentChunck);
 
-    //TODO: Need better server side help here with refLang
-    //var p = new promise.Promise();
-
-    //talkifyHttp.get("/api/Language?text=" + item.text)
-    //    .then(function (error, data) {
-    //        me.settings.referenceLanguage = data;
-
-    //        me.playCurrentContext().then(function () {
-    //            p.done();
-    //        });
-    //    });
-
-    //return p;
-};
-
-talkify.Html5Player.prototype.playCurrentContext = function () {
-    var item = this.currentContext.item;
-    var onEnded = this.currentContext.endedCallback;
-
-    var chuncks = this.chunckText(item.text);
-
-    var me = this;
-
-    me.currentContext.utterances = [];
-    me.isStopped = false;
-
-    chuncks.forEach(function (chunck) {
-        var utterance = new window.SpeechSynthesisUtterance();
-
-        utterance.text = chunck;
-        utterance.lang = me.settings.lockedLanguage || me.settings.referenceLanguage.Culture;
-        utterance.rate = me.settings.rate;
-        utterance.volume = me.volume;
-
-        me.currentContext.utterances.push(utterance);
-    });
-
-    var p = new promise.Promise();
-
-    var wordIndex = 0;
-    var previousCharIndex = 0;
-    var words = this.extractWords(item.text);
-
-    me.currentContext.utterances[me.currentContext.utterances.length - 1].onend = function (e) {
-        me.events.onSentenceComplete(item);
-
-        if (!me.currentContext.currentUtterance) {
-            return;
-        }
-
-        if (me.currentContext.currentUtterance.text !== e.currentTarget.text) {
-            return;
-        }
-
-        if (onEnded && !me.isStopped) {
-            onEnded();
-        }
+        return chuncks;
     };
 
-    me.currentContext.utterances.forEach(function (u, index) {
-        if (index === 0) {
-            u.onstart = function (e) {
-                me.currentContext.currentUtterance = e.utterance;
-                p.done();
-                me.internalEvents.onPlay();
-            };
-        } else {
-            u.onstart = function (e) {
-                me.currentContext.currentUtterance = e.utterance;
-            };
+    function extractWords(text, language) {
+        var wordRegex = new RegExp(/[&\$\-|]|([("\-&])*(\b[^\s]+[.:,"-)!&?]*)/g);
+
+        if (language) {
+            if (language.indexOf('zh-') > -1) {
+                return text.split('，');
+            }
+
+            if (language.indexOf('ko-') > -1) {
+                return text.split('.');
+            }
         }
 
-        u.onpause = function () {
-            me.internalEvents.onPause();
+        var words = [];
+        var m;
+
+        while ((m = wordRegex.exec(text)) !== null) {
+            if (m.index === wordRegex.lastIndex) {
+                wordRegex.lastIndex++;
+            }
+
+            words.push(m[0]);
+        }
+
+        return words;
+    };
+
+    function selectVoiceToPlay(voices) {
+        var matchingVoices = [];
+        var voice = null;
+
+        var language = me.settings.lockedLanguage || me.settings.referenceLanguage.Culture;
+
+        for (var i = 0; i < voices.length; i++) {
+            if (voices[i].lang === language) {
+                matchingVoices.push(voices[i]);
+                voice = voices[i];
+            }
+        }
+
+        for (var j = 0; j < matchingVoices.length; j++) {
+            if (matchingVoices[j].localService) {
+                voice = matchingVoices[j];
+
+                break;
+            }
+        }
+
+        if (!voice && matchingVoices.length) {
+            voice = matchingVoices[0];
+        }
+
+        if (!voice && voices.length) {
+            voice = voices[0];
+        }
+
+        return voice;
+    };
+
+    function getVoice() {
+        var p = new promise.Promise();
+
+        if (me.forcedVoice) {
+            p.done(me.forcedVoice);
+
+            return p;
+        }
+
+        if (window.speechSynthesis.getVoices().length) {
+            var voices = window.speechSynthesis.getVoices();
+
+            p.done(selectVoiceToPlay(voices));
+
+            return p;
+        }
+
+        window.speechSynthesis.onvoiceschanged = function () {
+            var voices = window.speechSynthesis.getVoices();
+
+            p.done(selectVoiceToPlay(voices));
         };
 
-        u.onresume = function () { };
+        return p;
+    };
 
-        u.onboundary = function (e) {
-            if (e.name !== "word" || !words[wordIndex]) {
-                return;
-            }
+    function stop() {
+        me.isStopped = true;
+        me.internalEvents.onPause();
+        window.speechSynthesis.cancel();
 
-            me.mutateControls(function (c) {
-                c.setProgress((wordIndex + 1) / words.length);
-            });
-
-            if (!me.settings.useTextHighlight || !u.voice.localService) {
-                return;
-            }
-
-
-            //if (!words[wordIndex]) {
-            //    return;
-            //}
-
-            var fromIndex = 0;
-
-            for (var k = 0; k < wordIndex; k++) {
-                fromIndex += words[k].length + 1;
-            }
-
-            var isCommaOrSimilair = previousCharIndex + 1 === e.charIndex;
-
-            if (isCommaOrSimilair) {
-                previousCharIndex = e.charIndex;
-                return;
-            }
-
-            me.wordHighlighter.highlight(item, words[wordIndex], fromIndex);
-            wordIndex++;
-            previousCharIndex = e.charIndex;
-        };
-
-        me.getVoice().then(function (voice) {
-            if (words.length && me.settings.useTextHighlight && voice.localService) {
-                me.wordHighlighter.highlight(item, words[0], 0);
-            }
-
-            u.voice = voice;
-
-            console.log(u); //Keep this, speech bugs out otherwise
-
-            window.speechSynthesis.cancel();
-
-            me.mutateControls(function (c) {
-                c.setVoice(voice);
-            });
-
-            window.setTimeout(function () {
-                window.speechSynthesis.speak(u);
-            }, 100);
-        });
-    });
-
-    return p;
+        if (me.currentContext.utterances.indexOf(me.currentContext.currentUtterance) < me.currentContext.utterances.length - 1) {
+            console.log('Not the last, finishing anyway...');
+            me.events.onSentenceComplete(me.currentContext.item);
+        }
+    };
 };
 
-talkify.Html5Player.prototype.stop = function () {
-    this.isStopped = true;
-    this.internalEvents.onPause();
-    window.speechSynthesis.cancel();
-
-    if (this.currentContext.utterances.indexOf(this.currentContext.currentUtterance) < this.currentContext.utterances.length - 1) {
-        console.log('Not the last, finishing anyway...');
-        this.events.onSentenceComplete(this.currentContext.item);
-    }
-};
-
-talkify.Html5Player.prototype.setVolume = function (volume) {
-    this.volume = volume;
-
-    return this;
-};
+talkify.Html5Player.prototype.constructor = talkify.Html5Player;
 },{}],7:[function(require,module,exports){
 talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar) {
     this.audioSource = _audiosource;
     this.wordHighlighter = new talkify.wordHighlighter();
-    this.id = this.generateGuid();
     var me = this;
 
     this.settings = {
@@ -1047,198 +1043,201 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
             }
         });
     }
-};
 
-talkify.BasePlayer.prototype.withReferenceLanguage = function (refLang) {
-    this.settings.referenceLanguage = refLang;
+    this.withReferenceLanguage = function (refLang) {
+        this.settings.referenceLanguage = refLang;
 
-    return this;
-};
+        return this;
+    };
 
-talkify.BasePlayer.prototype.enableTextHighlighting = function () {
-    this.settings.useTextHighlight = true;
-    this.mutateControls(function (c) {
-        c.setTextHighlight(true);
-    });
-
-    return this;
-};
-
-talkify.BasePlayer.prototype.disableTextHighlighting = function () {
-    this.settings.useTextHighlight = false;
-    this.mutateControls(function (c) {
-        c.setTextHighlight(false);
-    });
-
-    return this;
-};
-
-talkify.BasePlayer.prototype.setRate = function (r) {
-    this.settings.rate = r;
-
-    return this;
-}
-
-talkify.BasePlayer.prototype.subscribeTo = function (subscriptions) {
-    this.events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
-    this.events.onSentenceComplete = subscriptions.onItemFinished || function () { };
-    this.events.onPause = subscriptions.onPause || function () { };
-    this.events.onPlay = subscriptions.onPlay || function () { };
-    this.events.onResume = subscriptions.onResume || function () { };
-    this.events.onItemLoaded = subscriptions.onItemLoaded || function () { };
-    this.events.onTextHighligtChanged = subscriptions.onTextHighligtChanged || function () { };
-
-    return this;
-};
-
-talkify.BasePlayer.prototype.generateGuid = function () {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-};
-
-talkify.BasePlayer.prototype.playItem = function (item) {
-    var p = new promise.Promise();
-
-    if (item && item.isPlaying) {
-        if (this.audioSource.paused()) {
-            this.audioSource.play();
-        } else {
-            this.audioSource.pause();
-        }
-
-        return p;
-    }
-
-    this.events.onBeforeItemPlaying(item);
-
-    var me = this;
-
-    item.isLoading = true;
-    item.isPlaying = true;
-    item.element.classList.add("playing");
-
-    this.playAudio(item, function () {
-        item.isPlaying = false;
-        p.done();
-    })
-        .then(function () {
-            item.isLoading = false;
-            me.events.onItemLoaded();
+    this.enableTextHighlighting = function () {
+        this.settings.useTextHighlight = true;
+        this.mutateControls(function (c) {
+            c.setTextHighlight(true);
         });
 
-    return p;
-};
+        return this;
+    };
 
-talkify.BasePlayer.prototype.createItems = function (text) {
-    var safeMaxQuerystringLength = 1000;
+    this.disableTextHighlighting = function () {
+        this.settings.useTextHighlight = false;
+        this.mutateControls(function (c) {
+            c.setTextHighlight(false);
+        });
 
-    var items = [];
+        return this;
+    };
 
-    //TODO: Smart split, should really split at the first end of sentence (.) that is < safeLength
-    if (text.length > safeMaxQuerystringLength) {
-        var f = text.substr(0, safeMaxQuerystringLength);
+    this.setRate = function (r) {
+        this.settings.rate = r;
 
-        items.push(template(f));
+        return this;
+    }
 
-        items = items.concat(this.createItems(text.substr(safeMaxQuerystringLength, text.length - 1)));
+    this.subscribeTo = function (subscriptions) {
+        this.events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
+        this.events.onSentenceComplete = subscriptions.onItemFinished || function () { };
+        this.events.onPause = subscriptions.onPause || function () { };
+        this.events.onPlay = subscriptions.onPlay || function () { };
+        this.events.onResume = subscriptions.onResume || function () { };
+        this.events.onItemLoaded = subscriptions.onItemLoaded || function () { };
+        this.events.onTextHighligtChanged = subscriptions.onTextHighligtChanged || function () { };
+
+        return this;
+    };
+
+    this.generateGuid = function () {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    };
+
+    this.playItem = function (item) {
+        var p = new promise.Promise();
+
+        if (item && item.isPlaying) {
+            if (this.audioSource.paused()) {
+                this.audioSource.play();
+            } else {
+                this.audioSource.pause();
+            }
+
+            return p;
+        }
+
+        this.events.onBeforeItemPlaying(item);
+
+        var me = this;
+
+        item.isLoading = true;
+        item.isPlaying = true;
+        item.element.classList.add("playing");
+
+        this.playAudio(item, function () {
+            item.isPlaying = false;
+            p.done();
+        })
+            .then(function () {
+                item.isLoading = false;
+                me.events.onItemLoaded();
+            });
+
+        return p;
+    };
+
+    this.createItems = function (text) {
+        var safeMaxQuerystringLength = 1000;
+
+        var items = [];
+
+        //TODO: Smart split, should really split at the first end of sentence (.) that is < safeLength
+        if (text.length > safeMaxQuerystringLength) {
+            var f = text.substr(0, safeMaxQuerystringLength);
+
+            items.push(template(f));
+
+            items = items.concat(this.createItems(text.substr(safeMaxQuerystringLength, text.length - 1)));
+
+            return items;
+        }
+
+        items.push(template(text));
 
         return items;
-    }
 
-    items.push(template(text));
+        function template(t) {
+            //Null-objects
+            var element = document.createElement("span");
+            var clone = element.cloneNode(true);
 
-    return items;
-
-    function template(t) {
-        //Null-objects
-        var element = document.createElement("span");
-        var clone = element.cloneNode(true);
-
-        return {
-            text: t,
-            preview: t.substr(0, 40),
-            element: element,
-            originalElement: clone,
-            isPlaying: false,
-            isLoading: false
-        };
-    }
-};
-
-talkify.BasePlayer.prototype.playText = function (text) {
-    var items = this.createItems(text);
-
-    var currentItem = 0;
-
-    var next = function () {
-        currentItem++;
-
-        if (currentItem >= items.length) {
-            return;
+            return {
+                text: t,
+                preview: t.substr(0, 40),
+                element: element,
+                originalElement: clone,
+                isPlaying: false,
+                isLoading: false
+            };
         }
+    };
+
+    this.playText = function (text) {
+        var items = this.createItems(text);
+
+        var currentItem = 0;
+
+        var next = function () {
+            currentItem++;
+
+            if (currentItem >= items.length) {
+                return;
+            }
+
+            this.playItem(items[currentItem])
+                .then(next);
+        };
 
         this.playItem(items[currentItem])
             .then(next);
     };
 
-    this.playItem(items[currentItem])
-        .then(next);
-};
+    this.paused = function () {
+        return this.audioSource.paused();
+    };
 
-talkify.BasePlayer.prototype.paused = function () {
-    return this.audioSource.paused();
-};
+    this.isPlaying = function () {
+        return this.audioSource.isPlaying();
+    };
 
-talkify.BasePlayer.prototype.isPlaying = function () {
-    return this.audioSource.isPlaying();
-};
+    this.play = function () {
+        this.audioSource.play();
+    };
 
-talkify.BasePlayer.prototype.play = function () {
-    this.audioSource.play();
-};
+    this.pause = function () {
+        this.audioSource.pause();
+        var me = this;
 
-talkify.BasePlayer.prototype.pause = function () {
-    this.audioSource.pause();
-    var me = this;
+        if (!me.audioSource.paused() && me.audioSource.cancel) {
+            me.audioSource.cancel(true);
+        }
+    };
 
-    if (!me.audioSource.paused() && me.audioSource.cancel) {
-        me.audioSource.cancel(true);
-    }
-};
+    this.dispose = function () {
+        this.wordHighlighter.cancel();
+        this.audioSource.stop();
+        this.internalEvents.onStop();
 
-talkify.BasePlayer.prototype.dispose = function () {
-    this.wordHighlighter.cancel();
-    this.audioSource.stop();
-    this.internalEvents.onStop();
+        this.mutateControls(function (c) {
+            c.dispose();
+        });
 
-    this.mutateControls(function (c) {
-        c.dispose();
-    });
+        this.audioSource.dispose();
+    };
 
-    this.audioSource.dispose();
-};
+    this.forceLanguage = function (culture) {
+        this.settings.lockedLanguage = culture;
 
-talkify.BasePlayer.prototype.forceLanguage = function (culture) {
-    this.settings.lockedLanguage = culture;
+        return this;
+    };
 
-    return this;
-};
+    this.forceVoice = function (voice) {
+        this.forcedVoice = voice !== undefined ? voice : null;
 
-talkify.BasePlayer.prototype.forceVoice = function (voice) {
-    this.forcedVoice = voice !== undefined ? voice : null;
+        this.settings.lockedLanguage = (voice && (voice.lang || voice.culture)) || this.settings.lockedLanguage;
 
-    this.settings.lockedLanguage = (voice && (voice.lang || voice.culture)) || this.settings.lockedLanguage;
+        this.mutateControls(function (c) {
+            c.setVoice(voice);
+        });
 
-    this.mutateControls(function (c) {
-        c.setVoice(voice);
-    });
+        return this;
+    };
 
-    return this;
+    this.id = this.generateGuid();
 };
 },{}],8:[function(require,module,exports){
 talkify = talkify || {};
+
 talkify.TtsPlayer = function () {
     if (!talkify.config.useRemoteServices) {
         throw "This player needs to communicate to a remote service. To enable this player please set flag talkify.config.useRemoteServices to true.";
@@ -1280,6 +1279,8 @@ talkify.TtsPlayer = function () {
             }
         }
     };
+
+    talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
@@ -1349,10 +1350,10 @@ talkify.TtsPlayer = function () {
                     me.play();
                 },
                 onPauseClicked: function () {
-                    me.audioElement.pause();
+                    audioElement.pause();
                 },
                 onVolumeChanged: function (volume) {
-                    me.audioElement.volume = volume / 10;
+                    audioElement.volume = volume / 10;
                 },
                 onRateChanged: function (rate) {
                     me.settings.rate = rate;
@@ -1366,72 +1367,67 @@ talkify.TtsPlayer = function () {
         });
     }
 
-    this.__proto__.__proto__ = new talkify.BasePlayer(this.audioSource, this.playbar);
+    function getPositions() {
+        var p = new promise.Promise();
+
+        talkify.http.get("/api/Speak/GetPositions?id=" + me.id)
+            .then(function (error, positions) {
+                p.done(null, positions);
+            });
+
+        return p;
+    };
 
     initialize.apply(this);
 
-    this.audioElement = audioElement;
+    this.playAudio = function (item, onEnded) {
+        me.currentContext.item = item;
+        me.currentContext.positions = [];
+
+        var p = new promise.Promise();
+
+        var sources = audioElement.getElementsByTagName("source");
+
+        var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
+        var voice = this.forcedVoice ? this.forcedVoice.name : "";
+
+        sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+        sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+
+        audioElement.load();
+
+        //TODO: remove jquery dependency
+
+        audioElement.onloadeddata = function () {
+            me.mutateControls(function (instance) {
+                instance.audioLoaded();
+            });
+
+            me.audioSource.pause();
+
+            if (!me.settings.useTextHighlight) {
+                p.done();
+                me.audioSource.play();
+                return;
+            }
+
+            getPositions().then(function (error, positions) {
+                me.currentContext.positions = positions || [];
+
+                p.done();
+                me.audioSource.play();
+            });
+        };
+
+        audioElement.onended = onEnded || function () { };
+
+        return p;
+    };
 
     setupBindings();
 };
 
-talkify.TtsPlayer.prototype.getPositions = function () {
-    var me = this;
-    var p = new promise.Promise();
-
-    talkify.http.get("/api/Speak/GetPositions?id=" + me.id)
-        .then(function (error, positions) {
-            p.done(null, positions);
-        });
-
-    return p;
-};
-
-talkify.TtsPlayer.prototype.playAudio = function (item, onEnded) {
-    var me = this;
-
-    me.currentContext.item = item;
-    me.currentContext.positions = [];
-
-    var p = new promise.Promise();
-
-    var sources = this.audioElement.getElementsByTagName("source");
-
-    var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
-    var voice = this.forcedVoice ? this.forcedVoice.name : "";
-
-    sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
-    sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
-
-    this.audioElement.load();
-
-    //TODO: remove jquery dependency
-
-    this.audioElement.onloadeddata = function () {
-        me.mutateControls(function (instance) {
-            instance.audioLoaded();
-        });
-
-        me.audioSource.pause();
-
-        if (!me.settings.useTextHighlight) {
-            p.done();
-            me.audioSource.play();
-            return;
-        }
-
-        me.getPositions().then(function (error, positions) {
-            me.currentContext.positions = positions || [];
-
-            p.done();
-            me.audioSource.play();
-        });
-    };
-
-    this.audioElement.onended = onEnded || function () { };
-
-    return p;
-};
+talkify.TtsPlayer.prototype.constructor = talkify.TtsPlayer;
 },{}],9:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playlist = function () {

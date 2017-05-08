@@ -1,4 +1,5 @@
 ﻿talkify = talkify || {};
+
 talkify.TtsPlayer = function () {
     if (!talkify.config.useRemoteServices) {
         throw "This player needs to communicate to a remote service. To enable this player please set flag talkify.config.useRemoteServices to true.";
@@ -40,6 +41,8 @@ talkify.TtsPlayer = function () {
             }
         }
     };
+
+    talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
@@ -109,10 +112,10 @@ talkify.TtsPlayer = function () {
                     me.play();
                 },
                 onPauseClicked: function () {
-                    me.audioElement.pause();
+                    audioElement.pause();
                 },
                 onVolumeChanged: function (volume) {
-                    me.audioElement.volume = volume / 10;
+                    audioElement.volume = volume / 10;
                 },
                 onRateChanged: function (rate) {
                     me.settings.rate = rate;
@@ -126,69 +129,64 @@ talkify.TtsPlayer = function () {
         });
     }
 
-    this.__proto__.__proto__ = new talkify.BasePlayer(this.audioSource, this.playbar);
+    function getPositions() {
+        var p = new promise.Promise();
+
+        talkify.http.get("/api/Speak/GetPositions?id=" + me.id)
+            .then(function (error, positions) {
+                p.done(null, positions);
+            });
+
+        return p;
+    };
 
     initialize.apply(this);
 
-    this.audioElement = audioElement;
+    this.playAudio = function (item, onEnded) {
+        me.currentContext.item = item;
+        me.currentContext.positions = [];
+
+        var p = new promise.Promise();
+
+        var sources = audioElement.getElementsByTagName("source");
+
+        var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
+        var voice = this.forcedVoice ? this.forcedVoice.name : "";
+
+        sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+        sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+
+        audioElement.load();
+
+        //TODO: remove jquery dependency
+
+        audioElement.onloadeddata = function () {
+            me.mutateControls(function (instance) {
+                instance.audioLoaded();
+            });
+
+            me.audioSource.pause();
+
+            if (!me.settings.useTextHighlight) {
+                p.done();
+                me.audioSource.play();
+                return;
+            }
+
+            getPositions().then(function (error, positions) {
+                me.currentContext.positions = positions || [];
+
+                p.done();
+                me.audioSource.play();
+            });
+        };
+
+        audioElement.onended = onEnded || function () { };
+
+        return p;
+    };
 
     setupBindings();
 };
 
-talkify.TtsPlayer.prototype.getPositions = function () {
-    var me = this;
-    var p = new promise.Promise();
-
-    talkify.http.get("/api/Speak/GetPositions?id=" + me.id)
-        .then(function (error, positions) {
-            p.done(null, positions);
-        });
-
-    return p;
-};
-
-talkify.TtsPlayer.prototype.playAudio = function (item, onEnded) {
-    var me = this;
-
-    me.currentContext.item = item;
-    me.currentContext.positions = [];
-
-    var p = new promise.Promise();
-
-    var sources = this.audioElement.getElementsByTagName("source");
-
-    var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
-    var voice = this.forcedVoice ? this.forcedVoice.name : "";
-
-    sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
-    sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
-
-    this.audioElement.load();
-
-    //TODO: remove jquery dependency
-
-    this.audioElement.onloadeddata = function () {
-        me.mutateControls(function (instance) {
-            instance.audioLoaded();
-        });
-
-        me.audioSource.pause();
-
-        if (!me.settings.useTextHighlight) {
-            p.done();
-            me.audioSource.play();
-            return;
-        }
-
-        me.getPositions().then(function (error, positions) {
-            me.currentContext.positions = positions || [];
-
-            p.done();
-            me.audioSource.play();
-        });
-    };
-
-    this.audioElement.onended = onEnded || function () { };
-
-    return p;
-};
+talkify.TtsPlayer.prototype.constructor = talkify.TtsPlayer;
