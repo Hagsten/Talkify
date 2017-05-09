@@ -145,6 +145,7 @@ talkify.TtsPlayer = function () {
     this.playAudio = function (item, onEnded) {
         me.currentContext.item = item;
         me.currentContext.positions = [];
+        me.wordHighlighter.cancel();
 
         var p = new promise.Promise();
 

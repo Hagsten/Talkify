@@ -1383,6 +1383,7 @@ talkify.TtsPlayer = function () {
     this.playAudio = function (item, onEnded) {
         me.currentContext.item = item;
         me.currentContext.positions = [];
+        me.wordHighlighter.cancel();
 
         var p = new promise.Promise();
 
@@ -2194,7 +2195,7 @@ talkify.wordHighlighter = function() {
             return;
         }
 
-        item.element.innerHTML =text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1);
+        item.element.innerHTML = text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1);
     }
 
     function cancel() {
