@@ -441,6 +441,7 @@ talkify.playbar = function(parent) {
     };
 
     function updateClock(e) {
+        //TODO: Over tunnels duration === NaN. Look @ http://stackoverflow.com/questions/10868249/html5-audio-player-duration-showing-nan
         progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
 
         var current = document.getElementById("talkify-current-track-time");
@@ -1086,13 +1087,6 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         return this;
     };
 
-    this.generateGuid = function () {
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
-
     this.playItem = function (item) {
         var p = new promise.Promise();
 
@@ -1232,8 +1226,6 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
         return this;
     };
-
-    this.id = this.generateGuid();
 };
 },{}],8:[function(require,module,exports){
 talkify = talkify || {};
@@ -1359,23 +1351,30 @@ talkify.TtsPlayer = function () {
                     me.settings.rate = rate;
                 }
             })
-                .setRate(1)
-                .setMinRate(1)
-                .setMaxRate(3)
+                .setRate(0)
+                .setMinRate(-5)
+                .setMaxRate(5)
                 .setVoice(me.forcedVoice)
                 .setAudioSource(audioElement);
         });
     }
 
-    function getPositions() {
+    function getPositions(requestId) {
         var p = new promise.Promise();
 
-        talkify.http.get("/api/Speak/GetPositions?id=" + me.id)
+        talkify.http.get("/api/Speak/GetPositions?id=" + requestId)
             .then(function (error, positions) {
                 p.done(null, positions);
             });
 
         return p;
+    };
+
+    function generateGuid() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
     };
 
     initialize.apply(this);
@@ -1385,6 +1384,9 @@ talkify.TtsPlayer = function () {
         me.currentContext.positions = [];
         me.wordHighlighter.cancel();
 
+        audioElement.onloadeddata = null;
+        audioElement.onended = null;
+
         var p = new promise.Promise();
 
         var sources = audioElement.getElementsByTagName("source");
@@ -1392,12 +1394,12 @@ talkify.TtsPlayer = function () {
         var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
         var voice = this.forcedVoice ? this.forcedVoice.name : "";
 
-        sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
-        sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + this.id + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+        var requestId = generateGuid();
+
+        sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+        sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate;
 
         audioElement.load();
-
-        //TODO: remove jquery dependency
 
         audioElement.onloadeddata = function () {
             me.mutateControls(function (instance) {
@@ -1412,7 +1414,7 @@ talkify.TtsPlayer = function () {
                 return;
             }
 
-            getPositions().then(function (error, positions) {
+            getPositions(requestId).then(function (error, positions) {
                 me.currentContext.positions = positions || [];
 
                 p.done();

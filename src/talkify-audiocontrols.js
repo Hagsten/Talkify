@@ -187,6 +187,7 @@ talkify.playbar = function(parent) {
     };
 
     function updateClock(e) {
+        //TODO: Over tunnels duration === NaN. Look @ http://stackoverflow.com/questions/10868249/html5-audio-player-duration-showing-nan
         progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
 
         var current = document.getElementById("talkify-current-track-time");

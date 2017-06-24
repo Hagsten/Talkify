@@ -216,3 +216,4 @@ src/jquery-2.1.1.min.js
 src/Minified-versions.txt
 src/promise.js
 talkify-tts-*
+npm-debug.*
