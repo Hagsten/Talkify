@@ -98,6 +98,10 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     this.setRate = function (r) {
         this.settings.rate = r;
 
+        this.mutateControls(function (c) {
+            c.setRate(r);
+        });
+
         return this;
     }
 

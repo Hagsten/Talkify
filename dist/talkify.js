@@ -536,7 +536,7 @@ talkify.playbar = function(parent) {
             return this;
         },
         setRate: function (value) {
-            rateElement.setAttribute("value", value);
+            rateElement.value = value;
             return this;
         },
         setMaxRate: function (value) {
@@ -1071,6 +1071,10 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.setRate = function (r) {
         this.settings.rate = r;
+
+        this.mutateControls(function (c) {
+            c.setRate(r);
+        });
 
         return this;
     }
