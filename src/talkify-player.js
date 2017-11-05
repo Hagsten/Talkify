@@ -1,8 +1,8 @@
 ﻿talkify = talkify || {};
 
 talkify.TtsPlayer = function () {
-    if (!talkify.config.useRemoteServices) {
-        throw "This player needs to communicate to a remote service. To enable this player please set flag talkify.config.useRemoteServices to true.";
+    if (!talkify.config.remoteService.active) {
+        throw "This player needs to communicate to a remote service. To enable this player please set flag talkify.config.remoteService.active to true.";
     }
 
     var me = this;
@@ -132,7 +132,7 @@ talkify.TtsPlayer = function () {
     function getPositions(requestId) {
         var p = new promise.Promise();
 
-        talkify.http.get("/api/Speak/GetPositions?id=" + requestId)
+        talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/marks?id=" + requestId)
             .then(function (error, positions) {
                 p.done(null, positions);
             });
@@ -166,8 +166,8 @@ talkify.TtsPlayer = function () {
 
         var requestId = generateGuid();
 
-        sources[0].src = talkify.config.host + "/api/Speak?format=mp3&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate;
-        sources[1].src = talkify.config.host + "/api/Speak?format=wav&text=" + textToPlay + "&refLang=" + this.settings.referenceLanguage.Language + "&id=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate;
+        sources[0].src = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?format=mp3&text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&marksid=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+        sources[1].src = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?format=wav&text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&marksid=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
 
         audioElement.load();
 

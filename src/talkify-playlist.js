@@ -263,13 +263,13 @@ talkify.playlist = function () {
         }
 
         function playFromBeginning() {
-            if (!talkify.config.useRemoteServices) {
+            if (!talkify.config.remoteService.active) {
                 onComplete({ Culture: '', Language: -1 });
 
                 return;
             }
 
-            talkify.http.get("/api/Language?text=" + playlist.refrenceText)
+            talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + playlist.refrenceText)
                 .then(function (error, data) {
                     if (error) {
                         onComplete({ Culture: '', Language: -1 });

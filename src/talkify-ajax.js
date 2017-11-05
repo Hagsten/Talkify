@@ -4,8 +4,10 @@ talkify.http = (function ajax() {
     var get = function(url) {
         var call = new promise.Promise();
 
+        var keypart = (url.indexOf('?') !== -1 ? "&key=" : "?key=") + talkify.config.remoteService.apiKey;
+
         promise
-            .get(window.talkify.config.host + url)
+            .get(window.talkify.config.remoteService.host + url + keypart)
             .then(function(error, data) {
                 try {
                     var jsonObj = JSON.parse(data);

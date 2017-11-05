@@ -1,12 +1,17 @@
 ﻿talkify = talkify || {};
 talkify.config = {
-    host: 'http://talkify.net',
-    useRemoteServices: true,
     ui:
     {
         audioControls: {
             enabled: false,
             container: document.body
         }
+    },
+    remoteService: {
+        active: true,
+        host: 'https://talkify.net',
+        apiKey: '',
+        speechBaseUrl: '/api/speech',
+        languageBaseUrl: '/api/language'
     }
 }
