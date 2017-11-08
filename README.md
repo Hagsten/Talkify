@@ -3,6 +3,9 @@ A javascript text to speech (TTS) library. Originally from and used by http://ta
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
 
+## Important notice
+The latest source will require an api-key to use our backend services (our hosted voices). Our portal will soon be open for public use and will include 1000 free requests per month. The old endpoints will be open for some period of time but are obsolete, this is to ensure that our current users will have time to fetch their own api-key. It is recommended to use the version 1.1.4 until further notice. Please note that this does not affect voices installed locally on the users browser since they do not use our backend services.
+
 ## Installation
 ```
 $ bower install talkify
