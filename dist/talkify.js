@@ -602,8 +602,8 @@ talkify.config = {
         active: true,
         host: 'https://talkify.net',
         apiKey: '',
-        speechBaseUrl: '/api/speech',
-        languageBaseUrl: '/api/language'
+        speechBaseUrl: '/api/speech/v1',
+        languageBaseUrl: '/api/language/v1'
     }
 }
 },{}],6:[function(require,module,exports){
