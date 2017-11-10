@@ -23,7 +23,7 @@ $ npm install talkify-tts
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/woqw6b6g/72/
+http://jsfiddle.net/woqw6b6g/74/
 
 ## Include the scripts
 ### Minified version
