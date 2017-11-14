@@ -1,10 +1,14 @@
 # Talkify
-A javascript text to speech (TTS) library. Originally from and used by http://talkify.net.
+A javascript text to speech (TTS) library. Originally from and used by https://talkify.net.
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
 
-## Important notice (8th Nov 2017)
-The latest source will require an api-key to use our backend services (our hosted voices). Our portal will soon be open for public use and will include 1000 free requests per month. The old endpoints will be open for some period of time but are obsolete, this is to ensure that our current users will have time to fetch their own api-key. It is recommended to use the version 1.1.4 until further notice. Please note that this does not affect voices installed locally on the users browser since they do not use our backend services.
+## Important notice (14th Nov 2017)
+Version 2.0.0 will require an api-key to use our backend services (our hosted voices). Visit our portal (https://manage.talkify.net) to create your own API-key, each key includes 1000 free requests per month. 
+
+The old endpoints will be open for some period of time but are obsolete, this is to ensure that our current users will have time to fetch their own api-key. 
+
+This change does not affect the browser-built-in voices, i.e. Html5Player, since they do not communicate with our backend service.
 
 ## Installation
 ```
