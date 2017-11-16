@@ -79,8 +79,11 @@ player.playText('Hello world');
 # Configuration
 ```javascript
 talkify.config = {
-    host: 'http://talkify.net', //Host of streamed audio media.
-    useRemoteServices: true, //True to use Talkifys language engine and hosted voices. False only works for Html5Player.
+    remoteService: {
+        host : 'https://talkify.net',
+        apiKey = 'your-api-key',
+        active: true //True to use Talkifys language engine and hosted voices. False only works for Html5Player.
+    },
     ui:
     {
         audioControls: { //If enabled, replaces the built in audio controls. Especially good for the Web Speech API bits
