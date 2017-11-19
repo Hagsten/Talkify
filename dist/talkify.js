@@ -718,12 +718,7 @@ talkify.Html5Player = function () {
             },
             onRateChanged: function (rate) {
                 me.settings.rate = rate / 5;
-            },
-            //onSeek: function (position) {
-            //    var pos = audioElement.duration * position;
-
-            //    audioElement.currentTime = Math.floor(pos);
-            //}
+            }
         }).setVoice(me.forcedVoice);
     });
 
@@ -1307,6 +1302,15 @@ talkify.TtsPlayer = function () {
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
         audioElement.addEventListener("play", onPlay);
+        audioElement.addEventListener("seeked", onSeek);
+    }
+
+    function onSeek() {
+        me.wordHighlighter.setPosition(this.currentTime);
+
+        if (me.audioSource.paused && me.audioSource.currentTime > 0.1) {
+            me.audioSource.play();
+        }
     }
 
     function onPause() {
@@ -1384,12 +1388,6 @@ talkify.TtsPlayer = function () {
                     var pos = audioElement.duration * position;
 
                     audioElement.currentTime = pos;
-
-                    me.wordHighlighter.setPosition(pos);
-
-                    if (me.audioSource.paused) {
-                        me.audioSource.play();
-                    }
                 }
             })
                 .setRate(0)
