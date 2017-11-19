@@ -1308,7 +1308,7 @@ talkify.TtsPlayer = function () {
     function onSeek() {
         me.wordHighlighter.setPosition(this.currentTime);
 
-        if (me.audioSource.paused && me.audioSource.currentTime > 0.1) {
+        if (me.audioSource.paused() && me.audioSource.currentTime() > 0.1) {
             me.audioSource.play();
         }
     }
@@ -1386,6 +1386,10 @@ talkify.TtsPlayer = function () {
                 },
                 onSeek: function (position) {
                     var pos = audioElement.duration * position;
+
+                    if (isNaN(audioElement.duration)) {
+                        return;
+                    }
 
                     audioElement.currentTime = pos;
                 }
