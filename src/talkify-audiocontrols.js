@@ -1,5 +1,5 @@
 ﻿talkify = talkify || {};
-talkify.playbar = function(parent) {
+talkify.playbar = function (parent) {
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
@@ -12,7 +12,8 @@ talkify.playbar = function(parent) {
         onPauseClicked: function () { },
         onVolumeChanged: function () { },
         onRateChanged: function () { },
-        onTextHighlightingClicked: function () { }
+        onTextHighlightingClicked: function () { },
+        onSeek: function () { }
     }
 
     function hide(element) {
@@ -132,8 +133,6 @@ talkify.playbar = function(parent) {
         wrapper.appendChild(pauseElement);
 
         wrapper.appendChild(progressElement);
-        //wrapper.appendChild(backElement);
-        //wrapper.appendChild(forwardElement);
         wrapper.appendChild(controlsWrapperElement);
         controlsWrapperElement.appendChild(rateIconElement);
         controlsWrapperElement.appendChild(rateElement);
@@ -178,6 +177,20 @@ talkify.playbar = function(parent) {
             }
 
             events.onTextHighlightingClicked();
+        });
+
+        progressElement.addEventListener("click", function (e) {
+            var clickedValue = (e.offsetX * this.max) / this.offsetWidth;
+
+            if (clickedValue > 1.0) {
+                clickedValue = 1.0;
+            }
+
+            if (clickedValue < 0.0) {
+                clickedValue = 0.0;
+            }
+
+            events.onSeek(clickedValue);
         });
     }
 
@@ -279,6 +292,7 @@ talkify.playbar = function(parent) {
             events.onRateChanged = subscriptions.onRateChanged || events.onRateChanged;
             events.onVolumeChanged = subscriptions.onVolumeChanged || events.onVolumeChanged;
             events.onTextHighlightingClicked = subscriptions.onTextHighlightingClicked || events.onTextHighlightingClicked;
+            events.onSeek = subscriptions.onSeek || events.onSeek;
             return this;
         },
         setRate: function (value) {

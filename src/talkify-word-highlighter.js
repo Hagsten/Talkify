@@ -1,7 +1,8 @@
 ﻿talkify = talkify || {};
-talkify.wordHighlighter = function() {
+talkify.wordHighlighter = function () {
     var textHighlightTimer = new talkify.timer();
     var currentItem = null;
+    var currentPositions = [];
 
     function highlight(item, word, charPosition) {
         resetCurrentItem();
@@ -22,9 +23,11 @@ talkify.wordHighlighter = function() {
         textHighlightTimer.cancel();
 
         resetCurrentItem();
+
+        currentPositions = [];
     }
 
-    function setupWordHightlighting(item, positions) {
+    function setupWordHightlighting(item, positions, startFrom) {
         var p = new promise.Promise();
 
         cancel();
@@ -33,7 +36,9 @@ talkify.wordHighlighter = function() {
             return p.done(item);
         }
 
-        var i = 0;
+        currentPositions = positions;
+
+        var i = startFrom || 0;
 
         var internalCallback = function () {
             highlight(item, positions[i].Word, positions[i].CharPosition);
@@ -44,7 +49,7 @@ talkify.wordHighlighter = function() {
                 textHighlightTimer.cancel();
 
                 window.setTimeout(function () {
-                    item.element.innerHTML = item.originalElement.innerHTML
+                    item.element.innerHTML = item.originalElement.innerHTML;
 
                     p.done(item);
                 }, 1000);
@@ -68,12 +73,41 @@ talkify.wordHighlighter = function() {
             currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
         }
     }
-    
+
+    function setPosition(time) {
+        var diff = 0;
+        var timeInMs = time * 1000;
+        var nextPosition = 0;
+
+        for (var i = 0; i < currentPositions.length; i++) {
+            var pos = currentPositions[i];
+
+            if (pos.Position < timeInMs) {
+                continue;
+            }
+
+            diff = pos.Position - timeInMs;
+            nextPosition = i;
+
+            break;
+        }
+
+        var item = currentItem;
+        var positions = currentPositions;
+
+        cancel();
+
+        setTimeout(function () {
+            setupWordHightlighting(item, positions, nextPosition);
+        }, diff);
+    }
+
     return {
         pause: textHighlightTimer.pause,
         resume: textHighlightTimer.resume,
         start: setupWordHightlighting,
         highlight: highlight,
-        cancel: cancel
+        cancel: cancel,
+        setPosition: setPosition
     };
 };

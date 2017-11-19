@@ -119,6 +119,17 @@ talkify.TtsPlayer = function () {
                 },
                 onRateChanged: function (rate) {
                     me.settings.rate = rate;
+                },
+                onSeek: function (position) {
+                    var pos = audioElement.duration * position;
+
+                    audioElement.currentTime = pos;
+
+                    me.wordHighlighter.setPosition(pos);
+
+                    if (me.audioSource.paused) {
+                        me.audioSource.play();
+                    }
                 }
             })
                 .setRate(0)
