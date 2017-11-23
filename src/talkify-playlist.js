@@ -4,6 +4,7 @@ talkify.playlist = function () {
         useGui: false,
         useTextInteraction: false,
         domElements: [],
+        exclusions: [],
         rootSelector: "body",
         events: {
             onEnded: null
@@ -195,7 +196,7 @@ talkify.playlist = function () {
             reset();
 
             if (!settings.domElements || settings.domElements.length === 0) {
-                settings.domElements = textextractor.extract(settings.rootSelector);
+                settings.domElements = textextractor.extract(settings.rootSelector, settings.exclusions);
             }
 
             for (var i = 0; i < settings.domElements.length; i++) {
@@ -429,6 +430,11 @@ talkify.playlist = function () {
                 },
                 withTalkifyUi: function () {
                     s.useGui = true;
+
+                    return this;
+                },
+                excludeElements: function(elementsSelectors) {
+                    s.exclusions = elementsSelectors;
 
                     return this;
                 },

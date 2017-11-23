@@ -1481,6 +1481,7 @@ talkify.playlist = function () {
         useGui: false,
         useTextInteraction: false,
         domElements: [],
+        exclusions: [],
         rootSelector: "body",
         events: {
             onEnded: null
@@ -1672,7 +1673,7 @@ talkify.playlist = function () {
             reset();
 
             if (!settings.domElements || settings.domElements.length === 0) {
-                settings.domElements = textextractor.extract(settings.rootSelector);
+                settings.domElements = textextractor.extract(settings.rootSelector, settings.exclusions);
             }
 
             for (var i = 0; i < settings.domElements.length; i++) {
@@ -1909,6 +1910,11 @@ talkify.playlist = function () {
 
                     return this;
                 },
+                excludeElements: function(elementsSelectors) {
+                    s.exclusions = elementsSelectors;
+
+                    return this;
+                },
                 withRootSelector: function (rootSelector) {
                     s.rootSelector = rootSelector;
 
@@ -1953,7 +1959,8 @@ talkify.textextractor = function () {
     var validElements = [];
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
-    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer'];
+    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'ruby'];
+    var userExcludedElements = [];
 
     function getVisible(elements) {
         var result = [];
@@ -2013,7 +2020,7 @@ talkify.textextractor = function () {
         var isTextNode = node.nodeType === 3;
         var textLength = getStrippedText(node.textContent).length;
 
-        return (isTextNode && textLength >= 5) || elementIsInlineElement(node);
+        return (isTextNode && textLength >= 5) || (!isForbidden(node) && elementIsInlineElement(node));
     }
 
     function getConnectedElements(nodes, firstIndex) {
@@ -2072,7 +2079,7 @@ talkify.textextractor = function () {
                 continue;
             }
 
-            if (forbiddenElementsString.indexOf(getSafeTagName(node).toLowerCase()) !== -1) {
+            if (getForbiddenElements().indexOf(getSafeTagName(node).toLowerCase()) !== -1) {
                 var forcedElement = (node.nodeType === 1 ? node : node.parentNode).querySelectorAll('h1, h2, h3, h4');
 
                 for (var k = 0; k < forcedElement.length; k++) {
@@ -2119,7 +2126,8 @@ talkify.textextractor = function () {
         }
     }
 
-    function extract(rootSelector) {
+    function extract(rootSelector, exclusions) {
+        userExcludedElements = exclusions || [];
         validElements = [];
 
         var topLevelElements = document.querySelectorAll(rootSelector + ' > ' + generateExcludesFromForbiddenElements());
@@ -2148,8 +2156,10 @@ talkify.textextractor = function () {
     function generateExcludesFromForbiddenElements() {
         var result = '*';
 
-        for (var i = 0; i < forbiddenElementsString.length; i++) {
-            result += ':not(' + forbiddenElementsString[i] + ')';
+        var forbiddenElements = getForbiddenElements();
+
+        for (var i = 0; i < forbiddenElements.length; i++) {
+            result += ':not(' + forbiddenElements[i] + ')';
         }
 
         return result;
@@ -2178,7 +2188,7 @@ talkify.textextractor = function () {
     function getChildren(n, skipMe) {
         var r = [];
         for (; n; n = n.nextSibling)
-            if (n.nodeType == 1 && n != skipMe)
+            if (n.nodeType == 1 && n != skipMe && !isForbidden(n))
                 r.push(n);
         return r;
     };
@@ -2189,6 +2199,14 @@ talkify.textextractor = function () {
         }
 
         return getChildren(n.parentNode.firstChild, n);
+    }
+
+    function getForbiddenElements() {
+        return forbiddenElementsString.concat(userExcludedElements);
+    }
+
+    function isForbidden(node) {
+        return getForbiddenElements().indexOf(getSafeTagName(node).toLowerCase()) !== -1;
     }
 
     return {
