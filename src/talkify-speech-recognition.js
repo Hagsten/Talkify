@@ -6,7 +6,7 @@ talkify.SpeechCommands = function (speechCommandConfig) {
 
         return {
             onPrevious: noop,
-            onNext: noop(),
+            onNext: noop,
             onPlayPause: noop,
             start: noop,
             onListeningStarted: noop,
