@@ -90,6 +90,26 @@ talkify.config = {
             enabled: false,
             container: document.body
         }
+    },
+    keyboardCommands: { //Ctrl + command
+        enabled: false,
+        commands: { // Configure your own keys for the supported commands
+            playPause: 32,
+            next: 39,
+            previous: 37
+        }
+    },
+    voiceCommands: {
+        enabled: false,
+        keyboardActivation: { //Ctrl + command
+            enabled: true,
+            key: 77
+        },
+        commands: { // Configure your own phrases for the supported commands
+            playPause: ["play", "pause", "stop", "start"],
+            next: ["play next", "next"],
+            previous: ["play previous", "previous", "back", "go back"]
+        }
     }
 }
 ```
@@ -131,6 +151,8 @@ This is the instance built from the playliste above.
 | Event   |
 |---------|
 | onEnded |
+| onVoiceCommandListeningStarted |
+| onVoiceCommandListeningEnded |
 
 ## Player (valid for all players)
 | Method   | Parameters | Default |      Description      |
