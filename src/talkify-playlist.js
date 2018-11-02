@@ -7,7 +7,9 @@ talkify.playlist = function () {
         exclusions: [],
         rootSelector: "body",
         events: {
-            onEnded: null
+            onEnded: null,
+            onVoiceCommandListeningStarted: null,
+            onVoiceCommandListeningEnded: null
         }
     };
 
@@ -34,6 +36,40 @@ talkify.playlist = function () {
 
         var settings = _settings;
         var playerHasBeenReplaced = false;
+
+        var commands = [
+            new talkify.KeyboardCommands(talkify.config.keyboardCommands),
+            new talkify.SpeechCommands(talkify.config.voiceCommands)
+        ];
+
+        var voiceCommands = commands[1];
+
+        for (var k = 0; k < commands.length; k++) {
+            commands[k].onNext(function () {
+                var item = getNextItem();
+
+                if (item) {
+                    play(item);
+                }
+            });
+            commands[k].onPrevious(function () {
+                var item = getPreviousItem();
+
+                if (item) {
+                    play(item);
+                }
+            });
+            commands[k].onPlayPause(function () {
+                if (player.paused()) {
+                    player.play();
+                } else {
+                    pause();
+                }
+            });
+        }
+
+        voiceCommands.onListeningStarted(settings.events.onVoiceCommandListeningStarted);
+        voiceCommands.onListeningEnded(settings.events.onVoiceCommandListeningEnded);
 
         function reset() {
             playlist.queue = [];
@@ -263,6 +299,16 @@ talkify.playlist = function () {
             return playlist.queue[currentQueuePosition + 1];
         }
 
+        function getPreviousItem() {
+            var currentQueuePosition = playlist.queue.indexOf(playlist.currentlyPlaying);
+
+            if (currentQueuePosition === 0) {
+                return null;
+            }
+
+            return playlist.queue[currentQueuePosition - 1];
+        }
+
         function playFromBeginning() {
             if (!talkify.config.remoteService.active) {
                 onComplete({ Culture: '', Language: -1 });
@@ -413,6 +459,16 @@ talkify.playlist = function () {
             },
             dispose: function () {
                 resetPlaybackStates();
+
+                for (var i = 0; i < commands.length; i++) {
+                    commands[i].dispose();
+                }
+            },
+            startListeningToVoiceCommands: function() {
+                voiceCommands.start();
+            },
+            stopListeningToVoiceCommands: function () {
+                voiceCommands.stop();
             }
         }
     }
@@ -433,7 +489,7 @@ talkify.playlist = function () {
 
                     return this;
                 },
-                excludeElements: function(elementsSelectors) {
+                excludeElements: function (elementsSelectors) {
                     s.exclusions = elementsSelectors;
 
                     return this;
@@ -455,6 +511,9 @@ talkify.playlist = function () {
                 },
                 subscribeTo: function (events) {
                     s.events.onEnded = events.onEnded || function () { };
+                    s.events.onVoiceCommandListeningStarted = events.onVoiceCommandListeningStarted || function() {};
+                    s.events.onVoiceCommandListeningEnded = events.onVoiceCommandListeningEnded || function() {};
+                    
 
                     return this;
                 },
@@ -468,6 +527,8 @@ talkify.playlist = function () {
                     }
 
                     s.events.onEnded = s.events.onEnded || function () { };
+                    s.events.onVoiceCommandListeningStarted = s.events.onVoiceCommandListeningStarted || function () { };
+                    s.events.onVoiceCommandListeningEnded = s.events.onVoiceCommandListeningEnded || function () { };
 
                     return new implementation(s, p);
                 }
