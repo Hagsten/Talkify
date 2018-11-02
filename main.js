@@ -10,5 +10,6 @@ var Html5Player = require('./src/talkify-html5-speechsynthesis-player.js');
 var TtsPlayer = require('./src/talkify-player.js');
 var talkifyPlaylist = require('./src/talkify-playlist.js');
 var talkifyPlaybar = require('./src/talkify-audiocontrols.js');
-
+var talkifyKeyCommands = require('./src/talkify-keyboard-commands.js');
+var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 

@@ -192,8 +192,6 @@ talkify.textextractor = function () {
 
         var result = getVisible(validElements);
 
-        console.log(new Date() - date);
-
         return result;
     }
 
