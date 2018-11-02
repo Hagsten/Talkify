@@ -1,11 +1,7 @@
-var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-var SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
-
 talkify = talkify || {};
 
 talkify.SpeechCommands = function (speechCommandConfig) {
-    if (!speechCommandConfig.enabled) {
+    if (!speechCommandConfig.enabled || !window.webkitSpeechRecognition) {
         var noop = function () { };
 
         return {
@@ -18,6 +14,8 @@ talkify.SpeechCommands = function (speechCommandConfig) {
             dispose: noop
         }
     }
+    
+    var SpeechRecognition = window.webkitSpeechRecognition;
 
     var isListening = false;
     var onNextCallback = function () { };
