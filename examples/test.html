@@ -1,0 +1,62 @@
+<html>
+<head>
+</head>
+<body>
+    <section id="root">
+        <h3>
+            This demo will load automatically, be patient.
+        </h3>
+        <p>
+            Hi, this is a short demo of the Talkify library. Let me describe some of my features.
+        </p>
+        <p>
+            I work for any elements, such as paragraphs, divs and many more. I also support many languages and I will detect them automatically for you, like this:
+        </p>
+        <p>
+            Hey, ich kann sehr hilfreich sein, wenn Sie versuchen, Deutsch zu lernen werden
+        </p>
+        <p>
+            Hej, jag kan vara till stor hjälp om du försöker lära dig svenska
+        </p>
+    </section>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="../dist/talkify.js"></script>
+
+    <script>
+        talkify.config.remoteService.active = true;
+        talkify.config.keyboardCommands.enabled = true;
+        talkify.config.voiceCommands.enabled = true;
+        
+
+        talkify.config.remoteService.speechBaseUrl = '/api/internal/speech';
+        talkify.config.remoteService.languageBaseUrl = '/api/internal/language';
+
+        talkify.config.remoteService.host = 'http://localhost:6719';
+
+        talkify.config.ui.audioControls = {
+            enabled: false, //<-- Disable to get the browser built in audio controls
+            container: document.getElementById("player-and-voices")
+        };
+
+        $(document).ready(function () {
+            var player = new talkify.TtsPlayer()
+                .enableTextHighlighting();
+
+            var playlist = new talkify.playlist()
+                .begin()
+                .usingPlayer(player)
+                .withRootSelector('#root')
+                .withTextInteraction()
+                .subscribeTo({
+                    onVoiceCommandListeningStarted: function () { console.log("Started :)") },
+                    onVoiceCommandListeningEnded: function () { console.log("Ended... :)") }
+                })
+                .build()
+                .play();
+        });
+
+    </script>
+</body>
+</html>

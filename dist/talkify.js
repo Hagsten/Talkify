@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 window.promise = require('./src/promise.js').promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
@@ -11,220 +11,17 @@ var Html5Player = require('./src/talkify-html5-speechsynthesis-player.js');
 var TtsPlayer = require('./src/talkify-player.js');
 var talkifyPlaylist = require('./src/talkify-playlist.js');
 var talkifyPlaybar = require('./src/talkify-audiocontrols.js');
+var talkifyKeyCommands = require('./src/talkify-keyboard-commands.js');
+var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 
 
-
-},{"./src/promise.js":2,"./src/talkify-ajax.js":3,"./src/talkify-audiocontrols.js":4,"./src/talkify-config.js":5,"./src/talkify-html5-speechsynthesis-player.js":6,"./src/talkify-player-core.js":7,"./src/talkify-player.js":8,"./src/talkify-playlist.js":9,"./src/talkify-textextractor.js":10,"./src/talkify-timer.js":11,"./src/talkify-word-highlighter.js":12,"./src/talkify.js":13}],2:[function(require,module,exports){
+},{"./src/promise.js":2,"./src/talkify-ajax.js":3,"./src/talkify-audiocontrols.js":4,"./src/talkify-config.js":5,"./src/talkify-html5-speechsynthesis-player.js":6,"./src/talkify-keyboard-commands.js":7,"./src/talkify-player-core.js":8,"./src/talkify-player.js":9,"./src/talkify-playlist.js":10,"./src/talkify-speech-recognition.js":11,"./src/talkify-textextractor.js":12,"./src/talkify-timer.js":13,"./src/talkify-word-highlighter.js":14,"./src/talkify.js":15}],2:[function(require,module,exports){
 /*
  *  Copyright 2012-2013 (c) Pierre Duquesne <stackp@online.fr>
  *  Licensed under the New BSD License.
  *  https://github.com/stackp/promisejs
  */
-
-(function (exports) {
-
-    function Promise() {
-        this._callbacks = [];
-    }
-
-    Promise.prototype.then = function (func, context) {
-        var p;
-        if (this._isdone) {
-            p = func.apply(context, this.result);
-        } else {
-            p = new Promise();
-            this._callbacks.push(function () {
-                var res = func.apply(context, arguments);
-                if (res && typeof res.then === 'function')
-                    res.then(p.done, p);
-            });
-        }
-        return p;
-    };
-
-    Promise.prototype.done = function () {
-        this.result = arguments;
-        this._isdone = true;
-        for (var i = 0; i < this._callbacks.length; i++) {
-            this._callbacks[i].apply(null, arguments);
-        }
-        this._callbacks = [];
-    };
-
-    function join(promises) {
-        var p = new Promise();
-        var results = [];
-
-        if (!promises || !promises.length) {
-            p.done(results);
-            return p;
-        }
-
-        var numdone = 0;
-        var total = promises.length;
-
-        function notifier(i) {
-            return function () {
-                numdone += 1;
-                results[i] = Array.prototype.slice.call(arguments);
-                if (numdone === total) {
-                    p.done(results);
-                }
-            };
-        }
-
-        for (var i = 0; i < total; i++) {
-            promises[i].then(notifier(i));
-        }
-
-        return p;
-    }
-
-    function chain(funcs, args) {
-        var p = new Promise();
-        if (funcs.length === 0) {
-            p.done.apply(p, args);
-        } else {
-            funcs[0].apply(null, args).then(function () {
-                funcs.splice(0, 1);
-                chain(funcs, arguments).then(function () {
-                    p.done.apply(p, arguments);
-                });
-            });
-        }
-        return p;
-    }
-
-    /*
-     * AJAX requests
-     */
-
-    function _encode(data) {
-        var result = "";
-        if (typeof data === "string") {
-            result = data;
-        } else {
-            var e = encodeURIComponent;
-            for (var k in data) {
-                if (data.hasOwnProperty(k)) {
-                    result += '&' + e(k) + '=' + e(data[k]);
-                }
-            }
-        }
-        return result;
-    }
-
-    function new_xhr() {
-        var xhr;
-        if (window.XMLHttpRequest) {
-            xhr = new XMLHttpRequest();
-        } else if (window.ActiveXObject) {
-            try {
-                xhr = new ActiveXObject("Msxml2.XMLHTTP");
-            } catch (e) {
-                xhr = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-        }
-        return xhr;
-    }
-
-
-    function ajax(method, url, data, headers) {
-        var p = new Promise();
-        var xhr, payload;
-        data = data || {};
-        headers = headers || {};
-
-        try {
-            xhr = new_xhr();
-        } catch (e) {
-            p.done(promise.ENOXHR, "");
-            return p;
-        }
-
-        payload = _encode(data);
-        if (method === 'GET' && payload) {
-            url += '?' + payload;
-            payload = null;
-        }
-
-        xhr.open(method, url);
-        xhr.setRequestHeader('Content-type',
-                             'application/x-www-form-urlencoded');
-        for (var h in headers) {
-            if (headers.hasOwnProperty(h)) {
-                xhr.setRequestHeader(h, headers[h]);
-            }
-        }
-
-        function onTimeout() {
-            xhr.abort();
-            p.done(promise.ETIMEOUT, "", xhr);
-        }
-
-        var timeout = promise.ajaxTimeout;
-        if (timeout) {
-            var tid = setTimeout(onTimeout, timeout);
-        }
-
-        xhr.onreadystatechange = function () {
-            if (timeout) {
-                clearTimeout(tid);
-            }
-            if (xhr.readyState === 4) {
-                var err = (!xhr.status ||
-                           (xhr.status < 200 || xhr.status >= 300) &&
-                           xhr.status !== 304);
-                p.done(err, xhr.responseText, xhr);
-            }
-        };
-
-        xhr.send(payload);
-        return p;
-    }
-
-    function _ajaxer(method) {
-        return function (url, data, headers) {
-            return ajax(method, url, data, headers);
-        };
-    }
-
-    var promise = {
-        Promise: Promise,
-        join: join,
-        chain: chain,
-        ajax: ajax,
-        get: _ajaxer('GET'),
-        post: _ajaxer('POST'),
-        put: _ajaxer('PUT'),
-        del: _ajaxer('DELETE'),
-
-        /* Error codes */
-        ENOXHR: 1,
-        ETIMEOUT: 2,
-
-        /**
-         * Configuration parameter: time in milliseconds after which a
-         * pending AJAX request is considered unresponsive and is
-         * aborted. Useful to deal with bad connectivity (e.g. on a
-         * mobile network). A 0 value disables AJAX timeouts.
-         *
-         * Aborted requests resolve the promise with a ETIMEOUT error
-         * code.
-         */
-        ajaxTimeout: 0
-    };
-
-    if (typeof define === 'function' && define.amd) {
-        /* AMD support */
-        define(function () {
-            return promise;
-        });
-    } else {
-        exports.promise = promise;
-    }
-
-})(this);
+(function(a){function b(){this._callbacks=[];}b.prototype.then=function(a,c){var d;if(this._isdone)d=a.apply(c,this.result);else{d=new b();this._callbacks.push(function(){var b=a.apply(c,arguments);if(b&&typeof b.then==='function')b.then(d.done,d);});}return d;};b.prototype.done=function(){this.result=arguments;this._isdone=true;for(var a=0;a<this._callbacks.length;a++)this._callbacks[a].apply(null,arguments);this._callbacks=[];};function c(a){var c=new b();var d=[];if(!a||!a.length){c.done(d);return c;}var e=0;var f=a.length;function g(a){return function(){e+=1;d[a]=Array.prototype.slice.call(arguments);if(e===f)c.done(d);};}for(var h=0;h<f;h++)a[h].then(g(h));return c;}function d(a,c){var e=new b();if(a.length===0)e.done.apply(e,c);else a[0].apply(null,c).then(function(){a.splice(0,1);d(a,arguments).then(function(){e.done.apply(e,arguments);});});return e;}function e(a){var b="";if(typeof a==="string")b=a;else{var c=encodeURIComponent;var d=[];for(var e in a)if(a.hasOwnProperty(e))d.push(c(e)+'='+c(a[e]));b=d.join('&');}return b;}function f(){var a;if(window.XMLHttpRequest)a=new XMLHttpRequest();else if(window.ActiveXObject)try{a=new ActiveXObject("Msxml2.XMLHTTP");}catch(b){a=new ActiveXObject("Microsoft.XMLHTTP");}return a;}function g(a,c,d,g){var h=new b();var j,k;d=d||{};g=g||{};try{j=f();}catch(l){h.done(i.ENOXHR,"");return h;}k=e(d);if(a==='GET'&&k){c+='?'+k;k=null;}j.open(a,c);var m='application/x-www-form-urlencoded';for(var n in g)if(g.hasOwnProperty(n))if(n.toLowerCase()==='content-type')m=g[n];else j.setRequestHeader(n,g[n]);j.setRequestHeader('Content-type',m);function o(){j.abort();h.done(i.ETIMEOUT,"",j);}var p=i.ajaxTimeout;if(p)var q=setTimeout(o,p);j.onreadystatechange=function(){if(p)clearTimeout(q);if(j.readyState===4){var a=(!j.status||(j.status<200||j.status>=300)&&j.status!==304);h.done(a,j.responseText,j);}};j.send(k);return h;}function h(a){return function(b,c,d){return g(a,b,c,d);};}var i={Promise:b,join:c,chain:d,ajax:g,get:h('GET'),post:h('POST'),put:h('PUT'),del:h('DELETE'),ENOXHR:1,ETIMEOUT:2,ajaxTimeout:0};if(typeof define==='function'&&define.amd)define(function(){return i;});else a.promise=i;})(this);
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
@@ -609,7 +406,7 @@ talkify.config = {
     {
         audioControls: {
             enabled: false,
-            container: document.body
+            container: document.body,
         }
     },
     remoteService: {
@@ -618,7 +415,28 @@ talkify.config = {
         apiKey: '',
         speechBaseUrl: '/api/speech/v1',
         languageBaseUrl: '/api/language/v1'
+    },
+    keyboardCommands: {
+        enabled: false,
+        commands: {
+            playPause: 32,
+            next: 39,
+            previous: 37
+        }
+    },
+    voiceCommands: {
+        enabled: false,
+        keyboardActivation: {
+            enabled: true,
+            key: 77
+        },
+        commands: {
+            playPause: ["play", "pause", "stop", "start"],
+            next: ["play next", "next"],
+            previous: ["play previous", "previous", "back", "go back"]
+        }
     }
+
 }
 },{}],6:[function(require,module,exports){
 //TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
@@ -994,6 +812,57 @@ talkify.Html5Player = function () {
 talkify.Html5Player.prototype.constructor = talkify.Html5Player;
 },{}],7:[function(require,module,exports){
 talkify = talkify || {};
+
+talkify.KeyboardCommands = function (keyboadCommands) {
+    if (!keyboadCommands.enabled) {
+        return {
+            onPrevious: function () { },
+            onNext: function () { },
+            onPlayPause: function () { },
+            dispose: function () { }
+        }
+    }
+
+
+    var onNextCallback = function () { };
+    var onPreviousCallback = function () { };
+    var onPlayPauseCallback = function () { };
+
+    document.addEventListener("keyup", keyupEventHandler);
+
+    function keyupEventHandler(e) {
+        if (!e.ctrlKey) {
+            return;
+        }
+
+        var key = e.keyCode ? e.keyCode : e.which;
+
+        if (key === keyboadCommands.commands.previous) {
+            onPreviousCallback();
+        } else if (key === keyboadCommands.commands.next) {
+            onNextCallback();
+        } else if (key === keyboadCommands.commands.playPause) {
+            onPlayPauseCallback();
+        }
+    }
+
+    return {
+        onPrevious: function (callback) {
+            onPreviousCallback = callback;
+        },
+        onNext: function (callback) {
+            onNextCallback = callback;
+        },
+        onPlayPause: function (callback) {
+            onPlayPauseCallback = callback;
+        },
+        dispose: function () {
+            document.removeEventListener("keyup", keyupEventHandler);
+        }
+    }
+};
+},{}],8:[function(require,module,exports){
+talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar) {
     this.audioSource = _audiosource;
     this.wordHighlighter = new talkify.wordHighlighter();
@@ -1252,7 +1121,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         return this;
     };
 };
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.TtsPlayer = function () {
@@ -1474,7 +1343,7 @@ talkify.TtsPlayer = function () {
 };
 
 talkify.TtsPlayer.prototype.constructor = talkify.TtsPlayer;
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playlist = function () {
     var defaults = {
@@ -1484,7 +1353,9 @@ talkify.playlist = function () {
         exclusions: [],
         rootSelector: "body",
         events: {
-            onEnded: null
+            onEnded: null,
+            onVoiceCommandListeningStarted: null,
+            onVoiceCommandListeningEnded: null
         }
     };
 
@@ -1511,6 +1382,40 @@ talkify.playlist = function () {
 
         var settings = _settings;
         var playerHasBeenReplaced = false;
+
+        var commands = [
+            new talkify.KeyboardCommands(talkify.config.keyboardCommands),
+            new talkify.SpeechCommands(talkify.config.voiceCommands)
+        ];
+
+        var voiceCommands = commands[1];
+
+        for (var k = 0; k < commands.length; k++) {
+            commands[k].onNext(function () {
+                var item = getNextItem();
+
+                if (item) {
+                    play(item);
+                }
+            });
+            commands[k].onPrevious(function () {
+                var item = getPreviousItem();
+
+                if (item) {
+                    play(item);
+                }
+            });
+            commands[k].onPlayPause(function () {
+                if (player.paused()) {
+                    player.play();
+                } else {
+                    pause();
+                }
+            });
+        }
+
+        voiceCommands.onListeningStarted(settings.events.onVoiceCommandListeningStarted);
+        voiceCommands.onListeningEnded(settings.events.onVoiceCommandListeningEnded);
 
         function reset() {
             playlist.queue = [];
@@ -1740,6 +1645,16 @@ talkify.playlist = function () {
             return playlist.queue[currentQueuePosition + 1];
         }
 
+        function getPreviousItem() {
+            var currentQueuePosition = playlist.queue.indexOf(playlist.currentlyPlaying);
+
+            if (currentQueuePosition === 0) {
+                return null;
+            }
+
+            return playlist.queue[currentQueuePosition - 1];
+        }
+
         function playFromBeginning() {
             if (!talkify.config.remoteService.active) {
                 onComplete({ Culture: '', Language: -1 });
@@ -1890,6 +1805,16 @@ talkify.playlist = function () {
             },
             dispose: function () {
                 resetPlaybackStates();
+
+                for (var i = 0; i < commands.length; i++) {
+                    commands[i].dispose();
+                }
+            },
+            startListeningToVoiceCommands: function() {
+                voiceCommands.start();
+            },
+            stopListeningToVoiceCommands: function () {
+                voiceCommands.stop();
             }
         }
     }
@@ -1910,7 +1835,7 @@ talkify.playlist = function () {
 
                     return this;
                 },
-                excludeElements: function(elementsSelectors) {
+                excludeElements: function (elementsSelectors) {
                     s.exclusions = elementsSelectors;
 
                     return this;
@@ -1932,6 +1857,9 @@ talkify.playlist = function () {
                 },
                 subscribeTo: function (events) {
                     s.events.onEnded = events.onEnded || function () { };
+                    s.events.onVoiceCommandListeningStarted = events.onVoiceCommandListeningStarted || function() {};
+                    s.events.onVoiceCommandListeningEnded = events.onVoiceCommandListeningEnded || function() {};
+                    
 
                     return this;
                 },
@@ -1945,6 +1873,8 @@ talkify.playlist = function () {
                     }
 
                     s.events.onEnded = s.events.onEnded || function () { };
+                    s.events.onVoiceCommandListeningStarted = s.events.onVoiceCommandListeningStarted || function () { };
+                    s.events.onVoiceCommandListeningEnded = s.events.onVoiceCommandListeningEnded || function () { };
 
                     return new implementation(s, p);
                 }
@@ -1953,7 +1883,205 @@ talkify.playlist = function () {
 
     };
 };
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+var SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
+var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+
+talkify = talkify || {};
+
+talkify.SpeechCommands = function (speechCommandConfig) {
+    if (!speechCommandConfig.enabled) {
+        var noop = function () { };
+
+        return {
+            onPrevious: noop,
+            onNext: noop(),
+            onPlayPause: noop,
+            start: noop,
+            onListeningStarted: noop,
+            onListeningEnded: noop,
+            dispose: noop
+        }
+    }
+
+    var isListening = false;
+    var onNextCallback = function () { };
+    var onPreviousCallback = function () { };
+    var onPlayPauseCallback = function () { };
+    var onListeningStartedCallback = function () { };
+    var onListeningEndedCallback = function () { };
+
+    var recognition = new SpeechRecognition();
+
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function () {
+        isListening = true;
+        onListeningStartedCallback();
+    }
+
+    recognition.onresult = function (event) {
+        var transcript = event.results[event.results.length - 1][0].transcript;
+
+        var matchingCommandName = evaluate(transcript, speechCommandConfig.commands);
+
+        if (speechCommandConfig.commands[matchingCommandName] === speechCommandConfig.commands.playPause) {
+            onPlayPauseCallback();
+        } else if (speechCommandConfig.commands[matchingCommandName] === speechCommandConfig.commands.next) {
+            onNextCallback();
+        } else if (speechCommandConfig.commands[matchingCommandName] === speechCommandConfig.commands.previous) {
+            onPreviousCallback();
+        }
+    }
+
+    recognition.onspeechend = function () {
+        recognition.stop();
+        isListening = false;
+        onListeningEndedCallback();
+    }
+
+    function evaluate(transcript, commands) {
+        var wordsInTranscript = transcript.split(' ');
+        var possibleMatches = [];
+
+        for (var key in commands) {
+            if (!commands.hasOwnProperty(key)) {
+                continue;
+            }
+
+            var phrases = speechCommandConfig.commands[key];
+
+            for (var i = 0; i < phrases.length; i++) {
+                if (phrases[i].toLowerCase() === transcript) {
+                    //exact match
+                    return key;
+                }
+
+                var match = phrases[i].split(' ').filter(function (word) {
+                    return wordsInTranscript.indexOf(word.toLowerCase()) > -1;
+                })[0];
+
+                //any word in phrase mathes
+                if (match) {
+                    possibleMatches.push(key);
+                    break;
+                }
+            }
+        }
+
+        if (possibleMatches.length > 0) {
+            var bestValue = 0;
+            var bestCommand = null;
+
+            for (var j = 0; j < possibleMatches.length; j++) {
+                var temp = Math.max.apply(Math,
+                    speechCommandConfig.commands[possibleMatches[j]].map(function (phrase) {
+                        return levenshtein(phrase, transcript);
+                    }));
+
+                if (temp > bestValue) {
+                    bestValue = temp;
+                    bestCommand = possibleMatches[j];
+                }
+            }
+
+            return bestCommand;
+        }
+
+        return null;
+
+    }
+
+    function levenshtein(s1, s2) {
+        var longer = s1;
+        var shorter = s2;
+        if (s1.length < s2.length) {
+            longer = s2;
+            shorter = s1;
+        }
+        var longerLength = longer.length;
+        if (longerLength === 0) {
+            return 1.0;
+        }
+        return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+    }
+
+    function editDistance(s1, s2) {
+        s1 = s1.toLowerCase();
+        s2 = s2.toLowerCase();
+
+        var costs = new Array();
+        for (var i = 0; i <= s1.length; i++) {
+            var lastValue = i;
+            for (var j = 0; j <= s2.length; j++) {
+                if (i === 0)
+                    costs[j] = j;
+                else {
+                    if (j > 0) {
+                        var newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue),
+                                costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+            }
+            if (i > 0)
+                costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+
+    if (speechCommandConfig.keyboardActivation.enabled) {
+        document.addEventListener("keyup",
+            function (e) {
+                if (!e.ctrlKey) {
+                    return;
+                }
+
+                if (isListening) {
+                    return;
+                }
+
+                var key = e.keyCode ? e.keyCode : e.which;
+
+                if (key === speechCommandConfig.keyboardActivation.key) {
+                    recognition.start();
+                }
+            });
+    }
+
+    return {
+        onPrevious: function (callback) {
+            onPreviousCallback = callback;
+        },
+        onNext: function (callback) {
+            onNextCallback = callback;
+        },
+        onPlayPause: function (callback) {
+            onPlayPauseCallback = callback;
+        },
+        start: function () {
+            if (isListening) {
+                return;
+            }
+
+            recognition.start();
+        },
+        onListeningStarted: function (callback) {
+            onListeningStartedCallback = callback;
+        },
+        onListeningEnded: function (callback) {
+            onListeningEndedCallback = callback;
+        },
+        dispose: function () {}
+    }
+};
+},{}],12:[function(require,module,exports){
 talkify = talkify || {};
 talkify.textextractor = function () {
     var validElements = [];
@@ -2148,8 +2276,6 @@ talkify.textextractor = function () {
 
         var result = getVisible(validElements);
 
-        console.log(new Date() - date);
-
         return result;
     }
 
@@ -2213,7 +2339,7 @@ talkify.textextractor = function () {
         extract: extract
     };
 };
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 talkify = talkify || {};
 talkify.timer = function() {
     var callback, timerId, start, remaining;
@@ -2240,7 +2366,7 @@ talkify.timer = function() {
         timerId = window.setTimeout(callback, remaining);
     };
 }
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 talkify = talkify || {};
 talkify.wordHighlighter = function () {
     var textHighlightTimer = new talkify.timer();
@@ -2354,6 +2480,6 @@ talkify.wordHighlighter = function () {
         setPosition: setPosition
     };
 };
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 talkify = {};
 },{}]},{},[1]);
