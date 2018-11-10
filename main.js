@@ -12,4 +12,4 @@ var talkifyPlaylist = require('./src/talkify-playlist.js');
 var talkifyPlaybar = require('./src/talkify-audiocontrols.js');
 var talkifyKeyCommands = require('./src/talkify-keyboard-commands.js');
 var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
-
+var talkifyFormReader = require('./src/talkify-formreader.js');
