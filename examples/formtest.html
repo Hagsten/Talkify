@@ -1,0 +1,47 @@
+<html>
+<head>
+</head>
+<body>
+    <section id="root">
+
+        <form id="test">
+            <label for="input1">First name</label>
+            <input type="text" id="input1" />
+
+            <label for="input2">Last name</label>
+            <input type="text" id="input2" required/>
+
+            <input type="button" value="Verify name"/>
+            <input type="submit" value="Send"></input>
+
+            <textarea cols="30" rows="10" required="required"></textarea>
+            <button>Button</button>
+        </form>
+
+    </section>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="../dist/talkify.js"></script>
+
+    <script>
+        talkify.config.remoteService.active = true;
+
+        talkify.config.remoteService.speechBaseUrl = '/api/internal/speech';
+        talkify.config.remoteService.languageBaseUrl = '/api/internal/language';
+
+        talkify.config.remoteService.host = 'http://localhost:6719';
+
+        talkify.config.ui.audioControls = {
+            enabled: false, //<-- Disable to get the browser built in audio controls
+            container: document.getElementById("player-and-voices")
+        };
+
+
+        $(document).ready(function () {
+            talkify.formReader.addForm(document.getElementById("test"));
+        });
+
+    </script>
+</body>
+</html>

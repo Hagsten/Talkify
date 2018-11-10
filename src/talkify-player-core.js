@@ -60,7 +60,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         if (this.playbar.instance) {
             mutator(this.playbar.instance);
         }
-    }
+    };
 
     if (talkify.config.ui.audioControls.enabled) {
         this.playbar.instance = talkify.playbar().subscribeTo({
@@ -103,7 +103,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         });
 
         return this;
-    }
+    };
 
     this.subscribeTo = function (subscriptions) {
         this.events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
@@ -187,6 +187,10 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.playText = function (text) {
+        if (!text) {
+            return;
+        }
+
         var items = this.createItems(text);
 
         var currentItem = 0;

@@ -7,6 +7,13 @@ talkify.config = {
             container: document.body
         }
     },
+    formReader: {
+        voice: null,
+        rate: 0,
+        remoteService: true,
+        requiredText: "This field is required",
+        valueText: "You have entered {value} as: "
+    },
     remoteService: {
         active: true,
         host: 'https://talkify.net',
@@ -34,5 +41,4 @@ talkify.config = {
             previous: ["play previous", "previous", "back", "go back"]
         }
     }
-
 }
