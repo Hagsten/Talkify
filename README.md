@@ -29,6 +29,9 @@ $ npm install talkify-tts
 ## Working fiddle
 http://jsfiddle.net/woqw6b6g/76/
 
+## Working Form Reader fiddle
+http://jsfiddle.net/dx53bg6k/2/
+
 ## Include the scripts
 ### Minified version
 ```html
@@ -181,7 +184,7 @@ Entry point: talkify.TtsPlayer().
 
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
-| setRate | int | 1 | Playback rate. A value between 1 and 3 |
+| setRate | int | 1 | Playback rate. A value between -5 and 5 |
 
 ### Player Events
 | Event   |
