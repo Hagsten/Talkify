@@ -12,6 +12,14 @@ talkify.formReader = function () {
         }
     }
 
+    function removeForm(formElement) {
+        var elements = formElement.elements;
+
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].removeEventListener("focus", onFocus);
+        }
+    }
+
     function onFocus(e) {
         if (timeout) {
             clearTimeout(timeout);
@@ -105,6 +113,9 @@ talkify.formReader = function () {
     return {
         addForm: function (formElement) {
             setupForm(formElement);
+        },
+        removeForm: function(formElement) {
+            removeForm(formElement);
         }
     };
 }();

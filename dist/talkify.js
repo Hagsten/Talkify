@@ -449,8 +449,6 @@ talkify.config = {
 },{}],6:[function(require,module,exports){
 talkify = talkify || {};
 
-//TODO: Toggle checkbox, multiselect
-
 talkify.formReader = function () {
     var player;
     var timeout;
@@ -460,6 +458,14 @@ talkify.formReader = function () {
 
         for (var i = 0; i < elements.length; i++) {
             elements[i].addEventListener("focus", onFocus);
+        }
+    }
+
+    function removeForm(formElement) {
+        var elements = formElement.elements;
+
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].removeEventListener("focus", onFocus);
         }
     }
 
@@ -556,6 +562,9 @@ talkify.formReader = function () {
     return {
         addForm: function (formElement) {
             setupForm(formElement);
+        },
+        removeForm: function(formElement) {
+            removeForm(formElement);
         }
     };
 }();
