@@ -113,7 +113,17 @@ talkify.config = {
             next: ["play next", "next"],
             previous: ["play previous", "previous", "back", "go back"]
         }
-    }
+    },
+    formReader: {
+        voice: null, //TTS voice name if remote service otherwise Web Speech API voice object
+        rate: 0, //See possible values for each tyoe of player down below
+        remoteService: true,
+        //Below is the default texts for the form.
+        requiredText: "This field is required",
+        valueText: "You have entered {value} as: {label}.",
+        selectedText: "You have selected {label}.",
+        notSelectedText: "{label} is not selected."
+    },
 }
 ```
 
