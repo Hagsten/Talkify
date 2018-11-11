@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 window.promise = require('./src/promise.js').promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
@@ -21,211 +21,7 @@ var talkifyFormReader = require('./src/talkify-formreader.js');
  *  Licensed under the New BSD License.
  *  https://github.com/stackp/promisejs
  */
-
-(function (exports) {
-
-    function Promise() {
-        this._callbacks = [];
-    }
-
-    Promise.prototype.then = function (func, context) {
-        var p;
-        if (this._isdone) {
-            p = func.apply(context, this.result);
-        } else {
-            p = new Promise();
-            this._callbacks.push(function () {
-                var res = func.apply(context, arguments);
-                if (res && typeof res.then === 'function')
-                    res.then(p.done, p);
-            });
-        }
-        return p;
-    };
-
-    Promise.prototype.done = function () {
-        this.result = arguments;
-        this._isdone = true;
-        for (var i = 0; i < this._callbacks.length; i++) {
-            this._callbacks[i].apply(null, arguments);
-        }
-        this._callbacks = [];
-    };
-
-    function join(promises) {
-        var p = new Promise();
-        var results = [];
-
-        if (!promises || !promises.length) {
-            p.done(results);
-            return p;
-        }
-
-        var numdone = 0;
-        var total = promises.length;
-
-        function notifier(i) {
-            return function () {
-                numdone += 1;
-                results[i] = Array.prototype.slice.call(arguments);
-                if (numdone === total) {
-                    p.done(results);
-                }
-            };
-        }
-
-        for (var i = 0; i < total; i++) {
-            promises[i].then(notifier(i));
-        }
-
-        return p;
-    }
-
-    function chain(funcs, args) {
-        var p = new Promise();
-        if (funcs.length === 0) {
-            p.done.apply(p, args);
-        } else {
-            funcs[0].apply(null, args).then(function () {
-                funcs.splice(0, 1);
-                chain(funcs, arguments).then(function () {
-                    p.done.apply(p, arguments);
-                });
-            });
-        }
-        return p;
-    }
-
-    /*
-     * AJAX requests
-     */
-
-    function _encode(data) {
-        var result = "";
-        if (typeof data === "string") {
-            result = data;
-        } else {
-            var e = encodeURIComponent;
-            for (var k in data) {
-                if (data.hasOwnProperty(k)) {
-                    result += '&' + e(k) + '=' + e(data[k]);
-                }
-            }
-        }
-        return result;
-    }
-
-    function new_xhr() {
-        var xhr;
-        if (window.XMLHttpRequest) {
-            xhr = new XMLHttpRequest();
-        } else if (window.ActiveXObject) {
-            try {
-                xhr = new ActiveXObject("Msxml2.XMLHTTP");
-            } catch (e) {
-                xhr = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-        }
-        return xhr;
-    }
-
-
-    function ajax(method, url, data, headers) {
-        var p = new Promise();
-        var xhr, payload;
-        data = data || {};
-        headers = headers || {};
-
-        try {
-            xhr = new_xhr();
-        } catch (e) {
-            p.done(promise.ENOXHR, "");
-            return p;
-        }
-
-        payload = _encode(data);
-        if (method === 'GET' && payload) {
-            url += '?' + payload;
-            payload = null;
-        }
-
-        xhr.open(method, url);
-        xhr.setRequestHeader('Content-type',
-                             'application/x-www-form-urlencoded');
-        for (var h in headers) {
-            if (headers.hasOwnProperty(h)) {
-                xhr.setRequestHeader(h, headers[h]);
-            }
-        }
-
-        function onTimeout() {
-            xhr.abort();
-            p.done(promise.ETIMEOUT, "", xhr);
-        }
-
-        var timeout = promise.ajaxTimeout;
-        if (timeout) {
-            var tid = setTimeout(onTimeout, timeout);
-        }
-
-        xhr.onreadystatechange = function () {
-            if (timeout) {
-                clearTimeout(tid);
-            }
-            if (xhr.readyState === 4) {
-                var err = (!xhr.status ||
-                           (xhr.status < 200 || xhr.status >= 300) &&
-                           xhr.status !== 304);
-                p.done(err, xhr.responseText, xhr);
-            }
-        };
-
-        xhr.send(payload);
-        return p;
-    }
-
-    function _ajaxer(method) {
-        return function (url, data, headers) {
-            return ajax(method, url, data, headers);
-        };
-    }
-
-    var promise = {
-        Promise: Promise,
-        join: join,
-        chain: chain,
-        ajax: ajax,
-        get: _ajaxer('GET'),
-        post: _ajaxer('POST'),
-        put: _ajaxer('PUT'),
-        del: _ajaxer('DELETE'),
-
-        /* Error codes */
-        ENOXHR: 1,
-        ETIMEOUT: 2,
-
-        /**
-         * Configuration parameter: time in milliseconds after which a
-         * pending AJAX request is considered unresponsive and is
-         * aborted. Useful to deal with bad connectivity (e.g. on a
-         * mobile network). A 0 value disables AJAX timeouts.
-         *
-         * Aborted requests resolve the promise with a ETIMEOUT error
-         * code.
-         */
-        ajaxTimeout: 0
-    };
-
-    if (typeof define === 'function' && define.amd) {
-        /* AMD support */
-        define(function () {
-            return promise;
-        });
-    } else {
-        exports.promise = promise;
-    }
-
-})(this);
+(function(a){function b(){this._callbacks=[];}b.prototype.then=function(a,c){var d;if(this._isdone)d=a.apply(c,this.result);else{d=new b();this._callbacks.push(function(){var b=a.apply(c,arguments);if(b&&typeof b.then==='function')b.then(d.done,d);});}return d;};b.prototype.done=function(){this.result=arguments;this._isdone=true;for(var a=0;a<this._callbacks.length;a++)this._callbacks[a].apply(null,arguments);this._callbacks=[];};function c(a){var c=new b();var d=[];if(!a||!a.length){c.done(d);return c;}var e=0;var f=a.length;function g(a){return function(){e+=1;d[a]=Array.prototype.slice.call(arguments);if(e===f)c.done(d);};}for(var h=0;h<f;h++)a[h].then(g(h));return c;}function d(a,c){var e=new b();if(a.length===0)e.done.apply(e,c);else a[0].apply(null,c).then(function(){a.splice(0,1);d(a,arguments).then(function(){e.done.apply(e,arguments);});});return e;}function e(a){var b="";if(typeof a==="string")b=a;else{var c=encodeURIComponent;var d=[];for(var e in a)if(a.hasOwnProperty(e))d.push(c(e)+'='+c(a[e]));b=d.join('&');}return b;}function f(){var a;if(window.XMLHttpRequest)a=new XMLHttpRequest();else if(window.ActiveXObject)try{a=new ActiveXObject("Msxml2.XMLHTTP");}catch(b){a=new ActiveXObject("Microsoft.XMLHTTP");}return a;}function g(a,c,d,g){var h=new b();var j,k;d=d||{};g=g||{};try{j=f();}catch(l){h.done(i.ENOXHR,"");return h;}k=e(d);if(a==='GET'&&k){c+='?'+k;k=null;}j.open(a,c);var m='application/x-www-form-urlencoded';for(var n in g)if(g.hasOwnProperty(n))if(n.toLowerCase()==='content-type')m=g[n];else j.setRequestHeader(n,g[n]);j.setRequestHeader('Content-type',m);function o(){j.abort();h.done(i.ETIMEOUT,"",j);}var p=i.ajaxTimeout;if(p)var q=setTimeout(o,p);j.onreadystatechange=function(){if(p)clearTimeout(q);if(j.readyState===4){var a=(!j.status||(j.status<200||j.status>=300)&&j.status!==304);h.done(a,j.responseText,j);}};j.send(k);return h;}function h(a){return function(b,c,d){return g(a,b,c,d);};}var i={Promise:b,join:c,chain:d,ajax:g,get:h('GET'),post:h('POST'),put:h('PUT'),del:h('DELETE'),ENOXHR:1,ETIMEOUT:2,ajaxTimeout:0};if(typeof define==='function'&&define.amd)define(function(){return i;});else a.promise=i;})(this);
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
@@ -618,7 +414,9 @@ talkify.config = {
         rate: 0,
         remoteService: true,
         requiredText: "This field is required",
-        valueText: "You have entered {value} as: "
+        valueText: "You have entered {value} as: {label}.",
+        selectedText: "You have selected {label}.",
+        notSelectedText: "{label} is not selected."
     },
     remoteService: {
         active: true,
@@ -651,9 +449,12 @@ talkify.config = {
 },{}],6:[function(require,module,exports){
 talkify = talkify || {};
 
+//TODO: Toggle checkbox, multiselect
+
 talkify.formReader = function () {
     var player;
-        
+    var timeout;
+
     function setupForm(formElement) {
         var elements = formElement.elements;
 
@@ -663,37 +464,81 @@ talkify.formReader = function () {
     }
 
     function onFocus(e) {
-        if (!player) {
-            player = talkify.config.formReader.remoteService ? new talkify.TtsPlayer() : new talkify.Html5Player();
+        if (timeout) {
+            clearTimeout(timeout);
         }
 
-        var config = talkify.config.formReader;
+        var me = this;
 
-        if (config.voice) {
-            player.forceVoice({ name: config.voice });
-        }
-
-        player.setRate(config.rate);
-
-        if (this.type === "button" || this.type === "submit") {
-            player.playText(this.value || this.innerText);
-            return;
-        }
-
-        var requiredText = this.attributes.required ? config.requiredText : "";
-
-        var label = findLabelFor(this);
-
-        if (label) {
-            var text = "";
-
-            if (this.value) {
-                text = config.valueText.replace("{value}", this.value);
+        timeout = setTimeout(function () {
+            if (!player) {
+                player = talkify.config.formReader.remoteService ? new talkify.TtsPlayer() : new talkify.Html5Player();
             }
 
-            player.playText(text + label.innerText + ". " + requiredText);
+            var config = talkify.config.formReader;
+
+            if (config.voice) {
+                player.forceVoice({ name: config.voice });
+            }
+
+            player.setRate(config.rate);
+
+            if (me.type === "button" || me.type === "submit") {
+                player.playText(me.value || me.innerText);
+                return;
+            }
+
+            var requiredText = me.attributes.required ? config.requiredText : "";
+
+            var label = findLabelFor(me);
+
+            var text = getTextForCheckboxes(me, label) || getTextForSelects(me, label) || getTextForInputs(me, label) || "";
+
+            player.playText(text + ". " + requiredText);
+        }, 100);
+    }
+
+    function getTextForCheckboxes(element, label) {
+        var config = talkify.config.formReader;
+
+        if (element.type === "checkbox") {
+            var labelText = label ? label.innerText : "checkbox";
+
+            if (element.checked) {
+                return config.selectedText.replace("{label}", labelText);
+            } else {
+                return config.notSelectedText.replace("{label}", labelText);
+            }
+        }
+
+        return null;
+    }
+
+    function getTextForSelects(element, label) {
+        var config = talkify.config.formReader;
+
+        if (element.tagName.toLowerCase() === "select") {
+            var labelText = label ? label.innerText : "option";
+
+            var value = element.options[element.options.selectedIndex].text;
+
+            return config.valueText.replace("{value}", value).replace("{label}", labelText);
+        }
+
+        return null;
+    }
+
+    function getTextForInputs(element, label) {
+        var config = talkify.config.formReader;
+
+        if (!label) {
+            return element.value;
+        }
+
+        if (element.value) {
+            return config.valueText.replace("{value}", element.value).replace("{label}", label.innerText);
         } else {
-            player.playText(this.value + ". " + requiredText);
+            return label.innerText + ".";
         }
     }
 

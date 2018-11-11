@@ -12,7 +12,9 @@ talkify.config = {
         rate: 0,
         remoteService: true,
         requiredText: "This field is required",
-        valueText: "You have entered {value} as: "
+        valueText: "You have entered {value} as: {label}.",
+        selectedText: "You have selected {label}.",
+        notSelectedText: "{label} is not selected."
     },
     remoteService: {
         active: true,
