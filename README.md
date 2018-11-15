@@ -207,6 +207,14 @@ Entry point: talkify.TtsPlayer().
 | onItemLoaded |
 | onTextHighligtChanged |
 
+## FormReader
+Example: talkify.formReader.addForm(document.getElementById("form-id"));
+
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| addForm   | form element | None |   Adds TTS functionality to the form.         |
+| removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
+
 # License
 GPLv3
 
