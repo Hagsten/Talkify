@@ -27,7 +27,7 @@ $ npm install talkify-tts
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/woqw6b6g/76/
+http://jsfiddle.net/woqw6b6g/934/
 
 ## Working Form Reader fiddle
 http://jsfiddle.net/dx53bg6k/2/
@@ -206,6 +206,14 @@ Entry point: talkify.TtsPlayer().
 | onResume |  
 | onItemLoaded |
 | onTextHighligtChanged |
+
+## FormReader
+Example: talkify.formReader.addForm(document.getElementById("form-id"));
+
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| addForm   | form element | None |   Adds TTS functionality to the form.         |
+| removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
 
 # License
 GPLv3
