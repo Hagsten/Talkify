@@ -27,18 +27,15 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.internalEvents = {
         onPause: function () {
-            //me.wordHighlighter.pause();
             me.mutateControls(function (c) {
                 c.markAsPaused();
             });
-            //me.playbar.markAsPaused();
 
             if (!me.audioSource.ended && me.audioSource.currentTime() > 0) {
                 me.events.onPause();
             }
         },
         onPlay: function () {
-            //me.wordHighlighter.resume();
             me.mutateControls(function (c) {
                 c.markAsPlaying();
             });

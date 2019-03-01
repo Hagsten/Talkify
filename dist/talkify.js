@@ -1021,18 +1021,15 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.internalEvents = {
         onPause: function () {
-            //me.wordHighlighter.pause();
             me.mutateControls(function (c) {
                 c.markAsPaused();
             });
-            //me.playbar.markAsPaused();
 
             if (!me.audioSource.ended && me.audioSource.currentTime() > 0) {
                 me.events.onPause();
             }
         },
         onPlay: function () {
-            //me.wordHighlighter.resume();
             me.mutateControls(function (c) {
                 c.markAsPlaying();
             });
@@ -2517,13 +2514,18 @@ talkify.wordHighlighter = function () {
         currentItem = item;
         var text = item.element.innerText.trim();
 
-        if (charPosition === 0) {
-            item.element.innerHTML = '<span class="talkify-word-highlight">' + text.substring(0, word.length) + '</span> ' + text.substring(word.length + 1);
+        var sentence = finddCurrentSentence(item, charPosition);
 
-            return;
-        }
-
-        item.element.innerHTML = text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1);
+        item.element.innerHTML =
+            text.substring(0, sentence.start) +
+            '<span class="talkify-sentence-highlight">' +
+            text.substring(sentence.start, charPosition) +
+            '<span class="talkify-word-highlight">' +
+            text.substring(charPosition, charPosition + word.length) +
+            '</span>' +
+            text.substring(charPosition + word.length, sentence.end) +
+            '</span>' +
+            text.substring(sentence.end);
     }
 
     function cancel() {
@@ -2607,6 +2609,33 @@ talkify.wordHighlighter = function () {
         setTimeout(function () {
             setupWordHightlighting(item, positions, nextPosition);
         }, diff);
+    }
+
+    function finddCurrentSentence(item, charPosition) {
+        var text = item.element.innerText.trim();
+        var result = text.match(/[^\.!\?]+[\.!\?]+/g) || [];
+
+        var charactersTraversed = 0;
+        var sentenceStart = 0;
+        var sentenceEnd = text.length;
+
+        for (var i = 0; i < result.length; i++) {
+            if (charPosition >= charactersTraversed && charPosition <= charactersTraversed + result[i].length) {
+                if (charactersTraversed > 0) {
+                    sentenceStart = charactersTraversed + 1;
+                }
+
+                sentenceEnd = charactersTraversed + result[i].length;
+                break;
+            }
+
+            charactersTraversed += result[i].length;
+        }
+
+        return {
+            start: sentenceStart,
+            end: sentenceEnd
+        };
     }
 
     return {

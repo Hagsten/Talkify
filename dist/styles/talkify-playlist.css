@@ -1,11 +1,4 @@
-﻿.talkify .playing {
-    -ms-border-radius: 5px;
-    border-radius: 5px;
-    background: #ccc !important;
-    color: black !important;
-}
-
-.talkify-highlight {
+﻿.talkify-highlight {
     -webkit-transition: background-color 0.25s;
     -moz-transition: background-color 0.25s;
     -ms-transition: background-color 0.25s;
