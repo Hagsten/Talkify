@@ -1,5 +1,8 @@
 <html>
 <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+        <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+        <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-audiocontrols.css">
 </head>
 <body>
     <section id="root">
@@ -16,7 +19,7 @@
             Hey, ich kann sehr hilfreich sein, wenn Sie versuchen, Deutsch zu lernen werden
         </p>
         <p>
-            Hej, jag kan vara till stor hjälp om du försöker lära dig svenska
+            Hej, jag kan vara till stor hjï¿½lp om du fï¿½rsï¿½ker lï¿½ra dig svenska
         </p>
     </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
@@ -36,7 +39,7 @@
         talkify.config.remoteService.host = 'http://localhost:6719';
 
         talkify.config.ui.audioControls = {
-            enabled: false, //<-- Disable to get the browser built in audio controls
+            enabled: true, //<-- Disable to get the browser built in audio controls
             container: document.getElementById("player-and-voices")
         };
 
