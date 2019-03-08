@@ -3,12 +3,10 @@ A javascript text to speech (TTS) library. Originally from and used by https://t
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
 
-## Important notice (14th Nov 2017)
+## Important notice (28th Feb 2019)
 Version 2.0.0 will require an api-key to use our backend services (our hosted voices). Visit our portal (https://manage.talkify.net) to create your own API-key, each key includes 1000 free requests per month. 
 
-The old endpoints will be open for some period of time but are obsolete, this is to ensure that our current users will have time to fetch their own api-key. 
-
-This change does not affect the browser-built-in voices, i.e. Html5Player, since they do not communicate with our backend service.
+The old endpoints, which did not require an API-key, is now shut down. Only versions from 2.0.0 are supported.
 
 ## Installation
 ```
@@ -27,7 +25,10 @@ $ npm install talkify-tts
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/woqw6b6g/76/
+http://jsfiddle.net/woqw6b6g/934/
+
+## Working Form Reader fiddle
+http://jsfiddle.net/dx53bg6k/2/
 
 ## Include the scripts
 ### Minified version
@@ -90,7 +91,37 @@ talkify.config = {
             enabled: false,
             container: document.body
         }
-    }
+    },
+    keyboardCommands: { //Ctrl + command
+        enabled: false,
+        commands: { // Configure your own keys for the supported commands
+            playPause: 32,
+            next: 39,
+            previous: 37
+        }
+    },
+    voiceCommands: {
+        enabled: false,
+        keyboardActivation: { //Ctrl + command
+            enabled: true,
+            key: 77
+        },
+        commands: { // Configure your own phrases for the supported commands
+            playPause: ["play", "pause", "stop", "start"],
+            next: ["play next", "next"],
+            previous: ["play previous", "previous", "back", "go back"]
+        }
+    },
+    formReader: {
+        voice: null, //TTS voice name if remote service otherwise Web Speech API voice object
+        rate: 0, //See possible values for each tyoe of player down below
+        remoteService: true,
+        //Below is the default texts for the form.
+        requiredText: "This field is required",
+        valueText: "You have entered {value} as: {label}.",
+        selectedText: "You have selected {label}.",
+        notSelectedText: "{label} is not selected."
+    },
 }
 ```
 
@@ -131,6 +162,8 @@ This is the instance built from the playliste above.
 | Event   |
 |---------|
 | onEnded |
+| onVoiceCommandListeningStarted |
+| onVoiceCommandListeningEnded |
 
 ## Player (valid for all players)
 | Method   | Parameters | Default |      Description      |
@@ -159,7 +192,7 @@ Entry point: talkify.TtsPlayer().
 
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
-| setRate | int | 1 | Playback rate. A value between 1 and 3 |
+| setRate | int | 1 | Playback rate. A value between -5 and 5 |
 
 ### Player Events
 | Event   |
@@ -171,6 +204,14 @@ Entry point: talkify.TtsPlayer().
 | onResume |  
 | onItemLoaded |
 | onTextHighligtChanged |
+
+## FormReader
+Example: talkify.formReader.addForm(document.getElementById("form-id"));
+
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| addForm   | form element | None |   Adds TTS functionality to the form.         |
+| removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
 
 # License
 GPLv3

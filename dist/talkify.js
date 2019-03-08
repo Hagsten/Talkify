@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 window.promise = require('./src/promise.js').promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
@@ -10,222 +10,18 @@ var BasePlayer = require('./src/talkify-player-core.js');
 var Html5Player = require('./src/talkify-html5-speechsynthesis-player.js');
 var TtsPlayer = require('./src/talkify-player.js');
 var talkifyPlaylist = require('./src/talkify-playlist.js');
-var talkifyPlaybar = require('./src/talkify-audiocontrols.js');
+var talkifyPlaybar = require('./src/talkify-controlcenter.js');
 var talkifyKeyCommands = require('./src/talkify-keyboard-commands.js');
 var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 var talkifyFormReader = require('./src/talkify-formreader.js');
 
-},{"./src/promise.js":2,"./src/talkify-ajax.js":3,"./src/talkify-audiocontrols.js":4,"./src/talkify-config.js":5,"./src/talkify-formreader.js":6,"./src/talkify-html5-speechsynthesis-player.js":7,"./src/talkify-keyboard-commands.js":8,"./src/talkify-player-core.js":9,"./src/talkify-player.js":10,"./src/talkify-playlist.js":11,"./src/talkify-speech-recognition.js":12,"./src/talkify-textextractor.js":13,"./src/talkify-timer.js":14,"./src/talkify-word-highlighter.js":15,"./src/talkify.js":16}],2:[function(require,module,exports){
+},{"./src/promise.js":2,"./src/talkify-ajax.js":3,"./src/talkify-config.js":4,"./src/talkify-controlcenter.js":5,"./src/talkify-formreader.js":6,"./src/talkify-html5-speechsynthesis-player.js":7,"./src/talkify-keyboard-commands.js":8,"./src/talkify-player-core.js":9,"./src/talkify-player.js":10,"./src/talkify-playlist.js":11,"./src/talkify-speech-recognition.js":12,"./src/talkify-textextractor.js":13,"./src/talkify-timer.js":14,"./src/talkify-word-highlighter.js":15,"./src/talkify.js":16}],2:[function(require,module,exports){
 /*
  *  Copyright 2012-2013 (c) Pierre Duquesne <stackp@online.fr>
  *  Licensed under the New BSD License.
  *  https://github.com/stackp/promisejs
  */
-
-(function (exports) {
-
-    function Promise() {
-        this._callbacks = [];
-    }
-
-    Promise.prototype.then = function (func, context) {
-        var p;
-        if (this._isdone) {
-            p = func.apply(context, this.result);
-        } else {
-            p = new Promise();
-            this._callbacks.push(function () {
-                var res = func.apply(context, arguments);
-                if (res && typeof res.then === 'function')
-                    res.then(p.done, p);
-            });
-        }
-        return p;
-    };
-
-    Promise.prototype.done = function () {
-        this.result = arguments;
-        this._isdone = true;
-        for (var i = 0; i < this._callbacks.length; i++) {
-            this._callbacks[i].apply(null, arguments);
-        }
-        this._callbacks = [];
-    };
-
-    function join(promises) {
-        var p = new Promise();
-        var results = [];
-
-        if (!promises || !promises.length) {
-            p.done(results);
-            return p;
-        }
-
-        var numdone = 0;
-        var total = promises.length;
-
-        function notifier(i) {
-            return function () {
-                numdone += 1;
-                results[i] = Array.prototype.slice.call(arguments);
-                if (numdone === total) {
-                    p.done(results);
-                }
-            };
-        }
-
-        for (var i = 0; i < total; i++) {
-            promises[i].then(notifier(i));
-        }
-
-        return p;
-    }
-
-    function chain(funcs, args) {
-        var p = new Promise();
-        if (funcs.length === 0) {
-            p.done.apply(p, args);
-        } else {
-            funcs[0].apply(null, args).then(function () {
-                funcs.splice(0, 1);
-                chain(funcs, arguments).then(function () {
-                    p.done.apply(p, arguments);
-                });
-            });
-        }
-        return p;
-    }
-
-    /*
-     * AJAX requests
-     */
-
-    function _encode(data) {
-        var result = "";
-        if (typeof data === "string") {
-            result = data;
-        } else {
-            var e = encodeURIComponent;
-            for (var k in data) {
-                if (data.hasOwnProperty(k)) {
-                    result += '&' + e(k) + '=' + e(data[k]);
-                }
-            }
-        }
-        return result;
-    }
-
-    function new_xhr() {
-        var xhr;
-        if (window.XMLHttpRequest) {
-            xhr = new XMLHttpRequest();
-        } else if (window.ActiveXObject) {
-            try {
-                xhr = new ActiveXObject("Msxml2.XMLHTTP");
-            } catch (e) {
-                xhr = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-        }
-        return xhr;
-    }
-
-
-    function ajax(method, url, data, headers) {
-        var p = new Promise();
-        var xhr, payload;
-        data = data || {};
-        headers = headers || {};
-
-        try {
-            xhr = new_xhr();
-        } catch (e) {
-            p.done(promise.ENOXHR, "");
-            return p;
-        }
-
-        payload = _encode(data);
-        if (method === 'GET' && payload) {
-            url += '?' + payload;
-            payload = null;
-        }
-
-        xhr.open(method, url);
-        xhr.setRequestHeader('Content-type',
-                             'application/x-www-form-urlencoded');
-        for (var h in headers) {
-            if (headers.hasOwnProperty(h)) {
-                xhr.setRequestHeader(h, headers[h]);
-            }
-        }
-
-        function onTimeout() {
-            xhr.abort();
-            p.done(promise.ETIMEOUT, "", xhr);
-        }
-
-        var timeout = promise.ajaxTimeout;
-        if (timeout) {
-            var tid = setTimeout(onTimeout, timeout);
-        }
-
-        xhr.onreadystatechange = function () {
-            if (timeout) {
-                clearTimeout(tid);
-            }
-            if (xhr.readyState === 4) {
-                var err = (!xhr.status ||
-                           (xhr.status < 200 || xhr.status >= 300) &&
-                           xhr.status !== 304);
-                p.done(err, xhr.responseText, xhr);
-            }
-        };
-
-        xhr.send(payload);
-        return p;
-    }
-
-    function _ajaxer(method) {
-        return function (url, data, headers) {
-            return ajax(method, url, data, headers);
-        };
-    }
-
-    var promise = {
-        Promise: Promise,
-        join: join,
-        chain: chain,
-        ajax: ajax,
-        get: _ajaxer('GET'),
-        post: _ajaxer('POST'),
-        put: _ajaxer('PUT'),
-        del: _ajaxer('DELETE'),
-
-        /* Error codes */
-        ENOXHR: 1,
-        ETIMEOUT: 2,
-
-        /**
-         * Configuration parameter: time in milliseconds after which a
-         * pending AJAX request is considered unresponsive and is
-         * aborted. Useful to deal with bad connectivity (e.g. on a
-         * mobile network). A 0 value disables AJAX timeouts.
-         *
-         * Aborted requests resolve the promise with a ETIMEOUT error
-         * code.
-         */
-        ajaxTimeout: 0
-    };
-
-    if (typeof define === 'function' && define.amd) {
-        /* AMD support */
-        define(function () {
-            return promise;
-        });
-    } else {
-        exports.promise = promise;
-    }
-
-})(this);
+(function(a){function b(){this._callbacks=[];}b.prototype.then=function(a,c){var d;if(this._isdone)d=a.apply(c,this.result);else{d=new b();this._callbacks.push(function(){var b=a.apply(c,arguments);if(b&&typeof b.then==='function')b.then(d.done,d);});}return d;};b.prototype.done=function(){this.result=arguments;this._isdone=true;for(var a=0;a<this._callbacks.length;a++)this._callbacks[a].apply(null,arguments);this._callbacks=[];};function c(a){var c=new b();var d=[];if(!a||!a.length){c.done(d);return c;}var e=0;var f=a.length;function g(a){return function(){e+=1;d[a]=Array.prototype.slice.call(arguments);if(e===f)c.done(d);};}for(var h=0;h<f;h++)a[h].then(g(h));return c;}function d(a,c){var e=new b();if(a.length===0)e.done.apply(e,c);else a[0].apply(null,c).then(function(){a.splice(0,1);d(a,arguments).then(function(){e.done.apply(e,arguments);});});return e;}function e(a){var b="";if(typeof a==="string")b=a;else{var c=encodeURIComponent;var d=[];for(var e in a)if(a.hasOwnProperty(e))d.push(c(e)+'='+c(a[e]));b=d.join('&');}return b;}function f(){var a;if(window.XMLHttpRequest)a=new XMLHttpRequest();else if(window.ActiveXObject)try{a=new ActiveXObject("Msxml2.XMLHTTP");}catch(b){a=new ActiveXObject("Microsoft.XMLHTTP");}return a;}function g(a,c,d,g){var h=new b();var j,k;d=d||{};g=g||{};try{j=f();}catch(l){h.done(i.ENOXHR,"");return h;}k=e(d);if(a==='GET'&&k){c+='?'+k;k=null;}j.open(a,c);var m='application/x-www-form-urlencoded';for(var n in g)if(g.hasOwnProperty(n))if(n.toLowerCase()==='content-type')m=g[n];else j.setRequestHeader(n,g[n]);j.setRequestHeader('Content-type',m);function o(){j.abort();h.done(i.ETIMEOUT,"",j);}var p=i.ajaxTimeout;if(p)var q=setTimeout(o,p);j.onreadystatechange=function(){if(p)clearTimeout(q);if(j.readyState===4){var a=(!j.status||(j.status<200||j.status>=300)&&j.status!==304);h.done(a,j.responseText,j);}};j.send(k);return h;}function h(a){return function(b,c,d){return g(a,b,c,d);};}var i={Promise:b,join:c,chain:d,ajax:g,get:h('GET'),post:h('POST'),put:h('PUT'),del:h('DELETE'),ENOXHR:1,ETIMEOUT:2,ajaxTimeout:0};if(typeof define==='function'&&define.amd)define(function(){return i;});else a.promise=i;})(this);
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
@@ -256,13 +52,60 @@ talkify.http = (function ajax() {
 })();
 },{}],4:[function(require,module,exports){
 talkify = talkify || {};
+talkify.config = {
+    ui:
+    {
+        audioControls: {
+            enabled: false,
+            container: document.body
+        }
+    },
+    formReader: {
+        voice: null,
+        rate: 0,
+        remoteService: true,
+        requiredText: "This field is required",
+        valueText: "You have entered {value} as: {label}.",
+        selectedText: "You have selected {label}.",
+        notSelectedText: "{label} is not selected."
+    },
+    remoteService: {
+        active: true,
+        host: 'https://talkify.net',
+        apiKey: '',
+        speechBaseUrl: '/api/speech/v1',
+        languageBaseUrl: '/api/language/v1'
+    },
+    keyboardCommands: {
+        enabled: false,
+        commands: {
+            playPause: 32,
+            next: 39,
+            previous: 37
+        }
+    },
+    voiceCommands: {
+        enabled: false,
+        keyboardActivation: {
+            enabled: true,
+            key: 77
+        },
+        commands: {
+            playPause: ["play", "pause", "stop", "start"],
+            next: ["play next", "next"],
+            previous: ["play previous", "previous", "back", "go back"]
+        }
+    }
+}
+},{}],5:[function(require,module,exports){
+talkify = talkify || {};
 talkify.playbar = function (parent) {
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
 
-    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, trackTimeElement, textHighlightingElement, timeWrapperElement, controlsWrapperElement, wrapper, voiceWrapperElement;
-    var audioSrcElement;
+    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
+    var audioSrcElement, attachElement, detatchedElement, dragArea;
 
     var events = {
         onPlayClicked: function () { },
@@ -307,94 +150,88 @@ talkify.playbar = function (parent) {
         element.className = element.className.replace(c, "");
     }
 
+    function createElement(type, classes) {
+        var element = document.createElement(type);
+
+        element.className = classes;
+
+        return element;
+    }
+
     function render() {
-        var existingControl = document.getElementById("htmlPlaybar");
+        var existingControl = document.getElementsByClassName("talkify-control-center")[0];
         if (existingControl) {
             existingControl.parentNode.removeChild(existingControl);
         }
 
-        wrapper = document.createElement("section");
-        wrapper.id = "htmlPlaybar";
-        wrapper.className = "talkify-audio-control";
+        wrapper = createElement("div", "talkify-control-center attached");
 
-        voiceWrapperElement = document.createElement("div");
-        voiceWrapperElement.className = "talkify-audio-control-voice-wrapper";
-        voiceWrapperElement.textContent = "Speaking:";
+        wrapper.innerHTML =
+            ' <ul> ' +
+            '<li class="drag-area"> ' +
+            ' <i class="fa fa-grip-horizontal"></i> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-play-button" title="Play"> ' +
+            ' <i class="fa fa-play"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-pause-button" title="Pause"> ' +
+            ' <i class="fa fa-pause"></i> ' +
+            ' </button> ' +
+            ' </li> ' +
+            ' <li class="progress-wrapper"> ' +
+            ' <progress value="0.0" max="1.0"></progress> ' +
+            '<span class="talkify-time-element"> 00:00 / 00:00 </span>' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="volume-button" title="Volume"> ' +
+            ' <i class="fa fa-volume-up"></i> ' +
+            ' <div class="volume-slider"> ' +
+            ' <input type="range" value="10" min="0" max="10" title="Adjust playback volume"> ' +
+            ' </div> ' +
+            ' </button></li> ' +
+            '<li> ' +
+            '<button class="rate-button" title="Rate of speech"> ' +
+            '<i class="fa fa-tachometer-alt"></i> ' +
+            ' <div class="rate-slider"> ' +
+            '<input type="range" value="10" min="0" max="10" title="Adjust playback rate"> ' +
+            '</div> ' +
+            ' </button> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-cc-button" title="Enable/disable text highlighting"> ' +
+            '<i class="fa fa-closed-captioning"></i> ' +
+            '      </button> ' +
+            ' </li> ' +
+            // ' <li> ' +
+            // ' <button title="Download"> ' +
+            // '<i class="fa fa-download"></i> ' +
+            // ' </button> ' +
+            // ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-detatched" title="Dock player to screen"> ' +
+            ' <i class="fa fa-window-minimize"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-attached" title="Detach player"> ' +
+            '<i class="fa fa-window-maximize"></i> ' +
+            '</button> ' +
+            '</ul> ' +
+            ' <div class="talkify-voice-selector"> ' +
+            // '<div class="talkify-voice-indicators"></div><div class="talkify-voice-indicators"></div><div class="talkify-voice-indicators"></div>' +
+            ' Voice: <span></span>' +
+            '</div>';
 
-        voiceElement = document.createElement("span");
-
-        textHighlightingElement = document.createElement("i");
-        textHighlightingElement.className = "fa fa-cc talkify-clickable talkify-disabled";
-        textHighlightingElement.title = "Toggle text highlighting (applied for the next paragraph)";
-
-        voiceWrapperElement.appendChild(voiceElement);
-        voiceWrapperElement.appendChild(textHighlightingElement);
-
-        timeWrapperElement = document.createElement("div");
-        timeWrapperElement.className = "talkify-inline";
-
-        currentTimeElement = document.createElement("span");
-        currentTimeElement.id = "talkify-current-track-time";
-        currentTimeElement.textContent = "0:00";
-
-        trackTimeElement = document.createElement("span");
-        trackTimeElement.id = "talkify-track-time";
-        trackTimeElement.textContent = "0:00";
-
-        timeWrapperElement.appendChild(currentTimeElement);
-        timeWrapperElement.appendChild(document.createTextNode("/"));
-        timeWrapperElement.appendChild(trackTimeElement);
-
-        progressElement = document.createElement("progress");
-        progressElement.setAttribute("value", "0.0");
-        progressElement.setAttribute("max", "1.0");
-
-        var backElement = document.createElement("i");
-        backElement.className = "fa fa-backward fa-2x talkify-clickable";
-
-        playElement = document.createElement("i");
-        playElement.className = "fa fa-play-circle fa-2x talkify-clickable talkify-disabled";
-
-        pauseElement = document.createElement("i");
-        pauseElement.className = "fa fa-pause fa-2x talkify-clickable talkify-disabled";
-
-        var forwardElement = document.createElement("i");
-        forwardElement.className = "fa fa-forward fa-2x talkify-clickable";
-
-        controlsWrapperElement = document.createElement("div");
-        controlsWrapperElement.className = "talkify-wrapper talkify-inline";
-
-        var rateIconElement = document.createElement("i");
-        rateIconElement.className = "fa fa-tachometer";
-
-        rateElement = document.createElement("input");
-        rateElement.setAttribute("type", "range");
-        rateElement.setAttribute("value", "5");
-        rateElement.setAttribute("min", "0");
-        rateElement.setAttribute("max", "10");
-        rateElement.setAttribute("title", "Adjust playback speed");
-
-        var volumeIconElement = document.createElement("i");
-        volumeIconElement.className = "fa fa-volume-up";
-
-        volumeElement = document.createElement("input");
-        volumeElement.setAttribute("type", "range");
-        volumeElement.setAttribute("value", "10");
-        volumeElement.setAttribute("min", "0");
-        volumeElement.setAttribute("max", "10");
-        volumeElement.setAttribute("title", "Adjust playback volume");
-
-        wrapper.appendChild(voiceWrapperElement);
-        wrapper.appendChild(timeWrapperElement);
-        wrapper.appendChild(playElement);
-        wrapper.appendChild(pauseElement);
-
-        wrapper.appendChild(progressElement);
-        wrapper.appendChild(controlsWrapperElement);
-        controlsWrapperElement.appendChild(rateIconElement);
-        controlsWrapperElement.appendChild(rateElement);
-        controlsWrapperElement.appendChild(volumeIconElement);
-        controlsWrapperElement.appendChild(volumeElement);
+        playElement = wrapper.getElementsByClassName("talkify-play-button")[0];
+        pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0];
+        rateElement = wrapper.querySelector(".rate-button input[type=range]");
+        volumeElement = wrapper.querySelector(".volume-button input[type=range]");
+        progressElement = wrapper.getElementsByTagName("progress")[0];
+        textHighlightingElement = wrapper.getElementsByClassName("talkify-cc-button")[0];
+        currentTimeElement = wrapper.getElementsByClassName("talkify-time-element")[0];
+        attachElement = wrapper.getElementsByClassName("talkify-detatched")[0];
+        detatchedElement = wrapper.getElementsByClassName("talkify-attached")[0];
+        voiceWrapperElement = wrapper.querySelector(".talkify-voice-selector select");
+        dragArea = wrapper.getElementsByClassName("drag-area")[0];
 
         settings.parentElement.appendChild(wrapper);
 
@@ -402,6 +239,8 @@ talkify.playbar = function (parent) {
     }
 
     function setupBindings() {
+        var controlCenter = document.getElementsByClassName("talkify-control-center")[0];
+
         playElement.addEventListener("click", function () {
             if (playElement.classList.contains("talkify-disabled")) {
                 return;
@@ -449,6 +288,30 @@ talkify.playbar = function (parent) {
 
             events.onSeek(clickedValue);
         });
+
+        attachElement.addEventListener("click", function () {
+            addClass(controlCenter, "attached");
+        });
+
+        detatchedElement.addEventListener("click", function () {
+            removeClass(controlCenter, "attached");
+        });
+
+        dragArea.addEventListener("mousedown", onMouseDown);
+        document.addEventListener("mouseup", onMouseUp);
+
+        function onMouseUp(e) {
+            document.removeEventListener("mousemove", onMouseMove);
+        }
+
+        function onMouseDown(e) {
+            document.addEventListener("mousemove", onMouseMove);
+        }
+
+        function onMouseMove(e) {
+            controlCenter.style.top = e.clientY + "px";
+            controlCenter.style.left = e.clientX + "px";
+        }
     }
 
     function initialize() {
@@ -460,23 +323,19 @@ talkify.playbar = function (parent) {
         //TODO: Over tunnels duration === NaN. Look @ http://stackoverflow.com/questions/10868249/html5-audio-player-duration-showing-nan
         progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
 
-        var current = document.getElementById("talkify-current-track-time");
-
-        if (!current) {
+        if (!currentTimeElement) {
             return;
         }
 
-        var total = document.getElementById("talkify-track-time");
+        var currentminutes = Math.floor(e.target.currentTime / 60);
+        var currentseconds = Math.round(e.target.currentTime) - (currentminutes * 60);
 
-        var minutes = Math.floor(e.target.currentTime / 60);
-        var seconds = Math.round(e.target.currentTime) - (minutes * 60);
+        var totalminutes = !!e.target.duration ? Math.floor(e.target.duration / 60) : 0;
+        var totalseconds = !!e.target.duration ? Math.round(e.target.duration) - (totalminutes * 60) : 0;
 
-        current.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
-
-        minutes = !!e.target.duration ? Math.floor(e.target.duration / 60) : 0;
-        seconds = !!e.target.duration ? Math.round(e.target.duration) - (minutes * 60) : 0;
-
-        total.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
+        currentTimeElement.textContent = currentminutes + ":" + ((currentseconds < 10) ? "0" + currentseconds : currentseconds) +
+            " / " +
+            totalminutes + ":" + ((totalseconds < 10) ? "0" + totalseconds : totalseconds);
     }
 
     function listenToAudioSrc(src) {
@@ -489,24 +348,12 @@ talkify.playbar = function (parent) {
         audioSrcElement.addEventListener("timeupdate", updateClock, false);
     }
 
-    function arrangeControlsWhenProgressIsUnsupported() {
-        wrapper.insertBefore(voiceWrapperElement, controlsWrapperElement);
-        addClass(voiceWrapperElement, "talkify-inline");
-    }
-
-    function arrangeControlsWhenProgressIsSupported() {
-        wrapper.insertBefore(voiceWrapperElement, timeWrapperElement);
-        removeClass(voiceWrapperElement, "talkify-inline");
-        show(voiceWrapperElement);
-    }
-
     function isTalkifyHostedVoice(voice) {
         return voice && voice.isTalkify;
     }
 
     function featureToggle(voice) {
         show(progressElement);
-        arrangeControlsWhenProgressIsSupported();
         show(textHighlightingElement);
 
         if (!voice) {
@@ -517,16 +364,17 @@ talkify.playbar = function (parent) {
             return;
         }
 
-        hide(timeWrapperElement);
+        hide(currentTimeElement);
 
         if (!voice.localService) {
             hide(progressElement);
-            arrangeControlsWhenProgressIsUnsupported();
             hide(textHighlightingElement);
         }
     }
 
     function setVoiceName(voice) {
+        var voiceElement = document.querySelector(".talkify-voice-selector > span");
+
         if (!voice) {
             voiceElement.textContent = "Automatic voice detection";
             return;
@@ -603,57 +451,13 @@ talkify.playbar = function (parent) {
         }
     }
 }
-},{}],5:[function(require,module,exports){
-talkify = talkify || {};
-talkify.config = {
-    ui:
-    {
-        audioControls: {
-            enabled: false,
-            container: document.body
-        }
-    },
-    formReader: {
-        voice: null,
-        rate: 0,
-        remoteService: true,
-        requiredText: "This field is required",
-        valueText: "You have entered {value} as: "
-    },
-    remoteService: {
-        active: true,
-        host: 'https://talkify.net',
-        apiKey: '',
-        speechBaseUrl: '/api/speech/v1',
-        languageBaseUrl: '/api/language/v1'
-    },
-    keyboardCommands: {
-        enabled: false,
-        commands: {
-            playPause: 32,
-            next: 39,
-            previous: 37
-        }
-    },
-    voiceCommands: {
-        enabled: false,
-        keyboardActivation: {
-            enabled: true,
-            key: 77
-        },
-        commands: {
-            playPause: ["play", "pause", "stop", "start"],
-            next: ["play next", "next"],
-            previous: ["play previous", "previous", "back", "go back"]
-        }
-    }
-}
 },{}],6:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.formReader = function () {
     var player;
-        
+    var timeout;
+
     function setupForm(formElement) {
         var elements = formElement.elements;
 
@@ -662,38 +466,90 @@ talkify.formReader = function () {
         }
     }
 
+    function removeForm(formElement) {
+        var elements = formElement.elements;
+
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].removeEventListener("focus", onFocus);
+        }
+    }
+
     function onFocus(e) {
-        if (!player) {
-            player = talkify.config.formReader.remoteService ? new talkify.TtsPlayer() : new talkify.Html5Player();
+        if (timeout) {
+            clearTimeout(timeout);
         }
 
-        var config = talkify.config.formReader;
+        var me = this;
 
-        if (config.voice) {
-            player.forceVoice({ name: config.voice });
-        }
-
-        player.setRate(config.rate);
-
-        if (this.type === "button" || this.type === "submit") {
-            player.playText(this.value || this.innerText);
-            return;
-        }
-
-        var requiredText = this.attributes.required ? config.requiredText : "";
-
-        var label = findLabelFor(this);
-
-        if (label) {
-            var text = "";
-
-            if (this.value) {
-                text = config.valueText.replace("{value}", this.value);
+        timeout = setTimeout(function () {
+            if (!player) {
+                player = talkify.config.formReader.remoteService ? new talkify.TtsPlayer() : new talkify.Html5Player();
             }
 
-            player.playText(text + label.innerText + ". " + requiredText);
+            var config = talkify.config.formReader;
+
+            if (config.voice) {
+                player.forceVoice({ name: config.voice });
+            }
+
+            player.setRate(config.rate);
+
+            if (me.type === "button" || me.type === "submit") {
+                player.playText(me.value || me.innerText);
+                return;
+            }
+
+            var requiredText = me.attributes.required ? config.requiredText : "";
+
+            var label = findLabelFor(me);
+
+            var text = getTextForCheckboxes(me, label) || getTextForSelects(me, label) || getTextForInputs(me, label) || "";
+
+            player.playText(text + ". " + requiredText);
+        }, 100);
+    }
+
+    function getTextForCheckboxes(element, label) {
+        var config = talkify.config.formReader;
+
+        if (element.type === "checkbox") {
+            var labelText = label ? label.innerText : "checkbox";
+
+            if (element.checked) {
+                return config.selectedText.replace("{label}", labelText);
+            } else {
+                return config.notSelectedText.replace("{label}", labelText);
+            }
+        }
+
+        return null;
+    }
+
+    function getTextForSelects(element, label) {
+        var config = talkify.config.formReader;
+
+        if (element.tagName.toLowerCase() === "select") {
+            var labelText = label ? label.innerText : "option";
+
+            var value = element.options[element.options.selectedIndex].text;
+
+            return config.valueText.replace("{value}", value).replace("{label}", labelText);
+        }
+
+        return null;
+    }
+
+    function getTextForInputs(element, label) {
+        var config = talkify.config.formReader;
+
+        if (!label) {
+            return element.value;
+        }
+
+        if (element.value) {
+            return config.valueText.replace("{value}", element.value).replace("{label}", label.innerText);
         } else {
-            player.playText(this.value + ". " + requiredText);
+            return label.innerText + ".";
         }
     }
 
@@ -711,6 +567,9 @@ talkify.formReader = function () {
     return {
         addForm: function (formElement) {
             setupForm(formElement);
+        },
+        removeForm: function(formElement) {
+            removeForm(formElement);
         }
     };
 }();
@@ -1167,18 +1026,15 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.internalEvents = {
         onPause: function () {
-            //me.wordHighlighter.pause();
             me.mutateControls(function (c) {
                 c.markAsPaused();
             });
-            //me.playbar.markAsPaused();
 
             if (!me.audioSource.ended && me.audioSource.currentTime() > 0) {
                 me.events.onPause();
             }
         },
         onPlay: function () {
-            //me.wordHighlighter.resume();
             me.mutateControls(function (c) {
                 c.markAsPlaying();
             });
@@ -1588,8 +1444,14 @@ talkify.TtsPlayer = function () {
 
         var requestId = generateGuid();
 
-        sources[0].src = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?format=mp3&text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&marksid=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
-        sources[1].src = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?format=wav&text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&marksid=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+
+        if(me.settings.useTextHighlight){
+            audioUrl += "&marksid=" + requestId;
+        }
+
+        sources[0].src = audioUrl + "&format=mp3";
+        sources[1].src = audioUrl + "&format=wav";
 
         audioElement.load();
 
@@ -2657,13 +2519,18 @@ talkify.wordHighlighter = function () {
         currentItem = item;
         var text = item.element.innerText.trim();
 
-        if (charPosition === 0) {
-            item.element.innerHTML = '<span class="talkify-word-highlight">' + text.substring(0, word.length) + '</span> ' + text.substring(word.length + 1);
+        var sentence = findCurrentSentence(item, charPosition);
 
-            return;
-        }
-
-        item.element.innerHTML = text.substring(0, charPosition) + '<span class="talkify-word-highlight">' + text.substring(charPosition, charPosition + word.length) + '</span>' + text.substring(charPosition - 1 + word.length + 1);
+        item.element.innerHTML =
+            text.substring(0, sentence.start) +
+            '<span class="talkify-sentence-highlight">' +
+            text.substring(sentence.start, charPosition) +
+            '<span class="talkify-word-highlight">' +
+            text.substring(charPosition, charPosition + word.length) +
+            '</span>' +
+            text.substring(charPosition + word.length, sentence.end) +
+            '</span>' +
+            text.substring(sentence.end);
     }
 
     function cancel() {
@@ -2747,6 +2614,33 @@ talkify.wordHighlighter = function () {
         setTimeout(function () {
             setupWordHightlighting(item, positions, nextPosition);
         }, diff);
+    }
+
+    function findCurrentSentence(item, charPosition) {
+        var text = item.element.innerText.trim();
+        var result = text.match(/[^\.!\?]+[\.!\?]+/g) || [];
+
+        var charactersTraversed = 0;
+        var sentenceStart = 0;
+        var sentenceEnd = text.length;
+
+        for (var i = 0; i < result.length; i++) {
+            if (charPosition >= charactersTraversed && charPosition <= charactersTraversed + result[i].length) {
+                if (charactersTraversed > 0) {
+                    sentenceStart = charactersTraversed + 1;
+                }
+
+                sentenceEnd = charactersTraversed + result[i].length;
+                break;
+            }
+
+            charactersTraversed += result[i].length;
+        }
+
+        return {
+            start: sentenceStart,
+            end: sentenceEnd
+        };
     }
 
     return {

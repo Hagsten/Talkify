@@ -1,11 +1,11 @@
-﻿talkify = talkify || {};
+talkify = talkify || {};
 talkify.playbar = function (parent) {
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
 
-    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, trackTimeElement, textHighlightingElement, timeWrapperElement, controlsWrapperElement, wrapper, voiceWrapperElement;
-    var audioSrcElement;
+    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
+    var audioSrcElement, attachElement, detatchedElement, dragArea;
 
     var events = {
         onPlayClicked: function () { },
@@ -50,94 +50,88 @@ talkify.playbar = function (parent) {
         element.className = element.className.replace(c, "");
     }
 
+    function createElement(type, classes) {
+        var element = document.createElement(type);
+
+        element.className = classes;
+
+        return element;
+    }
+
     function render() {
-        var existingControl = document.getElementById("htmlPlaybar");
+        var existingControl = document.getElementsByClassName("talkify-control-center")[0];
         if (existingControl) {
             existingControl.parentNode.removeChild(existingControl);
         }
 
-        wrapper = document.createElement("section");
-        wrapper.id = "htmlPlaybar";
-        wrapper.className = "talkify-audio-control";
+        wrapper = createElement("div", "talkify-control-center attached");
 
-        voiceWrapperElement = document.createElement("div");
-        voiceWrapperElement.className = "talkify-audio-control-voice-wrapper";
-        voiceWrapperElement.textContent = "Speaking:";
+        wrapper.innerHTML =
+            ' <ul> ' +
+            '<li class="drag-area"> ' +
+            ' <i class="fa fa-grip-horizontal"></i> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-play-button" title="Play"> ' +
+            ' <i class="fa fa-play"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-pause-button" title="Pause"> ' +
+            ' <i class="fa fa-pause"></i> ' +
+            ' </button> ' +
+            ' </li> ' +
+            ' <li class="progress-wrapper"> ' +
+            ' <progress value="0.0" max="1.0"></progress> ' +
+            '<span class="talkify-time-element"> 00:00 / 00:00 </span>' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="volume-button" title="Volume"> ' +
+            ' <i class="fa fa-volume-up"></i> ' +
+            ' <div class="volume-slider"> ' +
+            ' <input type="range" value="10" min="0" max="10" title="Adjust playback volume"> ' +
+            ' </div> ' +
+            ' </button></li> ' +
+            '<li> ' +
+            '<button class="rate-button" title="Rate of speech"> ' +
+            '<i class="fa fa-tachometer-alt"></i> ' +
+            ' <div class="rate-slider"> ' +
+            '<input type="range" value="10" min="0" max="10" title="Adjust playback rate"> ' +
+            '</div> ' +
+            ' </button> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-cc-button" title="Enable/disable text highlighting"> ' +
+            '<i class="fa fa-closed-captioning"></i> ' +
+            '      </button> ' +
+            ' </li> ' +
+            // ' <li> ' +
+            // ' <button title="Download"> ' +
+            // '<i class="fa fa-download"></i> ' +
+            // ' </button> ' +
+            // ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-detatched" title="Dock player to screen"> ' +
+            ' <i class="fa fa-window-minimize"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-attached" title="Detach player"> ' +
+            '<i class="fa fa-window-maximize"></i> ' +
+            '</button> ' +
+            '</ul> ' +
+            ' <div class="talkify-voice-selector"> ' +
+            // '<div class="talkify-voice-indicators"></div><div class="talkify-voice-indicators"></div><div class="talkify-voice-indicators"></div>' +
+            ' Voice: <span></span>' +
+            '</div>';
 
-        voiceElement = document.createElement("span");
-
-        textHighlightingElement = document.createElement("i");
-        textHighlightingElement.className = "fa fa-cc talkify-clickable talkify-disabled";
-        textHighlightingElement.title = "Toggle text highlighting (applied for the next paragraph)";
-
-        voiceWrapperElement.appendChild(voiceElement);
-        voiceWrapperElement.appendChild(textHighlightingElement);
-
-        timeWrapperElement = document.createElement("div");
-        timeWrapperElement.className = "talkify-inline";
-
-        currentTimeElement = document.createElement("span");
-        currentTimeElement.id = "talkify-current-track-time";
-        currentTimeElement.textContent = "0:00";
-
-        trackTimeElement = document.createElement("span");
-        trackTimeElement.id = "talkify-track-time";
-        trackTimeElement.textContent = "0:00";
-
-        timeWrapperElement.appendChild(currentTimeElement);
-        timeWrapperElement.appendChild(document.createTextNode("/"));
-        timeWrapperElement.appendChild(trackTimeElement);
-
-        progressElement = document.createElement("progress");
-        progressElement.setAttribute("value", "0.0");
-        progressElement.setAttribute("max", "1.0");
-
-        var backElement = document.createElement("i");
-        backElement.className = "fa fa-backward fa-2x talkify-clickable";
-
-        playElement = document.createElement("i");
-        playElement.className = "fa fa-play-circle fa-2x talkify-clickable talkify-disabled";
-
-        pauseElement = document.createElement("i");
-        pauseElement.className = "fa fa-pause fa-2x talkify-clickable talkify-disabled";
-
-        var forwardElement = document.createElement("i");
-        forwardElement.className = "fa fa-forward fa-2x talkify-clickable";
-
-        controlsWrapperElement = document.createElement("div");
-        controlsWrapperElement.className = "talkify-wrapper talkify-inline";
-
-        var rateIconElement = document.createElement("i");
-        rateIconElement.className = "fa fa-tachometer";
-
-        rateElement = document.createElement("input");
-        rateElement.setAttribute("type", "range");
-        rateElement.setAttribute("value", "5");
-        rateElement.setAttribute("min", "0");
-        rateElement.setAttribute("max", "10");
-        rateElement.setAttribute("title", "Adjust playback speed");
-
-        var volumeIconElement = document.createElement("i");
-        volumeIconElement.className = "fa fa-volume-up";
-
-        volumeElement = document.createElement("input");
-        volumeElement.setAttribute("type", "range");
-        volumeElement.setAttribute("value", "10");
-        volumeElement.setAttribute("min", "0");
-        volumeElement.setAttribute("max", "10");
-        volumeElement.setAttribute("title", "Adjust playback volume");
-
-        wrapper.appendChild(voiceWrapperElement);
-        wrapper.appendChild(timeWrapperElement);
-        wrapper.appendChild(playElement);
-        wrapper.appendChild(pauseElement);
-
-        wrapper.appendChild(progressElement);
-        wrapper.appendChild(controlsWrapperElement);
-        controlsWrapperElement.appendChild(rateIconElement);
-        controlsWrapperElement.appendChild(rateElement);
-        controlsWrapperElement.appendChild(volumeIconElement);
-        controlsWrapperElement.appendChild(volumeElement);
+        playElement = wrapper.getElementsByClassName("talkify-play-button")[0];
+        pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0];
+        rateElement = wrapper.querySelector(".rate-button input[type=range]");
+        volumeElement = wrapper.querySelector(".volume-button input[type=range]");
+        progressElement = wrapper.getElementsByTagName("progress")[0];
+        textHighlightingElement = wrapper.getElementsByClassName("talkify-cc-button")[0];
+        currentTimeElement = wrapper.getElementsByClassName("talkify-time-element")[0];
+        attachElement = wrapper.getElementsByClassName("talkify-detatched")[0];
+        detatchedElement = wrapper.getElementsByClassName("talkify-attached")[0];
+        voiceWrapperElement = wrapper.querySelector(".talkify-voice-selector select");
+        dragArea = wrapper.getElementsByClassName("drag-area")[0];
 
         settings.parentElement.appendChild(wrapper);
 
@@ -145,6 +139,8 @@ talkify.playbar = function (parent) {
     }
 
     function setupBindings() {
+        var controlCenter = document.getElementsByClassName("talkify-control-center")[0];
+
         playElement.addEventListener("click", function () {
             if (playElement.classList.contains("talkify-disabled")) {
                 return;
@@ -192,6 +188,30 @@ talkify.playbar = function (parent) {
 
             events.onSeek(clickedValue);
         });
+
+        attachElement.addEventListener("click", function () {
+            addClass(controlCenter, "attached");
+        });
+
+        detatchedElement.addEventListener("click", function () {
+            removeClass(controlCenter, "attached");
+        });
+
+        dragArea.addEventListener("mousedown", onMouseDown);
+        document.addEventListener("mouseup", onMouseUp);
+
+        function onMouseUp(e) {
+            document.removeEventListener("mousemove", onMouseMove);
+        }
+
+        function onMouseDown(e) {
+            document.addEventListener("mousemove", onMouseMove);
+        }
+
+        function onMouseMove(e) {
+            controlCenter.style.top = e.clientY + "px";
+            controlCenter.style.left = e.clientX + "px";
+        }
     }
 
     function initialize() {
@@ -203,23 +223,19 @@ talkify.playbar = function (parent) {
         //TODO: Over tunnels duration === NaN. Look @ http://stackoverflow.com/questions/10868249/html5-audio-player-duration-showing-nan
         progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
 
-        var current = document.getElementById("talkify-current-track-time");
-
-        if (!current) {
+        if (!currentTimeElement) {
             return;
         }
 
-        var total = document.getElementById("talkify-track-time");
+        var currentminutes = Math.floor(e.target.currentTime / 60);
+        var currentseconds = Math.round(e.target.currentTime) - (currentminutes * 60);
 
-        var minutes = Math.floor(e.target.currentTime / 60);
-        var seconds = Math.round(e.target.currentTime) - (minutes * 60);
+        var totalminutes = !!e.target.duration ? Math.floor(e.target.duration / 60) : 0;
+        var totalseconds = !!e.target.duration ? Math.round(e.target.duration) - (totalminutes * 60) : 0;
 
-        current.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
-
-        minutes = !!e.target.duration ? Math.floor(e.target.duration / 60) : 0;
-        seconds = !!e.target.duration ? Math.round(e.target.duration) - (minutes * 60) : 0;
-
-        total.textContent = minutes + ":" + ((seconds < 10) ? "0" + seconds : seconds);
+        currentTimeElement.textContent = currentminutes + ":" + ((currentseconds < 10) ? "0" + currentseconds : currentseconds) +
+            " / " +
+            totalminutes + ":" + ((totalseconds < 10) ? "0" + totalseconds : totalseconds);
     }
 
     function listenToAudioSrc(src) {
@@ -232,24 +248,12 @@ talkify.playbar = function (parent) {
         audioSrcElement.addEventListener("timeupdate", updateClock, false);
     }
 
-    function arrangeControlsWhenProgressIsUnsupported() {
-        wrapper.insertBefore(voiceWrapperElement, controlsWrapperElement);
-        addClass(voiceWrapperElement, "talkify-inline");
-    }
-
-    function arrangeControlsWhenProgressIsSupported() {
-        wrapper.insertBefore(voiceWrapperElement, timeWrapperElement);
-        removeClass(voiceWrapperElement, "talkify-inline");
-        show(voiceWrapperElement);
-    }
-
     function isTalkifyHostedVoice(voice) {
         return voice && voice.isTalkify;
     }
 
     function featureToggle(voice) {
         show(progressElement);
-        arrangeControlsWhenProgressIsSupported();
         show(textHighlightingElement);
 
         if (!voice) {
@@ -260,16 +264,17 @@ talkify.playbar = function (parent) {
             return;
         }
 
-        hide(timeWrapperElement);
+        hide(currentTimeElement);
 
         if (!voice.localService) {
             hide(progressElement);
-            arrangeControlsWhenProgressIsUnsupported();
             hide(textHighlightingElement);
         }
     }
 
     function setVoiceName(voice) {
+        var voiceElement = document.querySelector(".talkify-voice-selector > span");
+
         if (!voice) {
             voiceElement.textContent = "Automatic voice detection";
             return;

@@ -184,8 +184,14 @@ talkify.TtsPlayer = function () {
 
         var requestId = generateGuid();
 
-        sources[0].src = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?format=mp3&text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&marksid=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
-        sources[1].src = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?format=wav&text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&marksid=" + requestId + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+
+        if(me.settings.useTextHighlight){
+            audioUrl += "&marksid=" + requestId;
+        }
+
+        sources[0].src = audioUrl + "&format=mp3";
+        sources[1].src = audioUrl + "&format=wav";
 
         audioElement.load();
 

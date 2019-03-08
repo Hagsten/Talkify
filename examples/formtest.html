@@ -1,47 +1,64 @@
 <html>
+
 <head>
 </head>
 <body>
-    <section id="root">
+<section id="root">
 
-        <form id="test">
-            <label for="input1">First name</label>
-            <input type="text" id="input1" />
+    <form id="test">
+        <label for="input1">First name</label>
+        <input type="text" id="input1" />
 
-            <label for="input2">Last name</label>
-            <input type="text" id="input2" required/>
+        <label for="input2">Last name</label>
+        <input type="text" id="input2" required />
 
-            <input type="button" value="Verify name"/>
-            <input type="submit" value="Send"></input>
+        <input type="button" value="Verify name" />
+        <input type="submit" value="Send" />
 
-            <textarea cols="30" rows="10" required="required"></textarea>
-            <button>Button</button>
-        </form>
+        <label for="checkbox"> Subscribe to newsletter </label>
+        <input id="checkbox" type="checkbox" value="Test checkbox" />
 
-    </section>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="../dist/talkify.js"></script>
+        <input id="checkbox2" type="checkbox" value="Test checkbox 2" />
 
-    <script>
-        talkify.config.remoteService.active = true;
+        <textarea cols="30" rows="10" required="required"></textarea>
+        <button>Button</button>
 
-        talkify.config.remoteService.speechBaseUrl = '/api/internal/speech';
-        talkify.config.remoteService.languageBaseUrl = '/api/internal/language';
+        <label for="select">Type of food</label>
+        <select id="select">
+            <option value="1">Food</option>
+            <option value="2">Beverages</option>
+        </select>
 
-        talkify.config.remoteService.host = 'http://localhost:6719';
+        <select>
+            <option value="1">Test</option>
+            <option value="2">No test</option>
+        </select>
+    </form>
 
-        talkify.config.ui.audioControls = {
-            enabled: false, //<-- Disable to get the browser built in audio controls
-            container: document.getElementById("player-and-voices")
-        };
+</section>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script src="../dist/talkify.js"></script>
+
+<script>
+    talkify.config.remoteService.active = true;
+
+    talkify.config.remoteService.speechBaseUrl = '/api/internal/speech';
+    talkify.config.remoteService.languageBaseUrl = '/api/internal/language';
+
+    talkify.config.remoteService.host = 'http://localhost:6719';
+
+    talkify.config.ui.audioControls = {
+        enabled: false, //<-- Disable to get the browser built in audio controls
+        container: document.getElementById("player-and-voices")
+    };
 
 
-        $(document).ready(function () {
-            talkify.formReader.addForm(document.getElementById("test"));
-        });
+    $(document).ready(function() {
+        talkify.formReader.addForm(document.getElementById("test"));
+    });
 
-    </script>
+</script>
 </body>
 </html>
