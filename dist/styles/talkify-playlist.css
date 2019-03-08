@@ -15,3 +15,8 @@
     color: white !important;
     background-color: black !important;
 }
+
+.talkify-sentence-highlight {
+    color: white !important;
+    background-color: #ff6400 !important;    
+}
