@@ -1,83 +1,147 @@
-﻿.talkify-audio-control {
-    padding: 10px;
-    width: 100%;
-    background-color: rgba(56, 49, 47, 0.96);
-    border-top: 2px solid white;
-    text-align: center;
-    /*position: fixed;
-    bottom: 0;*/
-    width: 100%;
-    /*z-index: 10001;*/
+﻿.talkify-control-center {
+    display: inline-block;
+    position: fixed;
+    left: 0px;
+    top: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(0, 135, 205, 1);
+    box-shadow: 2px 2px 5px 0px #5f5e5e;
+    border: 1px solid #0084b3;
 }
-
-    .talkify-audio-control > *, .talkify-audio-control input[type=range] {
-        vertical-align: middle;
+    .talkify-control-center .drag-area {
+        padding-left: 10px;
+        padding-right: 10px;
+        cursor: move;
+        color: white;
+        background-color: #01334c;
     }
 
-    .talkify-audio-control progress {
-        width: 50%;
+    .talkify-control-center progress {
+        margin: 0 5px;
         background-color: white;
+        width: 120px;
     }
 
-        .talkify-audio-control progress::-webkit-progress-bar {
+        .talkify-control-center progress::-webkit-progress-bar {
             background-color: rgba(255,255,255, 0.7);
         }
 
-        .talkify-audio-control progress::-webkit-progress-value {
+        .talkify-control-center progress::-webkit-progress-value {
             background-color: #FF9800;
         }
 
-        .talkify-audio-control progress::-moz-progress-bar {
-            /* style rules */
+        .talkify-control-center progress::-moz-progress-bar {
             background-color: #FF9800;
         }
 
 
-    .talkify-audio-control i, .talkify-audio-control input, .talkify-audio-control span {
-        margin: 0 5px;
+    .talkify-control-center li.progress-wrapper {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
     }
 
-    .talkify-audio-control .talkify-audio-control-voice-wrapper {
-        margin-bottom: 5px;
+    .talkify-control-center div.talkify-voice-selector {
+        display: none;
     }
 
+    .talkify-control-center li.talkify-voice-selector select {
+        display: none;
+    }
 
-    .talkify-audio-control input[type=range] {
+    .talkify-control-center button {
+        border-style: none;
+        background-color: transparent;
+        cursor: pointer;
+    }
+
+    .talkify-control-center .talkify-play-button {
+        padding: 0 10px;
+    }
+
+    .talkify-control-center > ul {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .talkify-control-center li {
+        display: inline-block;
+        vertical-align: middle;
+        border-style: none;
+        cursor: pointer;
+        background-color: rgba(0, 135, 205, 1);
+        transition: all 0.5s;
+        padding: 6px 1px;
+    }
+
+        .talkify-control-center li:not(.progress-wrapper):not(.talkify-voice-selector):hover {
+            filter: brightness(115%);
+        }
+
+
+    .talkify-control-center .volume-slider, .talkify-control-center .rate-slider {
+        position: absolute;
+        left: 0;
+        top: 20px;
+        background-color: rgba(0, 135, 205, 1);
+        padding: 5px;
+        display: none;
+    }
+
+        .talkify-control-center .volume-button:focus .volume-slider,
+        .talkify-control-center .volume-button:active .volume-slider,
+        .talkify-control-center .volume-slider:hover,
+        .talkify-control-center .rate-button:focus .rate-slider,
+        .talkify-control-center .rate-button:active .rate-slider,
+        .talkify-control-center .rate-slider:hover {
+            display: block;
+            top: -30px;
+        }
+
+    .talkify-control-center .volume-button, .talkify-control-center .rate-button {
+        position: relative;
+    }
+
+    .talkify-control-center input[type=range] {
         /*removes default webkit styles*/
         -webkit-appearance: none;
         /*required for proper track sizing in FF*/
-        width: 75px;
+        width: 100px;
         background: transparent;
         border: 0;
         padding: 0;
     }
 
-        .talkify-audio-control input[type=range]::-webkit-slider-runnable-track {
-            height: 3px;
+        .talkify-control-center input[type=range]::-webkit-slider-runnable-track {
+            height: 5px;
             background: white;
             border: none;
-            border-radius: 3px;
+            border-radius: 5px;
         }
 
-        .talkify-audio-control input[type=range]::-webkit-slider-thumb {
+        .talkify-control-center input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             border: none;
-            height: 12px;
-            width: 12px;
+            height: 13px;
+            width: 13px;
             border-radius: 50%;
             background: #FF9800;
-            margin-top: -5px;
+            margin-top: -4px;
         }
 
-        .talkify-audio-control input[type=range]:focus {
+        .talkify-control-center input[type=range]:focus {
             outline: none;
         }
 
-            .talkify-audio-control input[type=range]:focus::-webkit-slider-runnable-track {
+            .talkify-control-center input[type=range]:focus::-webkit-slider-runnable-track {
                 background: white;
             }
 
-        .talkify-audio-control input[type=range]::-moz-range-track {
+        .talkify-control-center input[type=range]::-moz-range-track {
             width: 75px;
             height: 3px;
             background: white;
@@ -86,7 +150,7 @@
             border-radius: 3px;
         }
 
-        .talkify-audio-control input[type=range]::-moz-range-thumb {
+        .talkify-control-center input[type=range]::-moz-range-thumb {
             border: none;
             height: 12px;
             width: 12px;
@@ -96,13 +160,13 @@
         }
 
         /*hide the outline behind the border*/
-        .talkify-audio-control input[type=range]:-moz-focusring {
+        .talkify-control-center input[type=range]:-moz-focusring {
             outline: 1px solid white;
             -ms-outline-offset: -1px;
             outline-offset: -1px;
         }
 
-        .talkify-audio-control input[type=range]::-ms-track {
+        .talkify-control-center input[type=range]::-ms-track {
             width: 75px;
             height: 3px;
             /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
@@ -112,17 +176,17 @@
             border-width: 6px 0;
         }
 
-        .talkify-audio-control input[type=range]::-ms-fill-lower {
+        .talkify-control-center input[type=range]::-ms-fill-lower {
             border-radius: 10px;
             background: white;
         }
 
-        .talkify-audio-control input[type=range]::-ms-fill-upper {
+        .talkify-control-center input[type=range]::-ms-fill-upper {
             background: #777;
             border-radius: 10px;
         }
 
-        .talkify-audio-control input[type=range]::-ms-thumb {
+        .talkify-control-center input[type=range]::-ms-thumb {
             border: none;
             height: 12px;
             width: 12px;
@@ -132,10 +196,108 @@
             margin-top: -1px;
         }
 
-        .talkify-audio-control input[type=range]:focus::-ms-fill-lower {
+        .talkify-control-center input[type=range]:focus::-ms-fill-lower {
             background: white;
         }
 
-        .talkify-audio-control input[type=range]:focus::-ms-fill-upper {
+        .talkify-control-center input[type=range]:focus::-ms-fill-upper {
             background: #888;
         }
+
+        .talkify-voice-indicators{
+            width: 7px;
+            height: 7px;
+            display: inline-block;
+            margin-left: 5px;
+            border-radius: 50%;
+            background-color: black;
+            animation: updown 1s infinite;
+            position: relative;
+            transform-origin: center;
+        }
+        
+        .talkify-voice-indicators:nth-child(2){
+            animation-delay: 0.2s;
+        }
+
+        .talkify-voice-indicators:nth-child(3){
+            animation-delay: 0.4s;
+        }
+
+    .talkify-control-center.attached {
+        left: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: 100%;
+    }
+
+    .talkify-control-center.attached .drag-area,
+    .talkify-control-center.attached .talkify-detatched,
+    .talkify-control-center:not(.attached) .talkify-attached {
+        display: none;
+    }
+
+    .talkify-control-center.attached progress {
+        width: auto;
+    }
+
+    .talkify-control-center.attached progress {
+        width: 300px;
+    }
+
+    .talkify-control-center.attached div.talkify-voice-selector {
+        padding-right: 10px;
+        display: initial;
+        text-align: right;
+    }
+
+    .talkify-control-center.attached i {
+        font-size: 17px;
+        padding: 5px;
+    }
+
+    .talkify-control-center.attached > ul {
+        background-color: transparent;
+        border-style: none;
+        box-shadow: unset;
+    }
+
+    @media screen and (max-device-width : 900px), only screen and (max-width : 900px) {
+        .talkify-control-center.attached .talkify-time-element{
+            display: none;
+        }
+
+        .talkify-control-center.attached progress{
+            width: 200px;
+        }
+
+        .talkify-control-center.attached i{
+            padding: 2px;
+        }
+    }
+
+    @media screen and (max-device-width : 640px), only screen and (max-width : 640px) {
+        .talkify-control-center.attached progress{
+            width: 100px;
+        }
+
+        .talkify-control-center.attached div.talkify-voice-selector{
+            display: none;
+        }
+    }
+
+
+
+
+
+    @keyframes updown{
+        0%{
+          transform: scale(1);
+        }
+        50%{
+            transform: scale(1.3);
+        }
+        100%{
+            transform: scale(1);
+        }
+      }
