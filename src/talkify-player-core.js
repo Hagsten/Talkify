@@ -27,18 +27,18 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.internalEvents = {
         onPause: function () {
-            me.mutateControls(function (c) {
-                c.markAsPaused();
-            });
+            // me.mutateControls(function (c) {
+            //     c.markAsPaused();
+            // });
 
-            if (!me.audioSource.ended && me.audioSource.currentTime() > 0) {
-                me.events.onPause();
-            }
+            // if (!me.audioSource.ended && me.audioSource.currentTime() > 0) {
+            //     me.events.onPause();
+            // }
         },
         onPlay: function () {
-            me.mutateControls(function (c) {
-                c.markAsPlaying();
-            });
+            // me.mutateControls(function (c) {
+            //     c.markAsPlaying();
+            // });
 
             if (me.audioSource.currentTime() > 0) {
                 me.events.onResume();
@@ -47,9 +47,9 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
             }
         },
         onStop: function () {
-            me.mutateControls(function (c) {
-                c.markAsPaused();
-            });
+            // me.mutateControls(function (c) {
+            //     c.markAsPaused();
+            // });
         }
     };
 
@@ -103,10 +103,14 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.subscribeTo = function (subscriptions) {
+        //TODO: Here
+        talkify.messageHub.subscribe("player.*.pause", subscriptions.onPause || function () { });
+        talkify.messageHub.subscribe("player.*.play", subscriptions.onPlay || function () { });
+
         this.events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
         this.events.onSentenceComplete = subscriptions.onItemFinished || function () { };
-        this.events.onPause = subscriptions.onPause || function () { };
-        this.events.onPlay = subscriptions.onPlay || function () { };
+        // this.events.onPause = subscriptions.onPause || function () { };
+        // this.events.onPlay = subscriptions.onPlay || function () { };
         this.events.onResume = subscriptions.onResume || function () { };
         this.events.onItemLoaded = subscriptions.onItemLoaded || function () { };
         this.events.onTextHighligtChanged = subscriptions.onTextHighligtChanged || function () { };
@@ -229,13 +233,14 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.dispose = function () {
-        this.wordHighlighter.cancel();
+        talkify.messageHub.publish("player.tts.disposed");
+        //this.wordHighlighter.cancel();
         this.audioSource.stop();
-        this.internalEvents.onStop();
+        // this.internalEvents.onStop();
 
-        this.mutateControls(function (c) {
-            c.dispose();
-        });
+        // this.mutateControls(function (c) {
+        //     c.dispose();
+        // });
 
         this.audioSource.dispose();
     };

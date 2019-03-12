@@ -27,7 +27,8 @@ talkify.Html5Player = function () {
         pause: function () {
             window.speechSynthesis.pause();
 
-            me.internalEvents.onPause();
+            talkify.messageHub.publish("html5player.pause");
+            //me.internalEvents.onPause();
         },
         ended: function () { return !window.speechSynthesis.speaking; },
         isPlaying: function () { return window.speechSynthesis.speaking; },
@@ -146,7 +147,8 @@ talkify.Html5Player = function () {
                 u.onstart = function (e) {
                     me.currentContext.currentUtterance = e.utterance;
                     p.done();
-                    me.internalEvents.onPlay();
+                   // me.internalEvents.onPlay();
+                    talkify.messageHub.publish("html5player.play", { item: me.currentContext.item, positions: [], currentTime: 0 });
                 };
             } else {
                 u.onstart = function (e) {
@@ -155,7 +157,8 @@ talkify.Html5Player = function () {
             }
 
             u.onpause = function () {
-                me.internalEvents.onPause();
+                talkify.messageHub.publish("html5player.pause");
+                //me.internalEvents.onPause();
             };
 
             u.onresume = function () { };
@@ -172,11 +175,6 @@ talkify.Html5Player = function () {
                 if (!me.settings.useTextHighlight || !u.voice.localService) {
                     return;
                 }
-
-
-                //if (!words[wordIndex]) {
-                //    return;
-                //}
 
                 var fromIndex = 0;
 
@@ -358,7 +356,8 @@ talkify.Html5Player = function () {
 
     function stop() {
         me.isStopped = true;
-        me.internalEvents.onPause();
+        talkify.messageHub.publish("html5player.pause");
+        //me.internalEvents.onPause();
         window.speechSynthesis.cancel();
 
         if (me.currentContext.utterances.indexOf(me.currentContext.currentUtterance) < me.currentContext.utterances.length - 1) {

@@ -4,6 +4,14 @@ talkify.wordHighlighter = function () {
     var currentItem = null;
     var currentPositions = [];
 
+    talkify.messageHub.subscribe("player.tts.seeked", setPosition);
+    talkify.messageHub.subscribe(["player.tts.loading", "player.tts.disposed"], cancel);
+    talkify.messageHub.subscribe("player.tts.pause", textHighlightTimer.pause);
+    talkify.messageHub.subscribe("player.tts.resume", textHighlightTimer.resume);
+    talkify.messageHub.subscribe("player.tts.play", function(message){
+        setupWordHightlighting(message.item, message.positions)
+    });
+
     function highlight(item, word, charPosition) {
         resetCurrentItem();
 
@@ -33,12 +41,13 @@ talkify.wordHighlighter = function () {
     }
 
     function setupWordHightlighting(item, positions, startFrom) {
-        var p = new promise.Promise();
+        //var p = new promise.Promise();
 
         cancel();
 
         if (!positions.length) {
-            return p.done(item);
+            return;
+            //return p.done(item);
         }
 
         currentPositions = positions;
@@ -56,7 +65,9 @@ talkify.wordHighlighter = function () {
                 window.setTimeout(function () {
                     item.element.innerHTML = item.originalElement.innerHTML;
 
-                    p.done(item);
+                  //  p.done(item);
+
+                    talkify.messageHub.publish("wordhighlighter.complete", item);
                 }, 1000);
 
                 return;
@@ -70,7 +81,7 @@ talkify.wordHighlighter = function () {
 
         internalCallback();
 
-        return p;
+        //return p;
     }
 
     function resetCurrentItem() {
@@ -135,11 +146,11 @@ talkify.wordHighlighter = function () {
     }
 
     return {
-        pause: textHighlightTimer.pause,
-        resume: textHighlightTimer.resume,
+        //pause: textHighlightTimer.pause,
+        //resume: textHighlightTimer.resume,
         start: setupWordHightlighting,
         highlight: highlight,
-        cancel: cancel,
-        setPosition: setPosition
+        //cancel: cancel,
+        //setPosition: setPosition
     };
 };

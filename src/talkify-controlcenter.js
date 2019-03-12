@@ -217,6 +217,10 @@ talkify.playbar = function (parent) {
     function initialize() {
         render();
         setupBindings();
+
+        talkify.messageHub.subscribe(["player.*.paused", "player.*.disposed"], pause);
+        talkify.messageHub.subscribe("player.*.play", play);
+        talkify.messageHub.subscribe("player.*.disposed", dispose);
     };
 
     function updateClock(e) {
@@ -288,6 +292,18 @@ talkify.playbar = function (parent) {
         voiceElement.textContent = voice.name;
     }
 
+    function dispose() {
+        var existingControl = document.getElementById("htmlPlaybar");
+
+        if (existingControl) {
+            existingControl.parentNode.removeChild(existingControl);
+        }
+
+        if (audioSrcElement) {
+            audioSrcElement.removeEventListener("timeupdate", updateClock);
+        }
+    }
+
     initialize();
 
     return {
@@ -316,8 +332,8 @@ talkify.playbar = function (parent) {
             removeClass(pauseElement, "talkify-disabled");
             removeClass(playElement, "talkify-disabled");
         },
-        markAsPaused: pause,
-        markAsPlaying: play,
+        //markAsPaused: pause,
+        //markAsPlaying: play,
         setTextHighlight: function (enabled) {
             if (enabled) {
                 removeClass(textHighlightingElement, "talkify-disabled");
@@ -338,16 +354,6 @@ talkify.playbar = function (parent) {
         setAudioSource: function (src) {
             listenToAudioSrc(src);
         },
-        dispose: function () {
-            var existingControl = document.getElementById("htmlPlaybar");
-
-            if (existingControl) {
-                existingControl.parentNode.removeChild(existingControl);
-            }
-
-            if (audioSrcElement) {
-                audioSrcElement.removeEventListener("timeupdate", updateClock);
-            }
-        }
+        dispose: dispose
     }
 }
