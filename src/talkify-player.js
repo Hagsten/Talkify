@@ -151,8 +151,6 @@ talkify.TtsPlayer = function () {
                 .setVoice(me.forcedVoice)
                 .setAudioSource(audioElement);
         });
-
-        talkify.messageHub.subscribe("wordhighlighter.complete", me.events.onSentenceComplete)
     }
 
     function getPositions(requestId) {
@@ -185,7 +183,7 @@ talkify.TtsPlayer = function () {
         audioElement.onloadeddata = null;
         audioElement.onended = null;
 
-        var p = new promise.Promise();
+        // var p = new promise.Promise();
 
         var sources = audioElement.getElementsByTagName("source");
 
@@ -206,14 +204,15 @@ talkify.TtsPlayer = function () {
         audioElement.load();
 
         audioElement.onloadeddata = function () {
-            me.mutateControls(function (instance) {
-                instance.audioLoaded();
-            });
+            // me.mutateControls(function (instance) {
+            //     instance.audioLoaded();
+            // });
 
             me.audioSource.pause();
 
             if (!me.settings.useTextHighlight) {
-                p.done();
+                // p.done();
+                talkify.messageHub.publish("player.tts.loaded", me.currentContext.item);
                 me.audioSource.play();
                 return;
             }
@@ -221,14 +220,15 @@ talkify.TtsPlayer = function () {
             getPositions(requestId).then(function (error, positions) {
                 me.currentContext.positions = positions || [];
 
-                p.done();
+                // p.done();
+                talkify.messageHub.publish("player.tts.loaded", me.currentContext.item);
                 me.audioSource.play();
             });
         };
 
         audioElement.onended = onEnded || function () { };
 
-        return p;
+        // return p;
     };
 
     setupBindings();

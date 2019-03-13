@@ -12,7 +12,7 @@ talkify.playbar = function (parent) {
         onPauseClicked: function () { },
         onVolumeChanged: function () { },
         onRateChanged: function () { },
-        onTextHighlightingClicked: function () { },
+        // onTextHighlightingClicked: function () { },
         onSeek: function () { }
     }
 
@@ -168,11 +168,14 @@ talkify.playbar = function (parent) {
         textHighlightingElement.addEventListener("click", function (e) {
             if (textHighlightingElement.classList.contains("talkify-disabled")) {
                 removeClass(textHighlightingElement, "talkify-disabled");
+                talkify.messageHub.publish("controlcenter.texthighlightoggled", true);
             } else {
                 addClass(textHighlightingElement, "talkify-disabled");
+                talkify.messageHub.publish("controlcenter.texthighlightoggled", false);
             }
 
-            events.onTextHighlightingClicked();
+            
+            // events.onTextHighlightingClicked();
         });
 
         progressElement.addEventListener("click", function (e) {
@@ -221,6 +224,10 @@ talkify.playbar = function (parent) {
         talkify.messageHub.subscribe(["player.*.paused", "player.*.disposed"], pause);
         talkify.messageHub.subscribe("player.*.play", play);
         talkify.messageHub.subscribe("player.*.disposed", dispose);
+        talkify.messageHub.subscribe("player.*.loaded", function () {
+            removeClass(pauseElement, "talkify-disabled");
+            removeClass(playElement, "talkify-disabled");
+        });
     };
 
     function updateClock(e) {
@@ -312,7 +319,7 @@ talkify.playbar = function (parent) {
             events.onPlayClicked = subscriptions.onPlayClicked || events.onPlayClicked;
             events.onRateChanged = subscriptions.onRateChanged || events.onRateChanged;
             events.onVolumeChanged = subscriptions.onVolumeChanged || events.onVolumeChanged;
-            events.onTextHighlightingClicked = subscriptions.onTextHighlightingClicked || events.onTextHighlightingClicked;
+            // events.onTextHighlightingClicked = subscriptions.onTextHighlightingClicked || events.onTextHighlightingClicked;
             events.onSeek = subscriptions.onSeek || events.onSeek;
             return this;
         },
@@ -328,10 +335,10 @@ talkify.playbar = function (parent) {
             rateElement.setAttribute("min", value);
             return this;
         },
-        audioLoaded: function () {
-            removeClass(pauseElement, "talkify-disabled");
-            removeClass(playElement, "talkify-disabled");
-        },
+        // audioLoaded: function () {
+        //     removeClass(pauseElement, "talkify-disabled");
+        //     removeClass(playElement, "talkify-disabled");
+        // },
         //markAsPaused: pause,
         //markAsPlaying: play,
         setTextHighlight: function (enabled) {
