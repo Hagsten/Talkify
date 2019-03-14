@@ -51,7 +51,7 @@ talkify.TtsPlayer = function () {
     }
 
     function onSeek() {
-        talkify.messageHub.publish("player.tts.seeked", { currentTime: this.currentTime });
+        talkify.messageHub.publish("player.tts.seeked", this.currentTime);
         //me.wordHighlighter.setPosition(this.currentTime);
 
         if (me.audioSource.paused() && me.audioSource.currentTime() > 0.1) {
@@ -65,7 +65,7 @@ talkify.TtsPlayer = function () {
         //me.wordHighlighter.pause();
     }
 
-    function onPlay() {      
+    function onPlay() {
         //me.internalEvents.onPlay();
 
         if (!me.currentContext.positions.length) {
@@ -82,7 +82,7 @@ talkify.TtsPlayer = function () {
                     clearInterval(interval);
 
                     talkify.messageHub.publish("player.tts.play", { item: me.currentContext.item, positions: me.currentContext.positions, currentTime: me.audioSource.currentTime() });
-                    
+
                     // me.wordHighlighter
                     //     .start(me.currentContext.item, me.currentContext.positions)
                     //     .then(function (completedItem) {
@@ -121,36 +121,58 @@ talkify.TtsPlayer = function () {
 
         audioElement = clonedAudio;
 
-        me.mutateControls(function () {
-            me.playbar.instance.subscribeTo({
-                onPlayClicked: function () {
-                    me.play();
-                },
-                onPauseClicked: function () {
-                    audioElement.pause();
-                },
-                onVolumeChanged: function (volume) {
-                    audioElement.volume = volume / 10;
-                },
-                onRateChanged: function (rate) {
-                    me.settings.rate = rate;
-                },
-                onSeek: function (position) {
-                    var pos = audioElement.duration * position;
+        audioElement.addEventListener("timeupdate", function(){
+            talkify.messageHub.publish("player.tts.timeupdated", this.currentTime);
+        });
 
-                    if (isNaN(audioElement.duration)) {
-                        return;
-                    }
+        talkify.messageHub.subscribe("controlcenter.request.play", function () { me.play(); });
+        talkify.messageHub.subscribe("controlcenter.request.pause", function () { audioElement.pause(); });
+        talkify.messageHub.subscribe("controlcenter.request.seek", function (position) {
+            var pos = audioElement.duration * position;
 
-                    audioElement.currentTime = pos;
-                }
-            })
-                .setRate(0)
+            if (isNaN(audioElement.duration)) {
+                return;
+            }
+
+            audioElement.currentTime = pos;
+        });
+
+        talkify.messageHub.subscribe("controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
+        talkify.messageHub.subscribe("controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
+
+        // me.mutateControls(function () {
+        if (me.playbar.instance) {
+            me.playbar.instance//.setRate(0)
                 .setMinRate(-5)
                 .setMaxRate(5)
-                .setVoice(me.forcedVoice)
+                // .setVoice(me.forcedVoice)
                 .setAudioSource(audioElement);
-        });
+        }
+        // .subscribeTo({
+        //     onPlayClicked: function () {
+        //         me.play();
+        //     },
+        //     onPauseClicked: function () {
+        //         audioElement.pause();
+        //     },
+        //     onVolumeChanged: function (volume) {
+        //         audioElement.volume = volume / 10;
+        //     },
+        //     onRateChanged: function (rate) {
+        //         me.settings.rate = rate;
+        //     },
+        //     onSeek: function (position) {
+        //         var pos = audioElement.duration * position;
+
+        //         if (isNaN(audioElement.duration)) {
+        //             return;
+        //         }
+
+        //         audioElement.currentTime = pos;
+        //     }
+        // })
+
+        // });
     }
 
     function getPositions(requestId) {

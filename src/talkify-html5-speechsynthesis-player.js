@@ -83,21 +83,27 @@ talkify.Html5Player = function () {
         return this;
     };
 
+    talkify.messageHub.subscribe("controlcenter.request.play", function () { me.audioSource.play(); });
+    talkify.messageHub.subscribe("controlcenter.request.pause", function () { me.pause(); });
+    talkify.messageHub.subscribe("controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
+    talkify.messageHub.subscribe("controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
+
     this.mutateControls(function (c) {
-        c.subscribeTo({
-            onPlayClicked: function () {
-                me.audioSource.play();
-            },
-            onPauseClicked: function () {
-                me.pause();
-            },
-            onVolumeChanged: function (volume) {
-                me.volume = volume / 10;
-            },
-            onRateChanged: function (rate) {
-                me.settings.rate = rate / 5;
-            }
-        }).setVoice(me.forcedVoice);
+        // c.setVoice(me.forcedVoice);
+        // subscribeTo({
+        //     onPlayClicked: function () {
+        //         me.audioSource.play();
+        //     },
+        //     onPauseClicked: function () {
+        //         me.pause();
+        //     },
+        //     onVolumeChanged: function (volume) {
+        //         me.volume = volume / 10;
+        //     },
+        //     onRateChanged: function (rate) {
+        //         me.settings.rate = rate / 5;
+        //     }
+        // })
     });
 
     function playCurrentContext() {

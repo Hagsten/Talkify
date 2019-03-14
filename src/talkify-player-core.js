@@ -53,20 +53,20 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     //     }
     // };
 
-    this.mutateControls = function (mutator) {
-        if (this.playbar.instance) {
-            mutator(this.playbar.instance);
-        }
-    };
+    // this.mutateControls = function (mutator) {
+    //     if (this.playbar.instance) {
+    //         mutator(this.playbar.instance);
+    //     }
+    // };
 
-    if (talkify.config.ui.audioControls.enabled) {
-        this.playbar.instance = talkify.playbar().subscribeTo({
-            onTextHighlightingClicked: function () {
-                // me.settings.useTextHighlight = !me.settings.useTextHighlight;
-               // me.events.onTextHighligtChanged(me.settings.useTextHighlight);
-            }
-        });
-    }
+    // if (talkify.config.ui.audioControls.enabled) {
+        this.playbar.instance = talkify.playbar();
+    //     //     onTextHighlightingClicked: function () {
+    //     //         // me.settings.useTextHighlight = !me.settings.useTextHighlight;
+    //     //        // me.events.onTextHighligtChanged(me.settings.useTextHighlight);
+    //     //     }
+    //     // });
+    // }
 
     talkify.messageHub.subscribe("player.*.loaded", function(item){
         item.isLoading = false;
@@ -76,6 +76,8 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         me.settings.useTextHighlight = enabled;
     });
 
+    talkify.messageHub.publish("player.*.ratechanged", me.settings.rate);
+
     this.withReferenceLanguage = function (refLang) {
         this.settings.referenceLanguage = refLang;
 
@@ -84,18 +86,16 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.enableTextHighlighting = function () {
         this.settings.useTextHighlight = true;
-        this.mutateControls(function (c) {
-            c.setTextHighlight(true);
-        });
+
+        talkify.messageHub.publish("player.*.texthighlight.enabled");
 
         return this;
     };
 
     this.disableTextHighlighting = function () {
         this.settings.useTextHighlight = false;
-        this.mutateControls(function (c) {
-            c.setTextHighlight(false);
-        });
+
+        talkify.messageHub.publish("player.*.texthighlight.disabled");
 
         return this;
     };
@@ -103,30 +103,19 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     this.setRate = function (r) {
         this.settings.rate = r;
 
-        this.mutateControls(function (c) {
-            c.setRate(r);
-        });
+        talkify.messageHub.publish("player.*.ratechanged", r);
 
         return this;
     };
 
     this.subscribeTo = function (subscriptions) {
-        //TODO: Here
         talkify.messageHub.subscribe("player.*.pause", subscriptions.onPause || function () { });
         talkify.messageHub.subscribe("player.*.resume", subscriptions.onResume || function () { });
         talkify.messageHub.subscribe("player.*.play", subscriptions.onPlay || function () { });
         talkify.messageHub.subscribe("player.*.loaded", subscriptions.onItemLoaded || function () { });
         talkify.messageHub.subscribe(["wordhighlighter.complete", "player.html5.utterancecomplete"], subscriptions.onItemFinished || function () { });
-        talkify.messageHub.subscribe("player.*.prepareplay", subscriptions.onBeforeItemPlaying);
-        talkify.messageHub.subscribe("controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged);
-
-        // this.events.onBeforeItemPlaying = subscriptions.onBeforeItemPlaying || function () { };
-        // this.events.onSentenceComplete = subscriptions.onItemFinished || function () { };
-        // this.events.onPause = subscriptions.onPause || function () { };
-        // this.events.onPlay = subscriptions.onPlay || function () { };
-        // this.events.onResume = subscriptions.onResume || function () { };
-        //this.events.onItemLoaded = subscriptions.onItemLoaded || function () { };
-        // this.events.onTextHighligtChanged = subscriptions.onTextHighligtChanged || function () { };
+        talkify.messageHub.subscribe("player.*.prepareplay", subscriptions.onBeforeItemPlaying || function () { });
+        talkify.messageHub.subscribe("controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged || function () { });
 
         return this;
     };
@@ -156,11 +145,11 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         this.playAudio(item, function () {
             item.isPlaying = false;
             p.done();
-        })
-            .then(function () {
-                //item.isLoading = false;
-                // me.events.onItemLoaded();
-            });
+        });
+            // .then(function () {
+            //     //item.isLoading = false;
+            //     // me.events.onItemLoaded();
+            // });
 
         return p;
     };
@@ -270,9 +259,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
         this.settings.lockedLanguage = (voice && (voice.lang || voice.culture)) || this.settings.lockedLanguage;
 
-        this.mutateControls(function (c) {
-            c.setVoice(voice);
-        });
+        talkify.messageHub.publish("player.*.voiceset", voice);
 
         return this;
     };

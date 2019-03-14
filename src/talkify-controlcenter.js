@@ -7,14 +7,14 @@ talkify.playbar = function (parent) {
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
     var audioSrcElement, attachElement, detatchedElement, dragArea;
 
-    var events = {
-        onPlayClicked: function () { },
-        onPauseClicked: function () { },
-        onVolumeChanged: function () { },
-        onRateChanged: function () { },
-        // onTextHighlightingClicked: function () { },
-        onSeek: function () { }
-    }
+    // var events = {
+    //     onPlayClicked: function () { },
+    //     onPauseClicked: function () { },
+    //     onVolumeChanged: function () { },
+    //     onRateChanged: function () { },
+    //     // onTextHighlightingClicked: function () { },
+    //     onSeek: function () { }
+    // }
 
     function hide(element) {
         if (element.classList.contains("talkify-hidden")) {
@@ -146,23 +146,26 @@ talkify.playbar = function (parent) {
                 return;
             }
 
-            events.onPlayClicked();
+            talkify.messageHub.publish("controlcenter.request.play");
+            // events.onPlayClicked();
         });
 
         pauseElement.addEventListener("click", function () {
             if (pauseElement.classList.contains("talkify-disabled")) {
                 return;
             }
-
-            events.onPauseClicked();
+            talkify.messageHub.publish("controlcenter.request.pause");
+            // events.onPauseClicked();
         });
 
         rateElement.addEventListener("change", function () {
-            events.onRateChanged(parseInt(this.value));
+            talkify.messageHub.publish("controlcenter.request.rate", parseInt(this.value));
+            // events.onRateChanged(parseInt(this.value));
         });
 
         volumeElement.addEventListener("change", function (e) {
-            events.onVolumeChanged(parseInt(this.value));
+            talkify.messageHub.publish("controlcenter.request.volume", parseInt(this.value));
+            // events.onVolumeChanged(parseInt(this.value));
         });
 
         textHighlightingElement.addEventListener("click", function (e) {
@@ -174,7 +177,7 @@ talkify.playbar = function (parent) {
                 talkify.messageHub.publish("controlcenter.texthighlightoggled", false);
             }
 
-            
+
             // events.onTextHighlightingClicked();
         });
 
@@ -189,7 +192,8 @@ talkify.playbar = function (parent) {
                 clickedValue = 0.0;
             }
 
-            events.onSeek(clickedValue);
+            talkify.messageHub.publish("controlcenter.request.seek", clickedValue);
+            // events.onSeek(clickedValue);
         });
 
         attachElement.addEventListener("click", function () {
@@ -221,12 +225,29 @@ talkify.playbar = function (parent) {
         render();
         setupBindings();
 
-        talkify.messageHub.subscribe(["player.*.paused", "player.*.disposed"], pause);
-        talkify.messageHub.subscribe("player.*.play", play);
+        talkify.messageHub.subscribe(["player.*.pause", "player.*.disposed"], pause);
+        talkify.messageHub.subscribe(["player.*.play", "player.*.resume"], play);
         talkify.messageHub.subscribe("player.*.disposed", dispose);
         talkify.messageHub.subscribe("player.*.loaded", function () {
             removeClass(pauseElement, "talkify-disabled");
             removeClass(playElement, "talkify-disabled");
+        });
+
+        talkify.messageHub.subscribe("player.*.texthighlight.enabled", function () {
+            removeClass(textHighlightingElement, "talkify-disabled");
+        });
+
+        talkify.messageHub.subscribe("player.*.texthighlight.disabled", function () {
+            addClass(textHighlightingElement, "talkify-disabled");
+        });
+
+        talkify.messageHub.subscribe("player.*.ratechanged", function(rate) {
+            rateElement.value = rate;;
+        });
+
+        talkify.messageHub.subscribe("player.*.voiceset", function (voice) {
+            featureToggle(voice);
+            setVoiceName(voice);
         });
     };
 
@@ -315,18 +336,18 @@ talkify.playbar = function (parent) {
 
     return {
         subscribeTo: function (subscriptions) {
-            events.onPauseClicked = subscriptions.onPauseClicked || events.onPauseClicked;
-            events.onPlayClicked = subscriptions.onPlayClicked || events.onPlayClicked;
-            events.onRateChanged = subscriptions.onRateChanged || events.onRateChanged;
-            events.onVolumeChanged = subscriptions.onVolumeChanged || events.onVolumeChanged;
+            // events.onPauseClicked = subscriptions.onPauseClicked || events.onPauseClicked;
+            // events.onPlayClicked = subscriptions.onPlayClicked || events.onPlayClicked;
+            // events.onRateChanged = subscriptions.onRateChanged || events.onRateChanged;
+            // events.onVolumeChanged = subscriptions.onVolumeChanged || events.onVolumeChanged;
             // events.onTextHighlightingClicked = subscriptions.onTextHighlightingClicked || events.onTextHighlightingClicked;
-            events.onSeek = subscriptions.onSeek || events.onSeek;
+            // events.onSeek = subscriptions.onSeek || events.onSeek;
             return this;
         },
-        setRate: function (value) {
-            rateElement.value = value;
-            return this;
-        },
+        // setRate: function (value) {
+
+        //     return this;
+        // },
         setMaxRate: function (value) {
             rateElement.setAttribute("max", value);
             return this;
@@ -341,22 +362,16 @@ talkify.playbar = function (parent) {
         // },
         //markAsPaused: pause,
         //markAsPlaying: play,
-        setTextHighlight: function (enabled) {
-            if (enabled) {
-                removeClass(textHighlightingElement, "talkify-disabled");
-                return;
-            }
+        // setTextHighlight: function (enabled) {
+        //     if (enabled) {
+        //         removeClass(textHighlightingElement, "talkify-disabled");
+        //         return;
+        //     }
 
-            addClass(textHighlightingElement, "talkify-disabled");
-        },
+        //     addClass(textHighlightingElement, "talkify-disabled");
+        // },
         setProgress: function (value) {
             progressElement.setAttribute("value", value);
-        },
-        setVoice: function (voice) {
-            featureToggle(voice);
-            setVoiceName(voice);
-
-            return this;
         },
         setAudioSource: function (src) {
             listenToAudioSrc(src);
