@@ -15,58 +15,9 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     this.playbar = _playbar;
     this.forcedVoice = null;
 
-    // this.events = {
-    //     // onBeforeItemPlaying: function () { },
-    //     // onItemLoaded: function () { },
-    //     // onSentenceComplete: function () { },
-    //     // onPause: function () { },
-    //     // onPlay: function () { },
-    //     // onResume: function () { },
-    //     // onTextHighligtChanged: function () { }
-    // };
-
-    // this.internalEvents = {
-    //     onPause: function () {
-    //         // me.mutateControls(function (c) {
-    //         //     c.markAsPaused();
-    //         // });
-
-    //         // if (!me.audioSource.ended && me.audioSource.currentTime() > 0) {
-    //         //     me.events.onPause();
-    //         // }
-    //     },
-    //     onPlay: function () {
-    //         // me.mutateControls(function (c) {
-    //         //     c.markAsPlaying();
-    //         // });
-
-    //         // if (me.audioSource.currentTime() > 0) {
-    //         //     // me.events.onResume();
-    //         // } else {
-    //         //     me.events.onPlay();
-    //         // }
-    //     },
-    //     onStop: function () {
-    //         // me.mutateControls(function (c) {
-    //         //     c.markAsPaused();
-    //         // });
-    //     }
-    // };
-
-    // this.mutateControls = function (mutator) {
-    //     if (this.playbar.instance) {
-    //         mutator(this.playbar.instance);
-    //     }
-    // };
-
-    // if (talkify.config.ui.audioControls.enabled) {
+    if (talkify.config.ui.audioControls.enabled) {
         this.playbar.instance = talkify.playbar();
-    //     //     onTextHighlightingClicked: function () {
-    //     //         // me.settings.useTextHighlight = !me.settings.useTextHighlight;
-    //     //        // me.events.onTextHighligtChanged(me.settings.useTextHighlight);
-    //     //     }
-    //     // });
-    // }
+    }
 
     talkify.messageHub.subscribe("player.*.loaded", function(item){
         item.isLoading = false;
@@ -146,10 +97,6 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
             item.isPlaying = false;
             p.done();
         });
-            // .then(function () {
-            //     //item.isLoading = false;
-            //     // me.events.onItemLoaded();
-            // });
 
         return p;
     };

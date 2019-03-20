@@ -6,7 +6,7 @@ talkify.TtsPlayer = function () {
     }
 
     var me = this;
-    var audioElement;
+    var audioElement, timeupdater;
 
     this.currentContext = {
         item: null,
@@ -34,6 +34,10 @@ talkify.TtsPlayer = function () {
             audioElement.currentTime = 0;
         },
         dispose: function () {
+            if (timeupdater) {
+                clearInterval(timeupdater);
+            }
+
             var existingElement = document.getElementById("talkify-audio");
 
             if (existingElement) {
@@ -60,6 +64,10 @@ talkify.TtsPlayer = function () {
     }
 
     function onPause() {
+        if (timeupdater) {
+            clearInterval(timeupdater);
+        }
+
         talkify.messageHub.publish("player.tts.pause");
         //me.internalEvents.onPause();
         //me.wordHighlighter.pause();
@@ -67,6 +75,13 @@ talkify.TtsPlayer = function () {
 
     function onPlay() {
         //me.internalEvents.onPlay();
+        if (timeupdater) {
+            clearInterval(timeupdater);
+        }
+
+        timeupdater = setInterval(function () {
+            talkify.messageHub.publish("player.tts.timeupdated", { currentTime: audioElement.currentTime, duration: audioElement.duration });
+        }, 30);
 
         if (!me.currentContext.positions.length) {
             talkify.messageHub.publish("player.tts.play", { item: me.currentContext.item, positions: [], currentTime: me.audioSource.currentTime() });
@@ -94,6 +109,10 @@ talkify.TtsPlayer = function () {
     }
 
     function initialize() {
+        if (timeupdater) {
+            clearInterval(timeupdater);
+        }
+
         audioElement = null;
         var existingElement = document.getElementById("talkify-audio");
 
@@ -121,9 +140,9 @@ talkify.TtsPlayer = function () {
 
         audioElement = clonedAudio;
 
-        audioElement.addEventListener("timeupdate", function(){
-            talkify.messageHub.publish("player.tts.timeupdated", this.currentTime);
-        });
+        // audioElement.addEventListener("timeupdate", function () {
+        //     talkify.messageHub.publish("player.tts.timeupdated", this.currentTime);
+        // });
 
         talkify.messageHub.subscribe("controlcenter.request.play", function () { me.play(); });
         talkify.messageHub.subscribe("controlcenter.request.pause", function () { audioElement.pause(); });
@@ -144,9 +163,9 @@ talkify.TtsPlayer = function () {
         if (me.playbar.instance) {
             me.playbar.instance//.setRate(0)
                 .setMinRate(-5)
-                .setMaxRate(5)
-                // .setVoice(me.forcedVoice)
-                .setAudioSource(audioElement);
+                .setMaxRate(5);
+            // .setVoice(me.forcedVoice)
+            // .setAudioSource(audioElement);
         }
         // .subscribeTo({
         //     onPlayClicked: function () {
@@ -248,6 +267,7 @@ talkify.TtsPlayer = function () {
             });
         };
 
+        //TODO: Here-remove this subscription
         audioElement.onended = onEnded || function () { };
 
         // return p;

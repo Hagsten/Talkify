@@ -1,13 +1,13 @@
 ﻿talkify = talkify || {};
 talkify.wordHighlighter = function () {
-    var textHighlightTimer = new talkify.timer();
+    //var textHighlightTimer = new talkify.timer();
     var currentItem = null;
     var currentPositions = [];
 
     talkify.messageHub.subscribe("player.tts.seeked", setPosition);
     talkify.messageHub.subscribe(["player.tts.loading", "player.tts.disposed"], cancel);
-    talkify.messageHub.subscribe("player.tts.pause", textHighlightTimer.pause);
-    talkify.messageHub.subscribe("player.tts.resume", textHighlightTimer.resume);
+    // talkify.messageHub.subscribe("player.tts.pause", textHighlightTimer.pause);
+    // talkify.messageHub.subscribe("player.tts.resume", textHighlightTimer.resume);
     talkify.messageHub.subscribe("player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
     });
@@ -36,8 +36,9 @@ talkify.wordHighlighter = function () {
             }
         }
 
+        //TODO: Här. Verkar funka. Försök bygga bort timern.
         console.log("Would highlight " + currentPositions[currentPos].Word);
-        //highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
+        highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
     });
 
     function highlight(item, word, charPosition) {
@@ -61,7 +62,7 @@ talkify.wordHighlighter = function () {
     }
 
     function cancel() {
-        textHighlightTimer.cancel();
+        // textHighlightTimer.cancel();
 
         resetCurrentItem();
 
@@ -88,7 +89,7 @@ talkify.wordHighlighter = function () {
             i++;
 
             if (i >= positions.length) {
-                textHighlightTimer.cancel();
+                // textHighlightTimer.cancel();
 
                 window.setTimeout(function () {
                     item.element.innerHTML = item.originalElement.innerHTML;
@@ -103,8 +104,8 @@ talkify.wordHighlighter = function () {
 
             var next = (positions[i].Position - positions[i - 1].Position) + 0;
 
-            textHighlightTimer.cancel();
-            textHighlightTimer.start(internalCallback, next);
+            // textHighlightTimer.cancel();
+            // textHighlightTimer.start(internalCallback, next);
         };
 
         internalCallback();

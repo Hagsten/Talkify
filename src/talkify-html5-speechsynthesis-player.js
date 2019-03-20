@@ -88,7 +88,7 @@ talkify.Html5Player = function () {
     talkify.messageHub.subscribe("controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
     talkify.messageHub.subscribe("controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
 
-    this.mutateControls(function (c) {
+    // this.mutateControls(function (c) {
         // c.setVoice(me.forcedVoice);
         // subscribeTo({
         //     onPlayClicked: function () {
@@ -104,7 +104,7 @@ talkify.Html5Player = function () {
         //         me.settings.rate = rate / 5;
         //     }
         // })
-    });
+    // });
 
     function playCurrentContext() {
         var item = me.currentContext.item;
@@ -176,9 +176,10 @@ talkify.Html5Player = function () {
                     return;
                 }
 
-                me.mutateControls(function (c) {
-                    c.setProgress((wordIndex + 1) / words.length);
-                });
+                talkify.messageHub.publish("player.html5.timeupdated", (wordIndex + 1) / words.length);
+                // me.mutateControls(function (c) {
+                //     c.setProgress((wordIndex + 1) / words.length);
+                // });
 
                 if (!me.settings.useTextHighlight || !u.voice.localService) {
                     return;

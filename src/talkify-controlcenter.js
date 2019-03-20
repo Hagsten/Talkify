@@ -5,16 +5,7 @@ talkify.playbar = function (parent) {
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
-    var audioSrcElement, attachElement, detatchedElement, dragArea;
-
-    // var events = {
-    //     onPlayClicked: function () { },
-    //     onPauseClicked: function () { },
-    //     onVolumeChanged: function () { },
-    //     onRateChanged: function () { },
-    //     // onTextHighlightingClicked: function () { },
-    //     onSeek: function () { }
-    // }
+    var attachElement, detatchedElement, dragArea;
 
     function hide(element) {
         if (element.classList.contains("talkify-hidden")) {
@@ -147,7 +138,6 @@ talkify.playbar = function (parent) {
             }
 
             talkify.messageHub.publish("controlcenter.request.play");
-            // events.onPlayClicked();
         });
 
         pauseElement.addEventListener("click", function () {
@@ -155,17 +145,14 @@ talkify.playbar = function (parent) {
                 return;
             }
             talkify.messageHub.publish("controlcenter.request.pause");
-            // events.onPauseClicked();
         });
 
         rateElement.addEventListener("change", function () {
             talkify.messageHub.publish("controlcenter.request.rate", parseInt(this.value));
-            // events.onRateChanged(parseInt(this.value));
         });
 
         volumeElement.addEventListener("change", function (e) {
             talkify.messageHub.publish("controlcenter.request.volume", parseInt(this.value));
-            // events.onVolumeChanged(parseInt(this.value));
         });
 
         textHighlightingElement.addEventListener("click", function (e) {
@@ -176,9 +163,6 @@ talkify.playbar = function (parent) {
                 addClass(textHighlightingElement, "talkify-disabled");
                 talkify.messageHub.publish("controlcenter.texthighlightoggled", false);
             }
-
-
-            // events.onTextHighlightingClicked();
         });
 
         progressElement.addEventListener("click", function (e) {
@@ -193,7 +177,6 @@ talkify.playbar = function (parent) {
             }
 
             talkify.messageHub.publish("controlcenter.request.seek", clickedValue);
-            // events.onSeek(clickedValue);
         });
 
         attachElement.addEventListener("click", function () {
@@ -241,7 +224,7 @@ talkify.playbar = function (parent) {
             addClass(textHighlightingElement, "talkify-disabled");
         });
 
-        talkify.messageHub.subscribe("player.*.ratechanged", function(rate) {
+        talkify.messageHub.subscribe("player.*.ratechanged", function (rate) {
             rateElement.value = rate;;
         });
 
@@ -249,35 +232,30 @@ talkify.playbar = function (parent) {
             featureToggle(voice);
             setVoiceName(voice);
         });
+
+        talkify.messageHub.subscribe("player.tts.timeupdated", updateClock);
+        talkify.messageHub.subscribe("player.html5.timeupdated", function (value) {
+            progressElement.setAttribute("value", value);
+        });
     };
 
-    function updateClock(e) {
+    function updateClock(currentTime, duration) {
         //TODO: Over tunnels duration === NaN. Look @ http://stackoverflow.com/questions/10868249/html5-audio-player-duration-showing-nan
-        progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
+        progressElement.setAttribute("value", currentTime / duration);
 
         if (!currentTimeElement) {
             return;
         }
 
-        var currentminutes = Math.floor(e.target.currentTime / 60);
-        var currentseconds = Math.round(e.target.currentTime) - (currentminutes * 60);
+        var currentminutes = Math.floor(currentTime / 60);
+        var currentseconds = Math.round(currentTime) - (currentminutes * 60);
 
-        var totalminutes = !!e.target.duration ? Math.floor(e.target.duration / 60) : 0;
-        var totalseconds = !!e.target.duration ? Math.round(e.target.duration) - (totalminutes * 60) : 0;
+        var totalminutes = !!duration ? Math.floor(duration / 60) : 0;
+        var totalseconds = !!duration ? Math.round(duration) - (totalminutes * 60) : 0;
 
         currentTimeElement.textContent = currentminutes + ":" + ((currentseconds < 10) ? "0" + currentseconds : currentseconds) +
             " / " +
             totalminutes + ":" + ((totalseconds < 10) ? "0" + totalseconds : totalseconds);
-    }
-
-    function listenToAudioSrc(src) {
-        if (!(src instanceof Node)) {
-            return;
-        }
-
-        audioSrcElement = src;
-
-        audioSrcElement.addEventListener("timeupdate", updateClock, false);
     }
 
     function isTalkifyHostedVoice(voice) {
@@ -326,28 +304,11 @@ talkify.playbar = function (parent) {
         if (existingControl) {
             existingControl.parentNode.removeChild(existingControl);
         }
-
-        if (audioSrcElement) {
-            audioSrcElement.removeEventListener("timeupdate", updateClock);
-        }
     }
 
     initialize();
 
     return {
-        subscribeTo: function (subscriptions) {
-            // events.onPauseClicked = subscriptions.onPauseClicked || events.onPauseClicked;
-            // events.onPlayClicked = subscriptions.onPlayClicked || events.onPlayClicked;
-            // events.onRateChanged = subscriptions.onRateChanged || events.onRateChanged;
-            // events.onVolumeChanged = subscriptions.onVolumeChanged || events.onVolumeChanged;
-            // events.onTextHighlightingClicked = subscriptions.onTextHighlightingClicked || events.onTextHighlightingClicked;
-            // events.onSeek = subscriptions.onSeek || events.onSeek;
-            return this;
-        },
-        // setRate: function (value) {
-
-        //     return this;
-        // },
         setMaxRate: function (value) {
             rateElement.setAttribute("max", value);
             return this;
@@ -355,26 +316,6 @@ talkify.playbar = function (parent) {
         setMinRate: function (value) {
             rateElement.setAttribute("min", value);
             return this;
-        },
-        // audioLoaded: function () {
-        //     removeClass(pauseElement, "talkify-disabled");
-        //     removeClass(playElement, "talkify-disabled");
-        // },
-        //markAsPaused: pause,
-        //markAsPlaying: play,
-        // setTextHighlight: function (enabled) {
-        //     if (enabled) {
-        //         removeClass(textHighlightingElement, "talkify-disabled");
-        //         return;
-        //     }
-
-        //     addClass(textHighlightingElement, "talkify-disabled");
-        // },
-        setProgress: function (value) {
-            progressElement.setAttribute("value", value);
-        },
-        setAudioSource: function (src) {
-            listenToAudioSrc(src);
         },
         dispose: dispose
     }
