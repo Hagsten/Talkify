@@ -3,7 +3,6 @@ var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
 var talkifyMessageHub = require('./src/talkify-messagehub.js');
 var talkifyHttp = require('./src/talkify-ajax.js');
-var Timer = require('./src/talkify-timer.js');
 var TalkifyTextextractor = require('./src/talkify-textextractor.js');
 var TalkifyWordHighlighter = require('./src/talkify-word-highlighter.js');
 var BasePlayer = require('./src/talkify-player-core.js');

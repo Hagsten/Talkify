@@ -7,7 +7,6 @@ talkify.Html5Player = function () {
 
     this.currentContext = {
         item: null,
-        // endedCallback: function () { },
         utterances: [],
         currentUtterance: null
     };
@@ -28,7 +27,6 @@ talkify.Html5Player = function () {
             window.speechSynthesis.pause();
 
             talkify.messageHub.publish("player.html5.pause");
-            //me.internalEvents.onPause();
         },
         ended: function () { return !window.speechSynthesis.speaking; },
         isPlaying: function () { return window.speechSynthesis.speaking; },
@@ -93,27 +91,8 @@ talkify.Html5Player = function () {
     talkify.messageHub.subscribe("html5player", "controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
     talkify.messageHub.subscribe("html5player", "controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
 
-    // this.mutateControls(function (c) {
-    // c.setVoice(me.forcedVoice);
-    // subscribeTo({
-    //     onPlayClicked: function () {
-    //         me.audioSource.play();
-    //     },
-    //     onPauseClicked: function () {
-    //         me.pause();
-    //     },
-    //     onVolumeChanged: function (volume) {
-    //         me.volume = volume / 10;
-    //     },
-    //     onRateChanged: function (rate) {
-    //         me.settings.rate = rate / 5;
-    //     }
-    // })
-    // });
-
     function playCurrentContext() {
         var item = me.currentContext.item;
-        // var onEnded = me.currentContext.endedCallback;
 
         var chuncks = chunckText(item.text);
 
@@ -131,14 +110,11 @@ talkify.Html5Player = function () {
             me.currentContext.utterances.push(utterance);
         });
 
-        // var p = new promise.Promise();
-
         var wordIndex = 0;
         var previousCharIndex = 0;
         var words = extractWords(item.text);
 
         me.currentContext.utterances[me.currentContext.utterances.length - 1].onend = function (e) {
-            // me.events.onSentenceComplete(item);
             talkify.messageHub.publish("player.html5.utterancecomplete", item);
 
             if (!me.currentContext.currentUtterance) {
@@ -150,7 +126,6 @@ talkify.Html5Player = function () {
             }
 
             if (!me.isStopped) {
-                // onEnded();
                 talkify.messageHub.publish("player.html5.ended", item);
             }
         };
@@ -172,7 +147,6 @@ talkify.Html5Player = function () {
 
             u.onpause = function () {
                 talkify.messageHub.publish("player.html5.pause");
-                //me.internalEvents.onPause();
             };
 
             u.onresume = function () { };
@@ -183,9 +157,6 @@ talkify.Html5Player = function () {
                 }
 
                 talkify.messageHub.publish("player.html5.timeupdated", (wordIndex + 1) / words.length);
-                // me.mutateControls(function (c) {
-                //     c.setProgress((wordIndex + 1) / words.length);
-                // });
 
                 if (!me.settings.useTextHighlight || !u.voice.localService) {
                     return;
@@ -222,17 +193,11 @@ talkify.Html5Player = function () {
 
                 talkify.messageHub.publish("player.html5.voiceset", voice);
 
-                // me.mutateControls(function (c) {
-                //     c.setVoice(voice);
-                // });
-
                 window.setTimeout(function () {
                     window.speechSynthesis.speak(u);
                 }, 100);
             });
         });
-
-        // return p;
     };
 
     function chunckText(text) {
@@ -374,12 +339,10 @@ talkify.Html5Player = function () {
     function stop() {
         me.isStopped = true;
         talkify.messageHub.publish("player.html5.pause");
-        //me.internalEvents.onPause();
         window.speechSynthesis.cancel();
 
         if (me.currentContext.utterances.indexOf(me.currentContext.currentUtterance) < me.currentContext.utterances.length - 1) {
             console.log('Not the last, finishing anyway...');
-            // me.events.onSentenceComplete(me.currentContext.item);
             talkify.messageHub.publish("player.html5.utterancecomplete", me.currentContext.item);
         }
     };

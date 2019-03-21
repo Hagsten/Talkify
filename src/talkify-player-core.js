@@ -76,34 +76,21 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.playItem = function (item) {
-        //var p = new promise.Promise();
-
         if (item && item.isPlaying) {
             if (this.audioSource.paused()) {
                 this.audioSource.play();
             } else {
                 this.audioSource.pause();
             }
-
-          //  return p;
         }
 
         talkify.messageHub.publish("player.*.prepareplay", item);
-        // this.events.onBeforeItemPlaying(item);
-
-        // var me = this;
 
         item.isLoading = true;
         item.isPlaying = true;
         item.element.classList.add("playing");
 
         this.playAudio(item);
-        //     , function () {
-        //     item.isPlaying = false;
-        //     p.done();
-        // });
-
-        // return p;
     };
 
     this.createItems = function (text) {
@@ -189,14 +176,8 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.dispose = function () {
         talkify.messageHub.publish("player.tts.disposed");
-        //this.wordHighlighter.cancel();
         this.audioSource.stop();
-        // this.internalEvents.onStop();
-
-        // this.mutateControls(function (c) {
-        //     c.dispose();
-        // });
-
+        
         this.audioSource.dispose();
 
         talkify.messageHub.unsubscribe("core-player", "player.*.loaded");

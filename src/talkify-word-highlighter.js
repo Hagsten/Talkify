@@ -1,13 +1,10 @@
 ﻿talkify = talkify || {};
 talkify.wordHighlighter = function () {
-    //var textHighlightTimer = new talkify.timer();
     var currentItem = null;
     var currentPositions = [];
 
     talkify.messageHub.subscribe("word-highlighter", "player.tts.seeked", setPosition);
     talkify.messageHub.subscribe("word-highlighter", ["player.tts.loading", "player.tts.disposed"], cancel);
-    // talkify.messageHub.subscribe("player.tts.pause", textHighlightTimer.pause);
-    // talkify.messageHub.subscribe("player.tts.resume", textHighlightTimer.resume);
     talkify.messageHub.subscribe("word-highlighter", "player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
     });
@@ -62,21 +59,16 @@ talkify.wordHighlighter = function () {
     }
 
     function cancel() {
-        // textHighlightTimer.cancel();
-
         resetCurrentItem();
 
         currentPositions = [];
     }
 
     function setupWordHightlighting(item, positions, startFrom) {
-        //var p = new promise.Promise();
-
         cancel();
 
         if (!positions.length) {
             return;
-            //return p.done(item);
         }
 
         currentPositions = positions;
@@ -89,28 +81,17 @@ talkify.wordHighlighter = function () {
             i++;
 
             if (i >= positions.length) {
-                // textHighlightTimer.cancel();
-
                 window.setTimeout(function () {
                     item.element.innerHTML = item.originalElement.innerHTML;
-
-                    //  p.done(item);
 
                     talkify.messageHub.publish("wordhighlighter.complete", item);
                 }, 1000);
 
                 return;
             }
-
-            var next = (positions[i].Position - positions[i - 1].Position) + 0;
-
-            // textHighlightTimer.cancel();
-            // textHighlightTimer.start(internalCallback, next);
         };
 
         internalCallback();
-
-        //return p;
     }
 
     function resetCurrentItem() {
@@ -175,11 +156,7 @@ talkify.wordHighlighter = function () {
     }
 
     return {
-        //pause: textHighlightTimer.pause,
-        //resume: textHighlightTimer.resume,
         start: setupWordHightlighting,
         highlight: highlight,
-        //cancel: cancel,
-        //setPosition: setPosition
     };
 };

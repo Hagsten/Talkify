@@ -138,16 +138,12 @@ talkify.playlist = function () {
         }
 
         function playItem(item) {
-            // var p = new promise.Promise();
-
             if (!playerHasBeenReplaced && item && item.isPlaying) {
                 if (player.paused()) {
                     player.play();
                 } else {
                     player.pause();
                 }
-
-                // return p;
             }
 
             playerHasBeenReplaced = false;
@@ -161,8 +157,6 @@ talkify.playlist = function () {
             playlist.currentlyPlaying = item;
 
             p = player.playItem(item);
-
-            // return p;
         };
 
         function createItems(text, element) {
@@ -215,7 +209,6 @@ talkify.playlist = function () {
             }
 
             playItem(item);
-            //continueWithNext(item);
         }
 
         function pause() {
@@ -287,21 +280,6 @@ talkify.playlist = function () {
             }
         }
 
-        // function continueWithNext(currentItem) {
-        //     var next = function (completed) {
-
-        //         if (completed) {
-        //             settings.events.onEnded();
-        //             resetPlaybackStates();
-        //             return;
-        //         }
-
-        //         playNext().then(next);
-        //     };
-
-        //     playItem(currentItem).then(next);
-        // }
-
         function getNextItem() {
             var currentQueuePosition = playlist.queue.indexOf(playlist.currentlyPlaying);
 
@@ -345,23 +323,8 @@ talkify.playlist = function () {
                 player.withReferenceLanguage(refLang);
 
                 playItem(playlist.queue[0]);
-                //continueWithNext(playlist.queue[0]);
             }
         }
-
-        // function playNext() {
-        //     var p = new promise.Promise();
-
-        //     var item = getNextItem();
-
-        //     if (!item) {
-        //         p.done("Completed");
-
-        //         return p;
-        //     }
-
-        //     return playItem(item);
-        // }
 
         function insertElement(element) {
             var items = [];
