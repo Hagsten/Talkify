@@ -7,7 +7,7 @@ talkify.Html5Player = function () {
 
     this.currentContext = {
         item: null,
-        endedCallback: function () { },
+        // endedCallback: function () { },
         utterances: [],
         currentUtterance: null
     };
@@ -44,13 +44,18 @@ talkify.Html5Player = function () {
         stop: function () {
             stop();
         },
-        dispose: function () { }
+        dispose: function () {
+            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.play");
+            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.pause");
+            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.volume");
+            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.rate");
+        }
     };
 
     talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
-    this.playAudio = function (item, onEnded) {
-        me.currentContext.endedCallback = onEnded;
+    this.playAudio = function (item) {
+        // me.currentContext.endedCallback = onEnded;
         me.currentContext.item = item;
         me.currentContext.utterances = [];
         me.currentContext.currentUtterance = null;
@@ -59,7 +64,7 @@ talkify.Html5Player = function () {
         // });
 
         //if (me.settings.lockedLanguage !== null) {
-        return playCurrentContext();
+        playCurrentContext();
         //}
 
         //TODO: Need better server side help here with refLang
@@ -83,32 +88,32 @@ talkify.Html5Player = function () {
         return this;
     };
 
-    talkify.messageHub.subscribe("controlcenter.request.play", function () { me.audioSource.play(); });
-    talkify.messageHub.subscribe("controlcenter.request.pause", function () { me.pause(); });
-    talkify.messageHub.subscribe("controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
-    talkify.messageHub.subscribe("controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
+    talkify.messageHub.subscribe("html5player", "controlcenter.request.play", function () { me.audioSource.play(); });
+    talkify.messageHub.subscribe("html5player", "controlcenter.request.pause", function () { me.pause(); });
+    talkify.messageHub.subscribe("html5player", "controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
+    talkify.messageHub.subscribe("html5player", "controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
 
     // this.mutateControls(function (c) {
-        // c.setVoice(me.forcedVoice);
-        // subscribeTo({
-        //     onPlayClicked: function () {
-        //         me.audioSource.play();
-        //     },
-        //     onPauseClicked: function () {
-        //         me.pause();
-        //     },
-        //     onVolumeChanged: function (volume) {
-        //         me.volume = volume / 10;
-        //     },
-        //     onRateChanged: function (rate) {
-        //         me.settings.rate = rate / 5;
-        //     }
-        // })
+    // c.setVoice(me.forcedVoice);
+    // subscribeTo({
+    //     onPlayClicked: function () {
+    //         me.audioSource.play();
+    //     },
+    //     onPauseClicked: function () {
+    //         me.pause();
+    //     },
+    //     onVolumeChanged: function (volume) {
+    //         me.volume = volume / 10;
+    //     },
+    //     onRateChanged: function (rate) {
+    //         me.settings.rate = rate / 5;
+    //     }
+    // })
     // });
 
     function playCurrentContext() {
         var item = me.currentContext.item;
-        var onEnded = me.currentContext.endedCallback;
+        // var onEnded = me.currentContext.endedCallback;
 
         var chuncks = chunckText(item.text);
 
@@ -144,8 +149,9 @@ talkify.Html5Player = function () {
                 return;
             }
 
-            if (onEnded && !me.isStopped) {
-                onEnded();
+            if (!me.isStopped) {
+                // onEnded();
+                talkify.messageHub.publish("player.html5.ended", item);
             }
         };
 
@@ -155,7 +161,7 @@ talkify.Html5Player = function () {
                     me.currentContext.currentUtterance = e.utterance;
                     // p.done();
                     talkify.messageHub.publish("player.html5.loaded", me.currentContext.item);
-                   // me.internalEvents.onPlay();
+                    // me.internalEvents.onPlay();
                     talkify.messageHub.publish("player.html5.play", { item: me.currentContext.item, positions: [], currentTime: 0 });
                 };
             } else {
@@ -214,9 +220,11 @@ talkify.Html5Player = function () {
 
                 window.speechSynthesis.cancel();
 
-                me.mutateControls(function (c) {
-                    c.setVoice(voice);
-                });
+                talkify.messageHub.publish("player.html5.voiceset", voice);
+
+                // me.mutateControls(function (c) {
+                //     c.setVoice(voice);
+                // });
 
                 window.setTimeout(function () {
                     window.speechSynthesis.speak(u);

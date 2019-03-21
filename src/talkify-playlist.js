@@ -71,6 +71,18 @@ talkify.playlist = function () {
         voiceCommands.onListeningStarted(settings.events.onVoiceCommandListeningStarted);
         voiceCommands.onListeningEnded(settings.events.onVoiceCommandListeningEnded);
 
+        talkify.messageHub.subscribe("playlist", "player.*.ended", function(){
+            var item = getNextItem();
+
+            if (!item) {
+                settings.events.onEnded();
+                resetPlaybackStates();
+                return;
+            }
+            
+            playItem(item);
+        });
+
         function reset() {
             playlist.queue = [];
             player.withReferenceLanguage({ Culture: '', Language: -1 });
@@ -126,7 +138,7 @@ talkify.playlist = function () {
         }
 
         function playItem(item) {
-            var p = new promise.Promise();
+            // var p = new promise.Promise();
 
             if (!playerHasBeenReplaced && item && item.isPlaying) {
                 if (player.paused()) {
@@ -135,7 +147,7 @@ talkify.playlist = function () {
                     player.pause();
                 }
 
-                return p;
+                // return p;
             }
 
             playerHasBeenReplaced = false;
@@ -150,7 +162,7 @@ talkify.playlist = function () {
 
             p = player.playItem(item);
 
-            return p;
+            // return p;
         };
 
         function createItems(text, element) {
@@ -202,7 +214,8 @@ talkify.playlist = function () {
                 return;
             }
 
-            continueWithNext(item);
+            playItem(item);
+            //continueWithNext(item);
         }
 
         function pause() {
@@ -274,20 +287,20 @@ talkify.playlist = function () {
             }
         }
 
-        function continueWithNext(currentItem) {
-            var next = function (completed) {
+        // function continueWithNext(currentItem) {
+        //     var next = function (completed) {
 
-                if (completed) {
-                    settings.events.onEnded();
-                    resetPlaybackStates();
-                    return;
-                }
+        //         if (completed) {
+        //             settings.events.onEnded();
+        //             resetPlaybackStates();
+        //             return;
+        //         }
 
-                playNext().then(next);
-            };
+        //         playNext().then(next);
+        //     };
 
-            playItem(currentItem).then(next);
-        }
+        //     playItem(currentItem).then(next);
+        // }
 
         function getNextItem() {
             var currentQueuePosition = playlist.queue.indexOf(playlist.currentlyPlaying);
@@ -331,23 +344,24 @@ talkify.playlist = function () {
                 playlist.referenceLanguage = refLang;
                 player.withReferenceLanguage(refLang);
 
-                continueWithNext(playlist.queue[0]);
+                playItem(playlist.queue[0]);
+                //continueWithNext(playlist.queue[0]);
             }
         }
 
-        function playNext() {
-            var p = new promise.Promise();
+        // function playNext() {
+        //     var p = new promise.Promise();
 
-            var item = getNextItem();
+        //     var item = getNextItem();
 
-            if (!item) {
-                p.done("Completed");
+        //     if (!item) {
+        //         p.done("Completed");
 
-                return p;
-            }
+        //         return p;
+        //     }
 
-            return playItem(item);
-        }
+        //     return playItem(item);
+        // }
 
         function insertElement(element) {
             var items = [];
@@ -463,6 +477,8 @@ talkify.playlist = function () {
                 for (var i = 0; i < commands.length; i++) {
                     commands[i].dispose();
                 }
+
+                talkify.messageHub.unsubscribe("playlist", "player.*.ended");
             },
             startListeningToVoiceCommands: function() {
                 voiceCommands.start();

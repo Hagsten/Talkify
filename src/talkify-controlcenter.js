@@ -208,38 +208,40 @@ talkify.playbar = function (parent) {
         render();
         setupBindings();
 
-        talkify.messageHub.subscribe(["player.*.pause", "player.*.disposed"], pause);
-        talkify.messageHub.subscribe(["player.*.play", "player.*.resume"], play);
-        talkify.messageHub.subscribe("player.*.disposed", dispose);
-        talkify.messageHub.subscribe("player.*.loaded", function () {
+        talkify.messageHub.subscribe("controlcenter", ["player.*.pause", "player.*.disposed"], pause);
+        talkify.messageHub.subscribe("controlcenter", ["player.*.play", "player.*.resume"], play);
+        talkify.messageHub.subscribe("controlcenter", "player.*.disposed", dispose);
+        talkify.messageHub.subscribe("controlcenter", "player.*.loaded", function () {
             removeClass(pauseElement, "talkify-disabled");
             removeClass(playElement, "talkify-disabled");
         });
 
-        talkify.messageHub.subscribe("player.*.texthighlight.enabled", function () {
+        talkify.messageHub.subscribe("controlcenter", "player.*.texthighlight.enabled", function () {
             removeClass(textHighlightingElement, "talkify-disabled");
         });
 
-        talkify.messageHub.subscribe("player.*.texthighlight.disabled", function () {
+        talkify.messageHub.subscribe("controlcenter", "player.*.texthighlight.disabled", function () {
             addClass(textHighlightingElement, "talkify-disabled");
         });
 
-        talkify.messageHub.subscribe("player.*.ratechanged", function (rate) {
+        talkify.messageHub.subscribe("controlcenter", "player.*.ratechanged", function (rate) {
             rateElement.value = rate;;
         });
 
-        talkify.messageHub.subscribe("player.*.voiceset", function (voice) {
+        talkify.messageHub.subscribe("controlcenter", "player.*.voiceset", function (voice) {
             featureToggle(voice);
             setVoiceName(voice);
         });
 
-        talkify.messageHub.subscribe("player.tts.timeupdated", updateClock);
-        talkify.messageHub.subscribe("player.html5.timeupdated", function (value) {
+        talkify.messageHub.subscribe("controlcenter", "player.tts.timeupdated", updateClock);
+        talkify.messageHub.subscribe("controlcenter", "player.html5.timeupdated", function (value) {
             progressElement.setAttribute("value", value);
         });
     };
 
-    function updateClock(currentTime, duration) {
+    function updateClock(timeInfo) {
+        var currentTime = timeInfo.currentTime;
+        var duration = timeInfo.duration;
         //TODO: Over tunnels duration === NaN. Look @ http://stackoverflow.com/questions/10868249/html5-audio-player-duration-showing-nan
         progressElement.setAttribute("value", currentTime / duration);
 

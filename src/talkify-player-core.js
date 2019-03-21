@@ -19,11 +19,15 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         this.playbar.instance = talkify.playbar();
     }
 
-    talkify.messageHub.subscribe("player.*.loaded", function(item){
+    talkify.messageHub.subscribe("core-player", "player.*.loaded", function(item){
         item.isLoading = false;
     });
 
-    talkify.messageHub.subscribe("controlcenter.texthighlightoggled", function(enabled){
+    talkify.messageHub.subscribe("core-player", "player.*.ended", function(item){
+        item.isPlaying = false;
+    });
+
+    talkify.messageHub.subscribe("core-player", "controlcenter.texthighlightoggled", function(enabled){
         me.settings.useTextHighlight = enabled;
     });
 
@@ -60,19 +64,19 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.subscribeTo = function (subscriptions) {
-        talkify.messageHub.subscribe("player.*.pause", subscriptions.onPause || function () { });
-        talkify.messageHub.subscribe("player.*.resume", subscriptions.onResume || function () { });
-        talkify.messageHub.subscribe("player.*.play", subscriptions.onPlay || function () { });
-        talkify.messageHub.subscribe("player.*.loaded", subscriptions.onItemLoaded || function () { });
-        talkify.messageHub.subscribe(["wordhighlighter.complete", "player.html5.utterancecomplete"], subscriptions.onItemFinished || function () { });
-        talkify.messageHub.subscribe("player.*.prepareplay", subscriptions.onBeforeItemPlaying || function () { });
-        talkify.messageHub.subscribe("controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged || function () { });
+        talkify.messageHub.subscribe("core-player", "player.*.pause", subscriptions.onPause || function () { });
+        talkify.messageHub.subscribe("core-player", "player.*.resume", subscriptions.onResume || function () { });
+        talkify.messageHub.subscribe("core-player", "player.*.play", subscriptions.onPlay || function () { });
+        talkify.messageHub.subscribe("core-player", "player.*.loaded", subscriptions.onItemLoaded || function () { });
+        talkify.messageHub.subscribe("core-player", ["wordhighlighter.complete", "player.html5.utterancecomplete"], subscriptions.onItemFinished || function () { });
+        talkify.messageHub.subscribe("core-player", "player.*.prepareplay", subscriptions.onBeforeItemPlaying || function () { });
+        talkify.messageHub.subscribe("core-player", "controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged || function () { });
 
         return this;
     };
 
     this.playItem = function (item) {
-        var p = new promise.Promise();
+        //var p = new promise.Promise();
 
         if (item && item.isPlaying) {
             if (this.audioSource.paused()) {
@@ -81,24 +85,25 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
                 this.audioSource.pause();
             }
 
-            return p;
+          //  return p;
         }
 
         talkify.messageHub.publish("player.*.prepareplay", item);
         // this.events.onBeforeItemPlaying(item);
 
-        var me = this;
+        // var me = this;
 
         item.isLoading = true;
         item.isPlaying = true;
         item.element.classList.add("playing");
 
-        this.playAudio(item, function () {
-            item.isPlaying = false;
-            p.done();
-        });
+        this.playAudio(item);
+        //     , function () {
+        //     item.isPlaying = false;
+        //     p.done();
+        // });
 
-        return p;
+        // return p;
     };
 
     this.createItems = function (text) {
@@ -193,6 +198,17 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         // });
 
         this.audioSource.dispose();
+
+        talkify.messageHub.unsubscribe("core-player", "player.*.loaded");
+        talkify.messageHub.unsubscribe("core-player", "player.*.ended");
+        talkify.messageHub.unsubscribe("core-player", "controlcenter.texthighlightoggled");
+        talkify.messageHub.unsubscribe("core-player", "player.*.pause");
+        talkify.messageHub.unsubscribe("core-player", "player.*.resume");
+        talkify.messageHub.unsubscribe("core-player", "player.*.play");
+        talkify.messageHub.unsubscribe("core-player", "player.*.loaded");
+        talkify.messageHub.unsubscribe("core-player", ["wordhighlighter.complete", "player.html5.utterancecomplete"]);
+        talkify.messageHub.unsubscribe("core-player", "player.*.prepareplay");
+        talkify.messageHub.unsubscribe("core-player", "controlcenter.texthighlightoggled");
     };
 
     this.forceLanguage = function (culture) {

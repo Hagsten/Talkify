@@ -2,13 +2,13 @@ talkify = talkify || {};
 talkify.messageHub = function () {
     var subscribers = {};
 
-    function publish(key, message) {
-        console.log("Publishing", key);
+    function publish(topic, message) {
+        console.log("Publishing", topic);
 
-        var topics = key.split('.');
+        var topics = topic.split('.');
         var candidates = [];
 
-        Object.keys(subscribers).forEach(function (subscriberKey, index) {
+        Object.keys(subscribers).forEach(function (subscriberKey) {
             var s = subscriberKey.split('.');
 
             if (s.length != topics.length) {
@@ -18,7 +18,7 @@ talkify.messageHub = function () {
             var match = true;
 
             for (var i = 0; i < s.length; i++) {
-                if(topics[i] === '*'){
+                if (topics[i] === '*') {
                     match = true;
                 }
                 else if (s[i] === topics[i]) {
@@ -36,31 +36,44 @@ talkify.messageHub = function () {
             }
         });
 
-        if(candidates.length === 0){
-            console.warn("No subscriber found", key)
+        if (candidates.length === 0) {
+            console.warn("No subscriber found", topic)
         }
 
         candidates.forEach(function (c) {
-            subscribers[c].forEach(function (fn) {
-                console.log("Calling subscriber", c, message);
-                fn(message);
+            subscribers[c].forEach(function (subscriber) {
+                console.log("Calling subscriber", subscriber, message);
+                subscriber.fn(message);
             });
         })
 
     }
 
-    function subscribe(key, fn) {
-        key = Array.isArray(key) ? key : [key];
+    function subscribe(key, topic, fn) {
+        topic = Array.isArray(topic) ? topic : [topic];
 
-        for (var i = 0; i < key.length; i++) {
-            subscribers[key[i]] = subscribers[key[i]] || [];
+        for (var i = 0; i < topic.length; i++) {
+            subscribers[topic[i]] = subscribers[topic[i]] || [];
 
-            subscribers[key[i]].push(fn);
+            subscribers[topic[i]].push({ key: key, fn: fn });
         }
+    }
+
+    function unsubscribe(key, topic) {
+        console.log("Unsubscribing", key, topic);
+
+        Object.keys(subscribers).filter(function(subscriberKey){
+            return subscriberKey === topic;
+        }).forEach(function (subscriberKey) {
+            subscribers[subscriberKey] = subscribers[subscriberKey].filter(function(subscriber){
+                return subscriber.key !== key;
+            });
+        });
     }
 
     return {
         publish: publish,
-        subscribe: subscribe
+        subscribe: subscribe,
+        unsubscribe: unsubscribe
     }
 }();

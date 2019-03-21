@@ -4,22 +4,22 @@ talkify.wordHighlighter = function () {
     var currentItem = null;
     var currentPositions = [];
 
-    talkify.messageHub.subscribe("player.tts.seeked", setPosition);
-    talkify.messageHub.subscribe(["player.tts.loading", "player.tts.disposed"], cancel);
+    talkify.messageHub.subscribe("word-highlighter", "player.tts.seeked", setPosition);
+    talkify.messageHub.subscribe("word-highlighter", ["player.tts.loading", "player.tts.disposed"], cancel);
     // talkify.messageHub.subscribe("player.tts.pause", textHighlightTimer.pause);
     // talkify.messageHub.subscribe("player.tts.resume", textHighlightTimer.resume);
-    talkify.messageHub.subscribe("player.tts.play", function (message) {
+    talkify.messageHub.subscribe("word-highlighter", "player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
     });
 
-    talkify.messageHub.subscribe("player.tts.timeupdated", function (time) {
-        console.log(time);
+    talkify.messageHub.subscribe("word-highlighter", "player.tts.timeupdated", function (timeInfo) {
+        // console.log(time);
 
         if(!currentPositions.length){
             return;
         }
 
-        time = time * 1000;
+        var time = timeInfo.currentTime * 1000;
 
         var currentPos = 0;
         for (var i = 0; i < currentPositions.length; i++) {
