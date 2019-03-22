@@ -1,15 +1,15 @@
 ﻿talkify = talkify || {};
-talkify.wordHighlighter = function () {
+talkify.wordHighlighter = function (correlationId) {
     var currentItem = null;
     var currentPositions = [];
 
-    talkify.messageHub.subscribe("word-highlighter", "player.tts.seeked", setPosition);
-    talkify.messageHub.subscribe("word-highlighter", ["player.tts.loading", "player.tts.disposed"], cancel);
-    talkify.messageHub.subscribe("word-highlighter", "player.tts.play", function (message) {
+    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
+    talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"], cancel);
+    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
     });
 
-    talkify.messageHub.subscribe("word-highlighter", "player.tts.timeupdated", function (timeInfo) {
+    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.timeupdated", function (timeInfo) {
         if(!currentPositions.length){
             return;
         }
@@ -80,7 +80,7 @@ talkify.wordHighlighter = function () {
                 window.setTimeout(function () {
                     item.element.innerHTML = item.originalElement.innerHTML;
 
-                    talkify.messageHub.publish("wordhighlighter.complete", item);
+                    talkify.messageHub.publish(correlationId + ".wordhighlighter.complete", item);
                 }, 1000);
 
                 return;
@@ -152,10 +152,10 @@ talkify.wordHighlighter = function () {
     }
 
     function dispose(){
-        talkify.messageHub.unsubscribe("word-highlighter", "player.tts.seeked");
-        talkify.messageHub.unsubscribe("word-highlighter", ["player.tts.loading", "player.tts.disposed"]);
-        talkify.messageHub.unsubscribe("word-highlighter", "player.tts.play");
-        talkify.messageHub.unsubscribe("word-highlighter", "player.tts.timeupdated");
+        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.seeked");
+        talkify.messageHub.unsubscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"]);
+        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.play");
+        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.timeupdated");
     }
 
     return {

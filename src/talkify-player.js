@@ -44,11 +44,11 @@ talkify.TtsPlayer = function () {
                 existingElement.outerHTML = "";
             }
 
-            talkify.messageHub.unsubscribe("tts-player", "controlcenter.request.play");
-            talkify.messageHub.unsubscribe("tts-player", "controlcenter.request.pause");
-            talkify.messageHub.unsubscribe("tts-player", "controlcenter.request.seek");
-            talkify.messageHub.unsubscribe("tts-player", "controlcenter.request.volume");
-            talkify.messageHub.unsubscribe("tts-player", "controlcenter.request.rate");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.play");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.pause");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.seek");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.volume");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.rate");
 
         }
     };
@@ -62,7 +62,7 @@ talkify.TtsPlayer = function () {
     }
 
     function onSeek() {
-        talkify.messageHub.publish("player.tts.seeked", this.currentTime);
+        talkify.messageHub.publish(me.correlationId + ".player.tts.seeked", this.currentTime);
 
         if (me.audioSource.paused() && me.audioSource.currentTime() > 0.1) {
             me.audioSource.play();
@@ -74,7 +74,7 @@ talkify.TtsPlayer = function () {
             clearInterval(timeupdater);
         }
 
-        talkify.messageHub.publish("player.tts.pause");
+        talkify.messageHub.publish(me.correlationId + ".player.tts.pause");
     }
 
     function onPlay() {
@@ -83,22 +83,22 @@ talkify.TtsPlayer = function () {
         }
 
         timeupdater = setInterval(function () {
-            talkify.messageHub.publish("player.tts.timeupdated", { currentTime: audioElement.currentTime, duration: audioElement.duration });
+            talkify.messageHub.publish(me.correlationId + ".player.tts.timeupdated", { currentTime: audioElement.currentTime, duration: audioElement.duration });
         }, 50);
 
         if (!me.currentContext.positions.length) {
-            talkify.messageHub.publish("player.tts.play", { item: me.currentContext.item, positions: [], currentTime: me.audioSource.currentTime() });
+            talkify.messageHub.publish(me.correlationId + ".player.tts.play", { item: me.currentContext.item, positions: [], currentTime: me.audioSource.currentTime() });
             return;
         }
 
         if (me.audioSource.currentTime() > 0.1) {
-            talkify.messageHub.publish("player.tts.resume", { currentTime: me.audioSource.currentTime() });
+            talkify.messageHub.publish(me.correlationId + ".player.tts.resume", { currentTime: me.audioSource.currentTime() });
         } else {
             var interval = setInterval(function () {
                 if (me.audioSource.currentTime() > 0) {
                     clearInterval(interval);
 
-                    talkify.messageHub.publish("player.tts.play", { item: me.currentContext.item, positions: me.currentContext.positions, currentTime: me.audioSource.currentTime() });
+                    talkify.messageHub.publish(me.correlationId + ".player.tts.play", { item: me.currentContext.item, positions: me.currentContext.positions, currentTime: me.audioSource.currentTime() });
                 }
             }, 20);
         }
@@ -136,9 +136,9 @@ talkify.TtsPlayer = function () {
 
         audioElement = clonedAudio;
 
-        talkify.messageHub.subscribe("tts-player", "controlcenter.request.play", function () { me.play(); });
-        talkify.messageHub.subscribe("tts-player", "controlcenter.request.pause", function () { audioElement.pause(); });
-        talkify.messageHub.subscribe("tts-player", "controlcenter.request.seek", function (position) {
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.play", function () { me.play(); });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.pause", function () { audioElement.pause(); });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.seek", function (position) {
             var pos = audioElement.duration * position;
 
             if (isNaN(audioElement.duration)) {
@@ -148,8 +148,8 @@ talkify.TtsPlayer = function () {
             audioElement.currentTime = pos;
         });
 
-        talkify.messageHub.subscribe("tts-player", "controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
-        talkify.messageHub.subscribe("tts-player", "controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
 
         if (me.playbar.instance) {
             me.playbar.instance
@@ -169,17 +169,10 @@ talkify.TtsPlayer = function () {
         return p;
     };
 
-    function generateGuid() {
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
-
     initialize.apply(this);
 
     this.playAudio = function (item) {
-        talkify.messageHub.publish("player.tts.loading", item);
+        talkify.messageHub.publish(me.correlationId + ".player.tts.loading", item);
 
         me.currentContext.item = item;
         me.currentContext.positions = [];
@@ -192,7 +185,7 @@ talkify.TtsPlayer = function () {
         var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
         var voice = this.forcedVoice ? this.forcedVoice.name : "";
 
-        var requestId = generateGuid();
+        var requestId = talkify.generateGuid();
 
         var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
 
@@ -210,7 +203,7 @@ talkify.TtsPlayer = function () {
             me.audioSource.pause();
 
             if (!me.settings.useTextHighlight) {
-                talkify.messageHub.publish("player.tts.loaded", me.currentContext.item);
+                talkify.messageHub.publish(me.correlationId + ".player.tts.loaded", me.currentContext.item);
                 me.audioSource.play();
                 return;
             }
@@ -218,13 +211,13 @@ talkify.TtsPlayer = function () {
             getPositions(requestId).then(function (error, positions) {
                 me.currentContext.positions = positions || [];
 
-                talkify.messageHub.publish("player.tts.loaded", me.currentContext.item);
+                talkify.messageHub.publish(me.correlationId + ".player.tts.loaded", me.currentContext.item);
                 me.audioSource.play();
             });
         };
 
         audioElement.onended = function () {
-            talkify.messageHub.publish("player.tts.ended", item);
+            talkify.messageHub.publish(me.correlationId + ".player.tts.ended", item);
         };
     };
 

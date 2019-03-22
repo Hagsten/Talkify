@@ -71,21 +71,25 @@ talkify.playlist = function () {
         voiceCommands.onListeningStarted(settings.events.onVoiceCommandListeningStarted);
         voiceCommands.onListeningEnded(settings.events.onVoiceCommandListeningEnded);
 
-        talkify.messageHub.subscribe("playlist", "player.*.ended", function (endedItem) {
-            if (playlist.queue.indexOf(endedItem) === -1) {
-                return;
-            }
+        setupHubSubscribers();
 
-            var item = getNextItem();
+        function setupHubSubscribers() {
+            talkify.messageHub.subscribe("playlist", player.correlationId + ".player.*.ended", function (endedItem) {
+                if (playlist.queue.indexOf(endedItem) === -1) {
+                    return;
+                }
 
-            if (!item) {
-                settings.events.onEnded();
-                resetPlaybackStates();
-                return;
-            }
+                var item = getNextItem();
 
-            playItem(item);
-        });
+                if (!item) {
+                    settings.events.onEnded();
+                    resetPlaybackStates();
+                    return;
+                }
+
+                playItem(item);
+            });
+        }
 
         function reset() {
             playlist.queue = [];
@@ -433,9 +437,14 @@ talkify.playlist = function () {
                 }
             },
             setPlayer: function (p) {
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.*.ended");
+
                 player = p;
                 player.withReferenceLanguage(playlist.referenceLanguage);
                 playerHasBeenReplaced = true;
+
+                setupHubSubscribers();
+
                 replayCurrent();
             },
             dispose: function () {
@@ -445,7 +454,7 @@ talkify.playlist = function () {
                     commands[i].dispose();
                 }
 
-                talkify.messageHub.unsubscribe("playlist", "player.*.ended");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.*.ended");
             },
             startListeningToVoiceCommands: function () {
                 voiceCommands.start();

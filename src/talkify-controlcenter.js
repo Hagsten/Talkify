@@ -1,5 +1,5 @@
 talkify = talkify || {};
-talkify.playbar = function (parent) {
+talkify.playbar = function (parent, correlationId) {
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
@@ -137,31 +137,31 @@ talkify.playbar = function (parent) {
                 return;
             }
 
-            talkify.messageHub.publish("controlcenter.request.play");
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.play");
         });
 
         pauseElement.addEventListener("click", function () {
             if (pauseElement.classList.contains("talkify-disabled")) {
                 return;
             }
-            talkify.messageHub.publish("controlcenter.request.pause");
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.pause");
         });
 
         rateElement.addEventListener("change", function () {
-            talkify.messageHub.publish("controlcenter.request.rate", parseInt(this.value));
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.rate", parseInt(this.value));
         });
 
         volumeElement.addEventListener("change", function (e) {
-            talkify.messageHub.publish("controlcenter.request.volume", parseInt(this.value));
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.volume", parseInt(this.value));
         });
 
         textHighlightingElement.addEventListener("click", function (e) {
             if (textHighlightingElement.classList.contains("talkify-disabled")) {
                 removeClass(textHighlightingElement, "talkify-disabled");
-                talkify.messageHub.publish("controlcenter.texthighlightoggled", true);
+                talkify.messageHub.publish(correlationId + ".controlcenter.texthighlightoggled", true);
             } else {
                 addClass(textHighlightingElement, "talkify-disabled");
-                talkify.messageHub.publish("controlcenter.texthighlightoggled", false);
+                talkify.messageHub.publish(correlationId + ".controlcenter.texthighlightoggled", false);
             }
         });
 
@@ -176,7 +176,7 @@ talkify.playbar = function (parent) {
                 clickedValue = 0.0;
             }
 
-            talkify.messageHub.publish("controlcenter.request.seek", clickedValue);
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.seek", clickedValue);
         });
 
         attachElement.addEventListener("click", function () {
@@ -208,33 +208,33 @@ talkify.playbar = function (parent) {
         render();
         setupBindings();
 
-        talkify.messageHub.subscribe("controlcenter", ["player.*.pause", "player.*.disposed"], pause);
-        talkify.messageHub.subscribe("controlcenter", ["player.*.play", "player.*.resume"], play);
-        talkify.messageHub.subscribe("controlcenter", "player.*.disposed", dispose);
-        talkify.messageHub.subscribe("controlcenter", "player.*.loaded", function () {
+        talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.pause", correlationId + ".player.*.disposed"], pause);
+        talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.play", correlationId + ".player.*.resume"], play);
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.disposed", dispose);
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.loaded", function () {
             removeClass(pauseElement, "talkify-disabled");
             removeClass(playElement, "talkify-disabled");
         });
 
-        talkify.messageHub.subscribe("controlcenter", "player.*.texthighlight.enabled", function () {
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.texthighlight.enabled", function () {
             removeClass(textHighlightingElement, "talkify-disabled");
         });
 
-        talkify.messageHub.subscribe("controlcenter", "player.*.texthighlight.disabled", function () {
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.texthighlight.disabled", function () {
             addClass(textHighlightingElement, "talkify-disabled");
         });
 
-        talkify.messageHub.subscribe("controlcenter", "player.*.ratechanged", function (rate) {
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.ratechanged", function (rate) {
             rateElement.value = rate;;
         });
 
-        talkify.messageHub.subscribe("controlcenter", "player.*.voiceset", function (voice) {
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.voiceset", function (voice) {
             featureToggle(voice);
             setVoiceName(voice);
         });
 
-        talkify.messageHub.subscribe("controlcenter", "player.tts.timeupdated", updateClock);
-        talkify.messageHub.subscribe("controlcenter", "player.html5.timeupdated", function (value) {
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.timeupdated", updateClock);
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.html5.timeupdated", function (value) {
             progressElement.setAttribute("value", value);
         });
     };
@@ -307,16 +307,16 @@ talkify.playbar = function (parent) {
             existingControl.parentNode.removeChild(existingControl);
         }
 
-        talkify.messageHub.unsubscribe("controlcenter", ["player.*.pause", "player.*.disposed"]);
-        talkify.messageHub.unsubscribe("controlcenter", ["player.*.play", "player.*.resume"]);
-        talkify.messageHub.unsubscribe("controlcenter", "player.*.disposed");
-        talkify.messageHub.unsubscribe("controlcenter", "player.*.loaded");
-        talkify.messageHub.unsubscribe("controlcenter", "player.*.texthighlight.enabled");
-        talkify.messageHub.unsubscribe("controlcenter", "player.*.texthighlight.disabled");
-        talkify.messageHub.unsubscribe("controlcenter", "player.*.ratechanged");
-        talkify.messageHub.unsubscribe("controlcenter", "player.*.voiceset");
-        talkify.messageHub.unsubscribe("controlcenter", "player.tts.timeupdated");
-        talkify.messageHub.unsubscribe("controlcenter", "player.html5.timeupdated");
+        talkify.messageHub.unsubscribe("controlcenter", [correlationId + ".player.*.pause", correlationId + ".player.*.disposed"]);
+        talkify.messageHub.unsubscribe("controlcenter", [correlationId + ".player.*.play", correlationId + ".player.*.resume"]);
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.disposed");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.loaded");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.texthighlight.enabled");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.texthighlight.disabled");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.ratechanged");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.voiceset");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.timeupdated");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.timeupdated");
     }
 
     initialize();

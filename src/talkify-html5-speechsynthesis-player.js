@@ -26,7 +26,7 @@ talkify.Html5Player = function () {
         pause: function () {
             window.speechSynthesis.pause();
 
-            talkify.messageHub.publish("player.html5.pause");
+            talkify.messageHub.publish(me.correlationId + ".player.html5.pause");
         },
         ended: function () { return !window.speechSynthesis.speaking; },
         isPlaying: function () { return window.speechSynthesis.speaking; },
@@ -43,10 +43,10 @@ talkify.Html5Player = function () {
             stop();
         },
         dispose: function () {
-            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.play");
-            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.pause");
-            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.volume");
-            talkify.messageHub.unsubscribe("html5player", "controlcenter.request.rate");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.play");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.pause");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.volume");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.rate");
         }
     };
 
@@ -86,10 +86,10 @@ talkify.Html5Player = function () {
         return this;
     };
 
-    talkify.messageHub.subscribe("html5player", "controlcenter.request.play", function () { me.audioSource.play(); });
-    talkify.messageHub.subscribe("html5player", "controlcenter.request.pause", function () { me.pause(); });
-    talkify.messageHub.subscribe("html5player", "controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
-    talkify.messageHub.subscribe("html5player", "controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.play", function () { me.audioSource.play(); });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.pause", function () { me.pause(); });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
 
     function playCurrentContext() {
         var item = me.currentContext.item;
@@ -115,7 +115,7 @@ talkify.Html5Player = function () {
         var words = extractWords(item.text);
 
         me.currentContext.utterances[me.currentContext.utterances.length - 1].onend = function (e) {
-            talkify.messageHub.publish("player.html5.utterancecomplete", item);
+            talkify.messageHub.publish(me.correlationId + ".player.html5.utterancecomplete", item);
 
             if (!me.currentContext.currentUtterance) {
                 return;
@@ -126,7 +126,7 @@ talkify.Html5Player = function () {
             }
 
             if (!me.isStopped) {
-                talkify.messageHub.publish("player.html5.ended", item);
+                talkify.messageHub.publish(me.correlationId + ".player.html5.ended", item);
             }
         };
 
@@ -134,10 +134,8 @@ talkify.Html5Player = function () {
             if (index === 0) {
                 u.onstart = function (e) {
                     me.currentContext.currentUtterance = e.utterance;
-                    // p.done();
-                    talkify.messageHub.publish("player.html5.loaded", me.currentContext.item);
-                    // me.internalEvents.onPlay();
-                    talkify.messageHub.publish("player.html5.play", { item: me.currentContext.item, positions: [], currentTime: 0 });
+                    talkify.messageHub.publish(me.correlationId + ".player.html5.loaded", me.currentContext.item);
+                    talkify.messageHub.publish(me.correlationId + ".player.html5.play", { item: me.currentContext.item, positions: [], currentTime: 0 });
                 };
             } else {
                 u.onstart = function (e) {
@@ -146,7 +144,7 @@ talkify.Html5Player = function () {
             }
 
             u.onpause = function () {
-                talkify.messageHub.publish("player.html5.pause");
+                talkify.messageHub.publish(me.correlationId + ".player.html5.pause");
             };
 
             u.onresume = function () { };
@@ -156,7 +154,7 @@ talkify.Html5Player = function () {
                     return;
                 }
 
-                talkify.messageHub.publish("player.html5.timeupdated", (wordIndex + 1) / words.length);
+                talkify.messageHub.publish(me.correlationId + ".player.html5.timeupdated", (wordIndex + 1) / words.length);
 
                 if (!me.settings.useTextHighlight || !u.voice.localService) {
                     return;
@@ -191,7 +189,7 @@ talkify.Html5Player = function () {
 
                 window.speechSynthesis.cancel();
 
-                talkify.messageHub.publish("player.html5.voiceset", voice);
+                talkify.messageHub.publish(me.correlationId + ".player.html5.voiceset", voice);
 
                 window.setTimeout(function () {
                     window.speechSynthesis.speak(u);
@@ -338,12 +336,12 @@ talkify.Html5Player = function () {
 
     function stop() {
         me.isStopped = true;
-        talkify.messageHub.publish("player.html5.pause");
+        talkify.messageHub.publish(me.correlationId + ".player.html5.pause");
         window.speechSynthesis.cancel();
 
         if (me.currentContext.utterances.indexOf(me.currentContext.currentUtterance) < me.currentContext.utterances.length - 1) {
             console.log('Not the last, finishing anyway...');
-            talkify.messageHub.publish("player.html5.utterancecomplete", me.currentContext.item);
+            talkify.messageHub.publish(me.correlationId + ".player.html5.utterancecomplete", me.currentContext.item);
         }
     };
 };
