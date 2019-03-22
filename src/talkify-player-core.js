@@ -138,19 +138,18 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
         var currentItem = 0;
 
-        var next = function () {
+        talkify.messageHub.subscribe("core-player.playText", "player.*.ended", function(){
             currentItem++;
 
             if (currentItem >= items.length) {
+                talkify.messageHub.unsubscribe("core.playText", "player.*.ended");
                 return;
             }
 
-            this.playItem(items[currentItem])
-                .then(next);
-        };
+            this.playItem(items[currentItem]);
+        });
 
-        this.playItem(items[currentItem])
-            .then(next);
+        this.playItem(items[currentItem]);
     };
 
     this.paused = function () {

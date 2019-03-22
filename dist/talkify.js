@@ -1186,19 +1186,18 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
         var currentItem = 0;
 
-        var next = function () {
+        talkify.messageHub.subscribe("core-player.playText", "player.*.ended", function(){
             currentItem++;
 
             if (currentItem >= items.length) {
+                talkify.messageHub.unsubscribe("core.playText", "player.*.ended");
                 return;
             }
 
-            this.playItem(items[currentItem])
-                .then(next);
-        };
+            this.playItem(items[currentItem]);
+        });
 
-        this.playItem(items[currentItem])
-            .then(next);
+        this.playItem(items[currentItem]);
     };
 
     this.paused = function () {
@@ -1566,7 +1565,12 @@ talkify.playlist = function () {
         voiceCommands.onListeningStarted(settings.events.onVoiceCommandListeningStarted);
         voiceCommands.onListeningEnded(settings.events.onVoiceCommandListeningEnded);
 
-        talkify.messageHub.subscribe("playlist", "player.*.ended", function(){
+        talkify.messageHub.subscribe("playlist", "player.*.ended", function (endedItem) {
+            if (playlist.queue.indexOf(endedItem) === -1) {
+                console.log("Item not in queue..");
+                return;
+            }
+
             var item = getNextItem();
 
             if (!item) {
@@ -1574,7 +1578,7 @@ talkify.playlist = function () {
                 resetPlaybackStates();
                 return;
             }
-            
+
             playItem(item);
         });
 
@@ -1938,7 +1942,7 @@ talkify.playlist = function () {
 
                 talkify.messageHub.unsubscribe("playlist", "player.*.ended");
             },
-            startListeningToVoiceCommands: function() {
+            startListeningToVoiceCommands: function () {
                 voiceCommands.start();
             },
             stopListeningToVoiceCommands: function () {
@@ -1985,9 +1989,9 @@ talkify.playlist = function () {
                 },
                 subscribeTo: function (events) {
                     s.events.onEnded = events.onEnded || function () { };
-                    s.events.onVoiceCommandListeningStarted = events.onVoiceCommandListeningStarted || function() {};
-                    s.events.onVoiceCommandListeningEnded = events.onVoiceCommandListeningEnded || function() {};
-                    
+                    s.events.onVoiceCommandListeningStarted = events.onVoiceCommandListeningStarted || function () { };
+                    s.events.onVoiceCommandListeningEnded = events.onVoiceCommandListeningEnded || function () { };
+
 
                     return this;
                 },
