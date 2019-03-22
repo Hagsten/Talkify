@@ -2,7 +2,7 @@
 window.promise = require('./src/promise.js').promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
-var talkifyGuidGenerator = require('./src/talkify-guidgenerator.js');
+var talkifyUtils = require('./src/talkify-utils.js');
 var talkifyMessageHub = require('./src/talkify-messagehub.js');
 var talkifyHttp = require('./src/talkify-ajax.js');
 var TalkifyTextextractor = require('./src/talkify-textextractor.js');
@@ -16,7 +16,7 @@ var talkifyKeyCommands = require('./src/talkify-keyboard-commands.js');
 var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 var talkifyFormReader = require('./src/talkify-formreader.js');
 
-},{"./src/promise.js":2,"./src/talkify-ajax.js":3,"./src/talkify-config.js":4,"./src/talkify-controlcenter.js":5,"./src/talkify-formreader.js":6,"./src/talkify-guidgenerator.js":7,"./src/talkify-html5-speechsynthesis-player.js":8,"./src/talkify-keyboard-commands.js":9,"./src/talkify-messagehub.js":10,"./src/talkify-player-core.js":11,"./src/talkify-player.js":12,"./src/talkify-playlist.js":13,"./src/talkify-speech-recognition.js":14,"./src/talkify-textextractor.js":15,"./src/talkify-word-highlighter.js":16,"./src/talkify.js":17}],2:[function(require,module,exports){
+},{"./src/promise.js":2,"./src/talkify-ajax.js":3,"./src/talkify-config.js":4,"./src/talkify-controlcenter.js":5,"./src/talkify-formreader.js":6,"./src/talkify-html5-speechsynthesis-player.js":7,"./src/talkify-keyboard-commands.js":8,"./src/talkify-messagehub.js":9,"./src/talkify-player-core.js":10,"./src/talkify-player.js":11,"./src/talkify-playlist.js":12,"./src/talkify-speech-recognition.js":13,"./src/talkify-textextractor.js":14,"./src/talkify-utils.js":15,"./src/talkify-word-highlighter.js":16,"./src/talkify.js":17}],2:[function(require,module,exports){
 /*
  *  Copyright 2012-2013 (c) Pierre Duquesne <stackp@online.fr>
  *  Licensed under the New BSD License.
@@ -54,6 +54,7 @@ talkify.http = (function ajax() {
 },{}],4:[function(require,module,exports){
 talkify = talkify || {};
 talkify.config = {
+    debug: false,
     ui:
     {
         audioControls: {
@@ -557,17 +558,6 @@ talkify.formReader = function () {
     };
 }();
 },{}],7:[function(require,module,exports){
-talkify = talkify || {};
-
-talkify.generateGuid = function() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-};
-
-
-},{}],8:[function(require,module,exports){
 //TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
 talkify = talkify || {};
 
@@ -917,7 +907,7 @@ talkify.Html5Player = function () {
 };
 
 talkify.Html5Player.prototype.constructor = talkify.Html5Player;
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.KeyboardCommands = function (keyboadCommands) {
@@ -968,14 +958,14 @@ talkify.KeyboardCommands = function (keyboadCommands) {
         }
     }
 };
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 talkify = talkify || {};
 talkify.messageHub = function () {
     var subscribers = {};
 
     function publish(topic, message) {
         if (topic.indexOf("timeupdate") === -1) {
-            console.log("Publishing", topic);
+            talkify.log("Publishing", topic);
         }
 
         var topics = topic.split('.');
@@ -1016,7 +1006,7 @@ talkify.messageHub = function () {
         candidates.forEach(function (c) {
             subscribers[c].forEach(function (subscriber) {
                 if (c.indexOf("timeupdate") === -1) {
-                    console.log("Calling subscriber", subscriber, c, message);
+                    talkify.log("Calling subscriber", subscriber, c, message);
                 }
 
                 subscriber.fn(message);
@@ -1038,7 +1028,7 @@ talkify.messageHub = function () {
     function unsubscribe(key, topic) {
         topic = Array.isArray(topic) ? topic : [topic];
 
-        console.log("Unsubscribing", key, topic);
+        talkify.log("Unsubscribing", key, topic);
 
         Object.keys(subscribers).filter(function (subscriberKey) {
             return topic.indexOf(subscriberKey) > -1 ;
@@ -1055,7 +1045,7 @@ talkify.messageHub = function () {
         unsubscribe: unsubscribe
     }
 }();
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar) {
     this.correlationId = talkify.generateGuid();
@@ -1267,7 +1257,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         return this;
     };
 };
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.TtsPlayer = function () {
@@ -1406,9 +1396,9 @@ talkify.TtsPlayer = function () {
 
         audioElement = clonedAudio;
 
-        talkify.messageHub.subscribe("tts-player", this.correlationId + ".controlcenter.request.play", function () { me.play(); });
-        talkify.messageHub.subscribe("tts-player", this.correlationId + ".controlcenter.request.pause", function () { audioElement.pause(); });
-        talkify.messageHub.subscribe("tts-player", this.correlationId + ".controlcenter.request.seek", function (position) {
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.play", function () { me.play(); });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.pause", function () { audioElement.pause(); });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.seek", function (position) {
             var pos = audioElement.duration * position;
 
             if (isNaN(audioElement.duration)) {
@@ -1418,8 +1408,8 @@ talkify.TtsPlayer = function () {
             audioElement.currentTime = pos;
         });
 
-        talkify.messageHub.subscribe("tts-player", this.correlationId + ".controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
-        talkify.messageHub.subscribe("tts-player", this.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
 
         if (me.playbar.instance) {
             me.playbar.instance
@@ -1495,7 +1485,7 @@ talkify.TtsPlayer = function () {
 };
 
 talkify.TtsPlayer.prototype.constructor = talkify.TtsPlayer;
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playlist = function () {
     var defaults = {
@@ -2027,7 +2017,7 @@ talkify.playlist = function () {
 
     };
 };
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.SpeechCommands = function (speechCommandConfig) {
@@ -2223,7 +2213,7 @@ talkify.SpeechCommands = function (speechCommandConfig) {
         dispose: function () {}
     }
 };
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 talkify = talkify || {};
 talkify.textextractor = function () {
     var validElements = [];
@@ -2481,6 +2471,23 @@ talkify.textextractor = function () {
         extract: extract
     };
 };
+},{}],15:[function(require,module,exports){
+talkify = talkify || {};
+
+talkify.generateGuid = function() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
+
+talkify.log = function(){
+    if(talkify.config.debug){
+        console.log.apply(console, arguments);
+    }
+}
+
+
 },{}],16:[function(require,module,exports){
 talkify = talkify || {};
 talkify.wordHighlighter = function (correlationId) {
@@ -2494,22 +2501,28 @@ talkify.wordHighlighter = function (correlationId) {
     });
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.timeupdated", function (timeInfo) {
-        if(!currentPositions.length){
+        if (!currentPositions.length) {
             return;
         }
 
         var time = timeInfo.currentTime * 1000;
 
         var currentPos = 0;
+
+        if (time < currentPositions[0].Position) {
+            highlight(currentItem, currentPositions[0].Word, currentPositions[0].CharPosition);
+            return;
+        }
+
         for (var i = 0; i < currentPositions.length; i++) {
-            if(i === currentPositions.length - 1){
+            if (i === currentPositions.length - 1) {
                 currentPos = i;
                 break;
             }
 
             var position = currentPositions[i].Position;
 
-            if(time >= position && time <= currentPositions[i + 1].Position){
+            if (time >= position && time <= currentPositions[i + 1].Position) {
                 currentPos = i;
                 break;
             }
@@ -2635,7 +2648,7 @@ talkify.wordHighlighter = function (correlationId) {
         };
     }
 
-    function dispose(){
+    function dispose() {
         talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.seeked");
         talkify.messageHub.unsubscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"]);
         talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.play");

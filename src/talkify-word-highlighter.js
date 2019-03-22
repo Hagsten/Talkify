@@ -10,22 +10,28 @@ talkify.wordHighlighter = function (correlationId) {
     });
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.timeupdated", function (timeInfo) {
-        if(!currentPositions.length){
+        if (!currentPositions.length) {
             return;
         }
 
         var time = timeInfo.currentTime * 1000;
 
         var currentPos = 0;
+
+        if (time < currentPositions[0].Position) {
+            highlight(currentItem, currentPositions[0].Word, currentPositions[0].CharPosition);
+            return;
+        }
+
         for (var i = 0; i < currentPositions.length; i++) {
-            if(i === currentPositions.length - 1){
+            if (i === currentPositions.length - 1) {
                 currentPos = i;
                 break;
             }
 
             var position = currentPositions[i].Position;
 
-            if(time >= position && time <= currentPositions[i + 1].Position){
+            if (time >= position && time <= currentPositions[i + 1].Position) {
                 currentPos = i;
                 break;
             }
@@ -151,7 +157,7 @@ talkify.wordHighlighter = function (correlationId) {
         };
     }
 
-    function dispose(){
+    function dispose() {
         talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.seeked");
         talkify.messageHub.unsubscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"]);
         talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.play");

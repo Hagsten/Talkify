@@ -1,7 +1,7 @@
 window.promise = require('./src/promise.js').promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
-var talkifyGuidGenerator = require('./src/talkify-guidgenerator.js');
+var talkifyUtils = require('./src/talkify-utils.js');
 var talkifyMessageHub = require('./src/talkify-messagehub.js');
 var talkifyHttp = require('./src/talkify-ajax.js');
 var TalkifyTextextractor = require('./src/talkify-textextractor.js');

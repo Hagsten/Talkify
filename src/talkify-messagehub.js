@@ -4,7 +4,7 @@ talkify.messageHub = function () {
 
     function publish(topic, message) {
         if (topic.indexOf("timeupdate") === -1) {
-            console.log("Publishing", topic);
+            talkify.log("Publishing", topic);
         }
 
         var topics = topic.split('.');
@@ -45,7 +45,7 @@ talkify.messageHub = function () {
         candidates.forEach(function (c) {
             subscribers[c].forEach(function (subscriber) {
                 if (c.indexOf("timeupdate") === -1) {
-                    console.log("Calling subscriber", subscriber, c, message);
+                    talkify.log("Calling subscriber", subscriber, c, message);
                 }
 
                 subscriber.fn(message);
@@ -67,7 +67,7 @@ talkify.messageHub = function () {
     function unsubscribe(key, topic) {
         topic = Array.isArray(topic) ? topic : [topic];
 
-        console.log("Unsubscribing", key, topic);
+        talkify.log("Unsubscribing", key, topic);
 
         Object.keys(subscribers).filter(function (subscriberKey) {
             return topic.indexOf(subscriberKey) > -1 ;

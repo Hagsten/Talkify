@@ -7,3 +7,9 @@ talkify.generateGuid = function() {
     });
 };
 
+talkify.log = function(){
+    if(talkify.config.debug){
+        console.log.apply(console, arguments);
+    }
+}
+
