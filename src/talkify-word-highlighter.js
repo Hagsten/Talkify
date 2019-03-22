@@ -10,8 +10,6 @@ talkify.wordHighlighter = function () {
     });
 
     talkify.messageHub.subscribe("word-highlighter", "player.tts.timeupdated", function (timeInfo) {
-        // console.log(time);
-
         if(!currentPositions.length){
             return;
         }
@@ -33,8 +31,6 @@ talkify.wordHighlighter = function () {
             }
         }
 
-        //TODO: Här. Verkar funka. Försök bygga bort timern.
-        console.log("Would highlight " + currentPositions[currentPos].Word);
         highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
     });
 
@@ -155,8 +151,16 @@ talkify.wordHighlighter = function () {
         };
     }
 
+    function dispose(){
+        talkify.messageHub.unsubscribe("word-highlighter", "player.tts.seeked");
+        talkify.messageHub.unsubscribe("word-highlighter", ["player.tts.loading", "player.tts.disposed"]);
+        talkify.messageHub.unsubscribe("word-highlighter", "player.tts.play");
+        talkify.messageHub.unsubscribe("word-highlighter", "player.tts.timeupdated");
+    }
+
     return {
         start: setupWordHightlighting,
         highlight: highlight,
+        dispose: dispose
     };
 };

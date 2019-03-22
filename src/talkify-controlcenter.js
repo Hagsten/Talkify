@@ -306,6 +306,17 @@ talkify.playbar = function (parent) {
         if (existingControl) {
             existingControl.parentNode.removeChild(existingControl);
         }
+
+        talkify.messageHub.unsubscribe("controlcenter", ["player.*.pause", "player.*.disposed"]);
+        talkify.messageHub.unsubscribe("controlcenter", ["player.*.play", "player.*.resume"]);
+        talkify.messageHub.unsubscribe("controlcenter", "player.*.disposed");
+        talkify.messageHub.unsubscribe("controlcenter", "player.*.loaded");
+        talkify.messageHub.unsubscribe("controlcenter", "player.*.texthighlight.enabled");
+        talkify.messageHub.unsubscribe("controlcenter", "player.*.texthighlight.disabled");
+        talkify.messageHub.unsubscribe("controlcenter", "player.*.ratechanged");
+        talkify.messageHub.unsubscribe("controlcenter", "player.*.voiceset");
+        talkify.messageHub.unsubscribe("controlcenter", "player.tts.timeupdated");
+        talkify.messageHub.unsubscribe("controlcenter", "player.html5.timeupdated");
     }
 
     initialize();

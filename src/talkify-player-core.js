@@ -179,6 +179,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         this.audioSource.stop();
         
         this.audioSource.dispose();
+        this.wordHighlighter.dispose();
 
         talkify.messageHub.unsubscribe("core-player", "player.*.loaded");
         talkify.messageHub.unsubscribe("core-player", "player.*.ended");
@@ -186,7 +187,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.unsubscribe("core-player", "player.*.pause");
         talkify.messageHub.unsubscribe("core-player", "player.*.resume");
         talkify.messageHub.unsubscribe("core-player", "player.*.play");
-        talkify.messageHub.unsubscribe("core-player", "player.*.loaded");
+        // talkify.messageHub.unsubscribe("core-player", "player.*.loaded");
         talkify.messageHub.unsubscribe("core-player", ["wordhighlighter.complete", "player.html5.utterancecomplete"]);
         talkify.messageHub.unsubscribe("core-player", "player.*.prepareplay");
         talkify.messageHub.unsubscribe("core-player", "controlcenter.texthighlightoggled");

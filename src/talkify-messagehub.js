@@ -3,7 +3,9 @@ talkify.messageHub = function () {
     var subscribers = {};
 
     function publish(topic, message) {
-        console.log("Publishing", topic);
+        if (topic.indexOf("timeupdate") === -1) {
+            console.log("Publishing", topic);
+        }
 
         var topics = topic.split('.');
         var candidates = [];
@@ -42,7 +44,10 @@ talkify.messageHub = function () {
 
         candidates.forEach(function (c) {
             subscribers[c].forEach(function (subscriber) {
-                console.log("Calling subscriber", subscriber, message);
+                if (c.indexOf("timeupdate") === -1) {
+                    console.log("Calling subscriber", subscriber, c, message);
+                }
+
                 subscriber.fn(message);
             });
         })
@@ -60,12 +65,14 @@ talkify.messageHub = function () {
     }
 
     function unsubscribe(key, topic) {
+        topic = Array.isArray(topic) ? topic : [topic];
+
         console.log("Unsubscribing", key, topic);
 
-        Object.keys(subscribers).filter(function(subscriberKey){
-            return subscriberKey === topic;
+        Object.keys(subscribers).filter(function (subscriberKey) {
+            return topic.indexOf(subscriberKey) > -1 ;
         }).forEach(function (subscriberKey) {
-            subscribers[subscriberKey] = subscribers[subscriberKey].filter(function(subscriber){
+            subscribers[subscriberKey] = subscribers[subscriberKey].filter(function (subscriber) {
                 return subscriber.key !== key;
             });
         });
