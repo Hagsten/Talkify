@@ -1,20 +1,11 @@
 talkify = talkify || {};
-talkify.playbar = function (parent) {
+talkify.playbar = function (parent, correlationId) {
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
-    var audioSrcElement, attachElement, detatchedElement, dragArea;
-
-    var events = {
-        onPlayClicked: function () { },
-        onPauseClicked: function () { },
-        onVolumeChanged: function () { },
-        onRateChanged: function () { },
-        onTextHighlightingClicked: function () { },
-        onSeek: function () { }
-    }
+    var attachElement, detatchedElement, dragArea;
 
     function hide(element) {
         if (element.classList.contains("talkify-hidden")) {
@@ -146,33 +137,32 @@ talkify.playbar = function (parent) {
                 return;
             }
 
-            events.onPlayClicked();
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.play");
         });
 
         pauseElement.addEventListener("click", function () {
             if (pauseElement.classList.contains("talkify-disabled")) {
                 return;
             }
-
-            events.onPauseClicked();
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.pause");
         });
 
         rateElement.addEventListener("change", function () {
-            events.onRateChanged(parseInt(this.value));
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.rate", parseInt(this.value));
         });
 
         volumeElement.addEventListener("change", function (e) {
-            events.onVolumeChanged(parseInt(this.value));
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.volume", parseInt(this.value));
         });
 
         textHighlightingElement.addEventListener("click", function (e) {
             if (textHighlightingElement.classList.contains("talkify-disabled")) {
                 removeClass(textHighlightingElement, "talkify-disabled");
+                talkify.messageHub.publish(correlationId + ".controlcenter.texthighlightoggled", true);
             } else {
                 addClass(textHighlightingElement, "talkify-disabled");
+                talkify.messageHub.publish(correlationId + ".controlcenter.texthighlightoggled", false);
             }
-
-            events.onTextHighlightingClicked();
         });
 
         progressElement.addEventListener("click", function (e) {
@@ -186,7 +176,7 @@ talkify.playbar = function (parent) {
                 clickedValue = 0.0;
             }
 
-            events.onSeek(clickedValue);
+            talkify.messageHub.publish(correlationId + ".controlcenter.request.seek", clickedValue);
         });
 
         attachElement.addEventListener("click", function () {
@@ -217,35 +207,57 @@ talkify.playbar = function (parent) {
     function initialize() {
         render();
         setupBindings();
+
+        talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.pause", correlationId + ".player.*.disposed"], pause);
+        talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.play", correlationId + ".player.*.resume"], play);
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.disposed", dispose);
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.loaded", function () {
+            removeClass(pauseElement, "talkify-disabled");
+            removeClass(playElement, "talkify-disabled");
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.texthighlight.enabled", function () {
+            removeClass(textHighlightingElement, "talkify-disabled");
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.texthighlight.disabled", function () {
+            addClass(textHighlightingElement, "talkify-disabled");
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.ratechanged", function (rate) {
+            rateElement.value = rate;;
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.voiceset", function (voice) {
+            featureToggle(voice);
+            setVoiceName(voice);
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.timeupdated", updateClock);
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.html5.timeupdated", function (value) {
+            progressElement.setAttribute("value", value);
+        });
     };
 
-    function updateClock(e) {
+    function updateClock(timeInfo) {
+        var currentTime = timeInfo.currentTime;
+        var duration = timeInfo.duration;
         //TODO: Over tunnels duration === NaN. Look @ http://stackoverflow.com/questions/10868249/html5-audio-player-duration-showing-nan
-        progressElement.setAttribute("value", e.target.currentTime / e.target.duration);
+        progressElement.setAttribute("value", currentTime / duration);
 
         if (!currentTimeElement) {
             return;
         }
 
-        var currentminutes = Math.floor(e.target.currentTime / 60);
-        var currentseconds = Math.round(e.target.currentTime) - (currentminutes * 60);
+        var currentminutes = Math.floor(currentTime / 60);
+        var currentseconds = Math.round(currentTime) - (currentminutes * 60);
 
-        var totalminutes = !!e.target.duration ? Math.floor(e.target.duration / 60) : 0;
-        var totalseconds = !!e.target.duration ? Math.round(e.target.duration) - (totalminutes * 60) : 0;
+        var totalminutes = !!duration ? Math.floor(duration / 60) : 0;
+        var totalseconds = !!duration ? Math.round(duration) - (totalminutes * 60) : 0;
 
         currentTimeElement.textContent = currentminutes + ":" + ((currentseconds < 10) ? "0" + currentseconds : currentseconds) +
             " / " +
             totalminutes + ":" + ((totalseconds < 10) ? "0" + totalseconds : totalseconds);
-    }
-
-    function listenToAudioSrc(src) {
-        if (!(src instanceof Node)) {
-            return;
-        }
-
-        audioSrcElement = src;
-
-        audioSrcElement.addEventListener("timeupdate", updateClock, false);
     }
 
     function isTalkifyHostedVoice(voice) {
@@ -288,22 +300,28 @@ talkify.playbar = function (parent) {
         voiceElement.textContent = voice.name;
     }
 
+    function dispose() {
+        var existingControl = document.getElementById("htmlPlaybar");
+
+        if (existingControl) {
+            existingControl.parentNode.removeChild(existingControl);
+        }
+
+        talkify.messageHub.unsubscribe("controlcenter", [correlationId + ".player.*.pause", correlationId + ".player.*.disposed"]);
+        talkify.messageHub.unsubscribe("controlcenter", [correlationId + ".player.*.play", correlationId + ".player.*.resume"]);
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.disposed");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.loaded");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.texthighlight.enabled");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.texthighlight.disabled");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.ratechanged");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.voiceset");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.timeupdated");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.timeupdated");
+    }
+
     initialize();
 
     return {
-        subscribeTo: function (subscriptions) {
-            events.onPauseClicked = subscriptions.onPauseClicked || events.onPauseClicked;
-            events.onPlayClicked = subscriptions.onPlayClicked || events.onPlayClicked;
-            events.onRateChanged = subscriptions.onRateChanged || events.onRateChanged;
-            events.onVolumeChanged = subscriptions.onVolumeChanged || events.onVolumeChanged;
-            events.onTextHighlightingClicked = subscriptions.onTextHighlightingClicked || events.onTextHighlightingClicked;
-            events.onSeek = subscriptions.onSeek || events.onSeek;
-            return this;
-        },
-        setRate: function (value) {
-            rateElement.value = value;
-            return this;
-        },
         setMaxRate: function (value) {
             rateElement.setAttribute("max", value);
             return this;
@@ -312,42 +330,6 @@ talkify.playbar = function (parent) {
             rateElement.setAttribute("min", value);
             return this;
         },
-        audioLoaded: function () {
-            removeClass(pauseElement, "talkify-disabled");
-            removeClass(playElement, "talkify-disabled");
-        },
-        markAsPaused: pause,
-        markAsPlaying: play,
-        setTextHighlight: function (enabled) {
-            if (enabled) {
-                removeClass(textHighlightingElement, "talkify-disabled");
-                return;
-            }
-
-            addClass(textHighlightingElement, "talkify-disabled");
-        },
-        setProgress: function (value) {
-            progressElement.setAttribute("value", value);
-        },
-        setVoice: function (voice) {
-            featureToggle(voice);
-            setVoiceName(voice);
-
-            return this;
-        },
-        setAudioSource: function (src) {
-            listenToAudioSrc(src);
-        },
-        dispose: function () {
-            var existingControl = document.getElementById("htmlPlaybar");
-
-            if (existingControl) {
-                existingControl.parentNode.removeChild(existingControl);
-            }
-
-            if (audioSrcElement) {
-                audioSrcElement.removeEventListener("timeupdate", updateClock);
-            }
-        }
+        dispose: dispose
     }
 }

@@ -7,7 +7,6 @@ talkify.Html5Player = function () {
 
     this.currentContext = {
         item: null,
-        endedCallback: function () { },
         utterances: [],
         currentUtterance: null
     };
@@ -27,7 +26,7 @@ talkify.Html5Player = function () {
         pause: function () {
             window.speechSynthesis.pause();
 
-            me.internalEvents.onPause();
+            talkify.messageHub.publish(me.correlationId + ".player.html5.pause");
         },
         ended: function () { return !window.speechSynthesis.speaking; },
         isPlaying: function () { return window.speechSynthesis.speaking; },
@@ -43,22 +42,27 @@ talkify.Html5Player = function () {
         stop: function () {
             stop();
         },
-        dispose: function () { }
+        dispose: function () {
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.play");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.pause");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.volume");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.rate");
+        }
     };
 
     talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
-    this.playAudio = function (item, onEnded) {
-        me.currentContext.endedCallback = onEnded;
+    this.playAudio = function (item) {
+        // me.currentContext.endedCallback = onEnded;
         me.currentContext.item = item;
         me.currentContext.utterances = [];
         me.currentContext.currentUtterance = null;
-        me.mutateControls(function (instance) {
-            instance.audioLoaded();
-        });
+        // me.mutateControls(function (instance) {
+        //     instance.audioLoaded();
+        // });
 
         //if (me.settings.lockedLanguage !== null) {
-        return playCurrentContext();
+        playCurrentContext();
         //}
 
         //TODO: Need better server side help here with refLang
@@ -82,26 +86,13 @@ talkify.Html5Player = function () {
         return this;
     };
 
-    this.mutateControls(function (c) {
-        c.subscribeTo({
-            onPlayClicked: function () {
-                me.audioSource.play();
-            },
-            onPauseClicked: function () {
-                me.pause();
-            },
-            onVolumeChanged: function (volume) {
-                me.volume = volume / 10;
-            },
-            onRateChanged: function (rate) {
-                me.settings.rate = rate / 5;
-            }
-        }).setVoice(me.forcedVoice);
-    });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.play", function () { me.audioSource.play(); });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.pause", function () { me.pause(); });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
 
     function playCurrentContext() {
         var item = me.currentContext.item;
-        var onEnded = me.currentContext.endedCallback;
 
         var chuncks = chunckText(item.text);
 
@@ -119,14 +110,12 @@ talkify.Html5Player = function () {
             me.currentContext.utterances.push(utterance);
         });
 
-        var p = new promise.Promise();
-
         var wordIndex = 0;
         var previousCharIndex = 0;
         var words = extractWords(item.text);
 
         me.currentContext.utterances[me.currentContext.utterances.length - 1].onend = function (e) {
-            me.events.onSentenceComplete(item);
+            talkify.messageHub.publish(me.correlationId + ".player.html5.utterancecomplete", item);
 
             if (!me.currentContext.currentUtterance) {
                 return;
@@ -136,8 +125,8 @@ talkify.Html5Player = function () {
                 return;
             }
 
-            if (onEnded && !me.isStopped) {
-                onEnded();
+            if (!me.isStopped) {
+                talkify.messageHub.publish(me.correlationId + ".player.html5.ended", item);
             }
         };
 
@@ -145,8 +134,8 @@ talkify.Html5Player = function () {
             if (index === 0) {
                 u.onstart = function (e) {
                     me.currentContext.currentUtterance = e.utterance;
-                    p.done();
-                    me.internalEvents.onPlay();
+                    talkify.messageHub.publish(me.correlationId + ".player.html5.loaded", me.currentContext.item);
+                    talkify.messageHub.publish(me.correlationId + ".player.html5.play", { item: me.currentContext.item, positions: [], currentTime: 0 });
                 };
             } else {
                 u.onstart = function (e) {
@@ -155,7 +144,7 @@ talkify.Html5Player = function () {
             }
 
             u.onpause = function () {
-                me.internalEvents.onPause();
+                talkify.messageHub.publish(me.correlationId + ".player.html5.pause");
             };
 
             u.onresume = function () { };
@@ -165,18 +154,11 @@ talkify.Html5Player = function () {
                     return;
                 }
 
-                me.mutateControls(function (c) {
-                    c.setProgress((wordIndex + 1) / words.length);
-                });
+                talkify.messageHub.publish(me.correlationId + ".player.html5.timeupdated", (wordIndex + 1) / words.length);
 
                 if (!me.settings.useTextHighlight || !u.voice.localService) {
                     return;
                 }
-
-
-                //if (!words[wordIndex]) {
-                //    return;
-                //}
 
                 var fromIndex = 0;
 
@@ -207,17 +189,13 @@ talkify.Html5Player = function () {
 
                 window.speechSynthesis.cancel();
 
-                me.mutateControls(function (c) {
-                    c.setVoice(voice);
-                });
+                talkify.messageHub.publish(me.correlationId + ".player.html5.voiceset", voice);
 
                 window.setTimeout(function () {
                     window.speechSynthesis.speak(u);
                 }, 100);
             });
         });
-
-        return p;
     };
 
     function chunckText(text) {
@@ -358,12 +336,12 @@ talkify.Html5Player = function () {
 
     function stop() {
         me.isStopped = true;
-        me.internalEvents.onPause();
+        talkify.messageHub.publish(me.correlationId + ".player.html5.pause");
         window.speechSynthesis.cancel();
 
         if (me.currentContext.utterances.indexOf(me.currentContext.currentUtterance) < me.currentContext.utterances.length - 1) {
             console.log('Not the last, finishing anyway...');
-            me.events.onSentenceComplete(me.currentContext.item);
+            talkify.messageHub.publish(me.correlationId + ".player.html5.utterancecomplete", me.currentContext.item);
         }
     };
 };
