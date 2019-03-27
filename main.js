@@ -1,4 +1,4 @@
-window.promise = require('./src/promise.js').promise;
+window.promise = require('./src/promise.js').Promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
 var talkifyUtils = require('./src/talkify-utils.js');
