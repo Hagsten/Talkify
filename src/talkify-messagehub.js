@@ -11,6 +11,11 @@ talkify.messageHub = function () {
         var candidates = [];
 
         Object.keys(subscribers).forEach(function (subscriberKey) {
+            if(subscriberKey === '*'){
+                candidates.push(subscriberKey);
+                return;
+            }
+
             var s = subscriberKey.split('.');
 
             if (s.length != topics.length) {
@@ -48,7 +53,7 @@ talkify.messageHub = function () {
                     talkify.log("Calling subscriber", subscriber, c, message);
                 }
 
-                subscriber.fn(message);
+                subscriber.fn(message, topic);
             });
         })
 

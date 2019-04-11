@@ -63,10 +63,10 @@ talkify.playbar = function (parent, correlationId) {
             ' <i class="fa fa-grip-horizontal"></i> ' +
             ' </li> ' +
             ' <li> ' +
-            ' <button class="talkify-play-button" title="Play"> ' +
+            ' <button class="talkify-play-button talkify-disabled" title="Play"> ' +
             ' <i class="fa fa-play"></i> ' +
             ' </button> ' +
-            ' <button class="talkify-pause-button" title="Pause"> ' +
+            ' <button class="talkify-pause-button talkify-disabled" title="Pause"> ' +
             ' <i class="fa fa-pause"></i> ' +
             ' </button> ' +
             ' </li> ' +
@@ -261,7 +261,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function isTalkifyHostedVoice(voice) {
-        return voice && voice.isTalkify;
+        return voice && voice.constructor.name !== "SpeechSynthesisVoice";
     }
 
     function featureToggle(voice) {

@@ -327,8 +327,8 @@ talkify.playlist = function () {
                 });
 
             function onComplete(refLang) {
-                playlist.referenceLanguage = refLang;
-                player.withReferenceLanguage(refLang);
+                playlist.referenceLanguage = { Culture: refLang.Cultures[0], Language: refLang.Language };
+                player.withReferenceLanguage(playlist.referenceLanguage);
 
                 playItem(playlist.queue[0]);
             }
