@@ -6,7 +6,7 @@ talkify.http = (function ajax() {
 
         var keypart = (url.indexOf('?') !== -1 ? "&key=" : "?key=") + talkify.config.remoteService.apiKey;
 
-        promise
+        promise.promise
             .get(window.talkify.config.remoteService.host + url + keypart)
             .then(function(error, data) {
                 try {
