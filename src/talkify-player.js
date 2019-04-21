@@ -159,7 +159,7 @@ talkify.TtsPlayer = function () {
     }
 
     function getPositions(requestId) {
-        var p = new promise.Promise();
+        var p = new promise.promise.Promise();
 
         talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/marks?id=" + requestId)
             .then(function (error, positions) {

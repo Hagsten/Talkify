@@ -28,7 +28,7 @@ talkify = talkify || {};
 talkify.http = (function ajax() {
 
     var get = function(url) {
-        var call = new promise.Promise();
+        var call = new promise.promise.Promise();
 
         var keypart = (url.indexOf('?') !== -1 ? "&key=" : "?key=") + talkify.config.remoteService.apiKey;
 
@@ -363,7 +363,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function isTalkifyHostedVoice(voice) {
-        return voice && voice.constructor.name !== "SpeechSynthesisVoice";//voice.isTalkify;
+        return voice && voice.constructor.name !== "SpeechSynthesisVoice";
     }
 
     function featureToggle(voice) {
@@ -893,7 +893,7 @@ talkify.Html5Player = function () {
     };
 
     function getVoice() {
-        var p = new promise.Promise();
+        var p = new promise.promise.Promise();
 
         if (me.forcedVoice) {
             p.done(me.forcedVoice);
@@ -1452,7 +1452,7 @@ talkify.TtsPlayer = function () {
     }
 
     function getPositions(requestId) {
-        var p = new promise.Promise();
+        var p = new promise.promise.Promise();
 
         talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/marks?id=" + requestId)
             .then(function (error, positions) {

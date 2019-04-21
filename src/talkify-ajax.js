@@ -2,7 +2,7 @@
 talkify.http = (function ajax() {
 
     var get = function(url) {
-        var call = new promise.Promise();
+        var call = new promise.promise.Promise();
 
         var keypart = (url.indexOf('?') !== -1 ? "&key=" : "?key=") + talkify.config.remoteService.apiKey;
 

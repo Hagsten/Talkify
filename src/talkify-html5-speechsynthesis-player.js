@@ -333,7 +333,7 @@ talkify.Html5Player = function () {
     };
 
     function getVoice() {
-        var p = new promise.Promise();
+        var p = new promise.promise.Promise();
 
         if (me.forcedVoice) {
             p.done(me.forcedVoice);
