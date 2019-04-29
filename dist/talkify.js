@@ -1636,7 +1636,7 @@ talkify.playlist = function () {
                 //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
-                item.element.classList.remove("playing");
+                item.element.classList.remove("playing"); 
             }
         };
 
@@ -1970,6 +1970,12 @@ talkify.playlist = function () {
             },
             dispose: function () {
                 resetPlaybackStates();
+
+                for (var i = 0; i < playlist.queue.length; i++) {
+                    var item = playlist.queue[i];
+    
+                    removeUserInteractionForItem(item);
+                }
 
                 for (var i = 0; i < commands.length; i++) {
                     commands[i].dispose();
