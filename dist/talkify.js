@@ -1839,7 +1839,7 @@ talkify.playlist = function () {
             talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + playlist.refrenceText)
                 .then(function (error, data) {
                     if (error) {
-                        onComplete({ Culture: '', Language: -1 });
+                        onComplete({ Cultures: [], Language: -1 });
 
                         return;
                     }
@@ -2528,7 +2528,7 @@ talkify.wordHighlighter = function (correlationId) {
     var currentPositions = [];
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
-    talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"], cancel);
+    talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed", correlationId + ".player.tts.ended"], cancel);
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
     });

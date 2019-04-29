@@ -318,7 +318,7 @@ talkify.playlist = function () {
             talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + playlist.refrenceText)
                 .then(function (error, data) {
                     if (error) {
-                        onComplete({ Culture: '', Language: -1 });
+                        onComplete({ Cultures: [], Language: -1 });
 
                         return;
                     }
