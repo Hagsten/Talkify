@@ -5,7 +5,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
-    var attachElement, detatchedElement, dragArea;
+    var attachElement, detatchedElement, dragArea, loader;
 
     function hide(element) {
         if (element.classList.contains("talkify-hidden")) {
@@ -20,6 +20,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function play() {
+        hide(loader);
         hide(playElement);
         show(pauseElement);
     }
@@ -64,11 +65,12 @@ talkify.playbar = function (parent, correlationId) {
             ' </li> ' +
             ' <li> ' +
             ' <button class="talkify-play-button talkify-disabled" title="Play"> ' +
-            ' <i class="fa fa-play"></i> ' +
+                ' <i class="fa fa-play"></i> ' +
             ' </button> ' +
             ' <button class="talkify-pause-button talkify-disabled" title="Pause"> ' +
-            ' <i class="fa fa-pause"></i> ' +
+                ' <i class="fa fa-pause"></i> ' +
             ' </button> ' +
+            ' <div class="audio-loading"><div></div><div></div></div> ' +            
             ' </li> ' +
             ' <li class="progress-wrapper"> ' +
             ' <progress value="0.0" max="1.0"></progress> ' +
@@ -114,6 +116,7 @@ talkify.playbar = function (parent, correlationId) {
 
         playElement = wrapper.getElementsByClassName("talkify-play-button")[0];
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0];
+        loader = wrapper.getElementsByClassName("audio-loading")[0];
         rateElement = wrapper.querySelector(".rate-button input[type=range]");
         volumeElement = wrapper.querySelector(".volume-button input[type=range]");
         progressElement = wrapper.getElementsByTagName("progress")[0];
@@ -211,6 +214,12 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.pause", correlationId + ".player.*.disposed"], pause);
         talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.play", correlationId + ".player.*.resume"], play);
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.disposed", dispose);
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.loading", function(){
+            hide(playElement);
+            hide(pauseElement);
+            show(loader);
+        });
+
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.loaded", function () {
             removeClass(pauseElement, "talkify-disabled");
             removeClass(playElement, "talkify-disabled");
@@ -311,6 +320,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.unsubscribe("controlcenter", [correlationId + ".player.*.play", correlationId + ".player.*.resume"]);
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.disposed");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.loaded");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.loading");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.texthighlight.enabled");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.texthighlight.disabled");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.ratechanged");
