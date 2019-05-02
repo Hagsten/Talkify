@@ -26,6 +26,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function pause() {
+        hide(loader);
         hide(pauseElement);
         show(playElement);
     }
@@ -128,6 +129,8 @@ talkify.playbar = function (parent, correlationId) {
         dragArea = wrapper.getElementsByClassName("drag-area")[0];
 
         settings.parentElement.appendChild(wrapper);
+
+        hide(loader);
 
         pause();
     }
