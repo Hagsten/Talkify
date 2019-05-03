@@ -173,7 +173,7 @@ talkify.playbar = function (parent, correlationId) {
             ' <button class="talkify-pause-button talkify-disabled" title="Pause"> ' +
                 ' <i class="fa fa-pause"></i> ' +
             ' </button> ' +
-            ' <div class="audio-loading"><div></div><div></div></div> ' +            
+            ' <i class="fa fa-circle-notch fa-spin audio-loading"></i>' +
             ' </li> ' +
             ' <li class="progress-wrapper"> ' +
             ' <progress value="0.0" max="1.0"></progress> ' +
