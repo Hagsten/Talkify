@@ -415,7 +415,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function dispose() {
-        var existingControl = document.getElementById("htmlPlaybar");
+        var existingControl = document.getElementsByClassName("talkify-control-center")[0];
 
         if (existingControl) {
             existingControl.parentNode.removeChild(existingControl);
