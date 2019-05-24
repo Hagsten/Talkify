@@ -61,7 +61,7 @@ player.playText('Hello world');
 ```
 
 ## React to events
-Talkify provides two event models - PubSub and classic callbacks.The newest model is the PubSub model which is the primary model. PubSub is a loosly coupled model which enables client applications to hook in to the playback pipeline. To subscribe to events you will need to pass a context key (used when unsubscribing) as well as the event type and the event handler function. The event type is a string containing topics. An event is normally divider into 4 topics - context, origin, type and action.
+Talkify provides two event models - PubSub and classic callbacks. The newest, and primary, model is the PubSub model. PubSub is a loosly coupled model which enables client applications to hook in to the Talkify pipeline. To subscribe to events you will need to pass a context key (used when unsubscribing) as well as the event type and the event handler function. The event type is a string containing topics. An event is normally divided into 4 topics - context, origin, type and action.
 
 ### The Context topic
 You would use this top level topic if you run multiple instances of Talkify. This allows you to hook into a specific Talkify instance. If you want to listen to all instances or only have one just specify "*". You will find the context ID in the property "correlationId" of your Player instance.
