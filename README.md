@@ -20,7 +20,7 @@ $ npm install talkify-tts
 ```
 
 # Dependencies
-- None
+Font Awesome 5+ (Used in Talkify Control Center)
 
 # Usage
 
@@ -60,8 +60,33 @@ var player = new talkify.TtsPlayer(); //or new talkify.Html5Player()
 player.playText('Hello world');
 ```
 
-# Features
+## React to events
+Talkify provides two event models - PubSub and classic callbacks.The newest model is the PubSub model which is the primary model. PubSub is a loosly coupled model which enables client applications to hook in to the playback pipeline. To subscribe to events you will need to pass a context key (used when unsubscribing) as well as the event type and the event handler function. The event type is a string containing topics. An event is normally divider into 4 topics - context, origin, type and action.
 
+### The Context topic
+You would use this top level topic if you run multiple instances of Talkify. This allows you to hook into a specific Talkify instance. If you want to listen to all instances or only have one just specify "*". You will find the context ID in the property "correlationId" of your Player instance.
+
+### The Origin topic
+Where the event originates from. For example "player" or "controlcenter". A common use case is to listen to player events which is done by specifying "player" in this topic section.
+
+### The type topic
+Type of event. For example "tts" for TTS-based events. 
+
+### The action topic
+This is the topic that describes what action is taken. This can be "play", "loading", "pause" and so forth.
+
+Putting all 4 topics together forms the event type to listen to. You can replace any part with the wildcard "*" which means that you listens to all events of the given topic.
+
+A few examples can be seen below. A full list of events supported is listed [Here](#PubSub-events).
+
+```javascript
+talkify.messageHub.subscribe("[key]", "*", function () {}); //all events
+talkify.messageHub.subscribe("[key]", "*.player.tts.play", function () {}); //play events from TtsPlayer
+talkify.messageHub.subscribe("[key]", "*.player.tts.*", function () {}) //all events from TtsPlayer
+talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play events from all player types
+```
+
+# Features
 - High qualiy voices
 - Light weight (15-25Kb minified)
 - Multi lingual with built in language detection (i.e. if the text is in english, an english voice is used). Supported languages:
@@ -80,6 +105,7 @@ player.playText('Hello world');
 # Configuration
 ```javascript
 talkify.config = {
+    debug: false, //true to turn on debug print outs
     remoteService: {
         host : 'https://talkify.net',
         apiKey = 'your-api-key',
@@ -212,6 +238,9 @@ Example: talkify.formReader.addForm(document.getElementById("form-id"));
 |----------|:------ |:------|:-------------|
 | addForm   | form element | None |   Adds TTS functionality to the form.         |
 | removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
+
+## PubSub events
+TBD
 
 # License
 GPLv3
