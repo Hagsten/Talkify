@@ -61,6 +61,8 @@ player.playText('Hello world');
 ```
 
 ## React to events
+TLDR; Example @ http://jsfiddle.net/andreas_hagsten/x6pve0jd/8/
+
 Talkify provides two event models - PubSub and classic callbacks. The newest, and primary, model is the PubSub model. PubSub is a loosly coupled model which enables client applications to hook in to the Talkify pipeline. To subscribe to events you will need to pass a context key (used when unsubscribing) as well as the event type and the event handler function. The event type is a string containing topics. An event is normally divided into 4 topics - context, origin, type and action.
 
 ### The Context topic
