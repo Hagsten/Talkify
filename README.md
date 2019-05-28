@@ -89,17 +89,26 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 ```
 
 # Features
-- High qualiy voices
-- Light weight (15-25Kb minified)
-- Multi lingual with built in language detection (i.e. if the text is in english, an english voice is used). Supported languages:
-  - English
-  - Spanish
-  - French
-  - Chinese
-  - Japanese
-  - Korean
-  - Swedish
-  - German
+- High qualiy voices (https://manage.talkify.net/docs#voices)
+- Light weight (~60Kb minified)
+- Multi lingual with built in, basic, language detection* (i.e. if the text is in english, an english voice is used). Supported languages:
+  - English* 
+  - Spanish*
+  - French*
+  - Chinese*
+  - Japanese*
+  - Korean*
+  - Swedish*
+  - German*
+  - Norwegian
+  - Islandic
+  - Danish
+  - Russian
+  - Turkish
+  - Dutch
+  - Portuguese
+  - Polish
+  
 - Text highligting for easy read along
 - Download as mp3
 - Playback of entire website or paragraph/s of your choice
