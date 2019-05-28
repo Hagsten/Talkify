@@ -251,7 +251,43 @@ Example: talkify.formReader.addForm(document.getElementById("form-id"));
 | removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
 
 ## PubSub events
-TBD
+| Type | args (TBD) |
+|----------|:------ |
+| {contextId}.player.tts.ratechanged |  |
+| {contextId}.player.tts.seeked |  |
+| {contextId}.player.tts.pause |  |
+| {contextId}.player.tts.timeupdated |  |
+| {contextId}.player.tts.play |  |
+| {contextId}.player.tts.resume |  |
+| {contextId}.player.tts.loading |  |
+| {contextId}.player.tts.loaded |  |
+| {contextId}.player.tts.ended |  |
+| {contextId}.player.tts.voiceset |  |
+| {contextId}.player.tts.texthighlight.enabled |  |
+| {contextId}.player.tts.texthighlight.disabled |  |
+| {contextId}.player.tts.prepareplay |  |
+| {contextId}.player.tts.disposed |  |
+| - | - |
+| {contextId}.player.html5.ratechanged |  |
+| {contextId}.player.html5.pause |  |
+| {contextId}.player.html5.utterancecomplete |  |
+| {contextId}.player.html5.ended |  |
+| {contextId}.player.html5.loaded |  |
+| {contextId}.player.html5.play |  |
+| {contextId}.player.html5.timeupdated |  |
+| {contextId}.player.html5.voiceset |  |
+| {contextId}.player.html5.texthighlight.enabled |  |
+| {contextId}.player.html5.texthighlight.disabled |  |
+| {contextId}.player.html5.prepareplay |  |
+| - | - |
+| {contextId}.controlcenter.request.play |  |
+| {contextId}.controlcenter.request.pause |  |
+| {contextId}.controlcenter.request.rate |  |
+| {contextId}.controlcenter.request.volume |  |
+| {contextId}.controlcenter.request.texthighlightoggled |  |
+| - | - |
+| {contextId}.wordhighlighter.complete |  |
+
 
 # License
 GPLv3
