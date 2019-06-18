@@ -108,6 +108,10 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
   - Dutch
   - Portuguese
   - Polish
+  - Ukranian
+  - Slovak
+  - Romanian
+  - Welsh
   
 - Text highligting for easy read along
 - Download as mp3
