@@ -310,7 +310,7 @@ talkify.playlist = function () {
 
         function playFromBeginning() {
             if (!talkify.config.remoteService.active) {
-                onComplete({ Culture: '', Language: -1 });
+                onComplete({ Cultures: [], Language: -1 });
 
                 return;
             }
