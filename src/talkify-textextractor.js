@@ -3,7 +3,7 @@ talkify.textextractor = function () {
     var validElements = [];
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
-    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt'];
+    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt']; //removed br...revert?
     var userExcludedElements = [];
 
     function getVisible(elements) {
@@ -61,6 +61,10 @@ talkify.textextractor = function () {
     }
 
     function isValidForGrouping(node) {
+        if(node.nodeName === "BR"){
+            return true;
+        }
+        
         var isTextNode = node.nodeType === 3;
         var textLength = getStrippedText(node.textContent).length;
 
@@ -96,7 +100,7 @@ talkify.textextractor = function () {
     function wrapInSelectableElement(node) {
         wrapping = document.createElement('span');
         wrapping.classList.add("foobar");
-        wrapping.innerText = node.textContent;
+        wrapping.innerText = node.textContent.trim();
         return wrapping;
     }
 
@@ -175,8 +179,6 @@ talkify.textextractor = function () {
         validElements = [];
 
         var topLevelElements = document.querySelectorAll(rootSelector + ' > ' + generateExcludesFromForbiddenElements());
-
-        var date = new Date();
 
         for (var i = 0; i < topLevelElements.length; i++) {
             var element = topLevelElements[i];

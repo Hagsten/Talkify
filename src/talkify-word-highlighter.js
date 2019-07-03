@@ -44,7 +44,11 @@ talkify.wordHighlighter = function (correlationId) {
         resetCurrentItem();
 
         currentItem = item;
-        var text = item.element.innerText.trim();
+
+        //TODO: Fixa text highlighting med SSML på. Kontrollera också att SAPI och Amazon fungerar lika
+        var text = item.ssml ? item.ssml : item.text;//item.element.innerText.trim();
+
+        //Om det är SSML så är charposition anpassad...
 
         var sentence = findCurrentSentence(item, charPosition);
 

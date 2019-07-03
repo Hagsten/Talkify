@@ -24,7 +24,6 @@ talkify.playlist = function () {
     }
 
     function implementation(_settings, player) {
-
         var textextractor = new talkify.textextractor();
 
         var playlist = {
@@ -167,7 +166,7 @@ talkify.playlist = function () {
             p = player.playItem(item);
         };
 
-        function createItems(text, element) {
+        function createItems(text, ssml, element) {
             var safeMaxQuerystringLength = 1000;
 
             var items = [];
@@ -181,21 +180,22 @@ talkify.playlist = function () {
 
                 items.push(template(f, element));
 
-                items = items.concat(createItems(text.substr(breakAt, text.length - 1), element));
+                items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
 
                 return items;
             }
 
-            items.push(template(text, element));
+            items.push(template(text, ssml, element));
 
             return items;
 
-            function template(t, el) {
+            function template(t, s, el) {
                 el = el || document.createElement("span");
                 var clone = el.cloneNode(true);
 
                 return {
                     text: t,
+                    ssml: s,
                     preview: t.substr(0, 40),
                     element: el,
                     originalElement: clone,
@@ -249,14 +249,52 @@ talkify.playlist = function () {
                 settings.domElements = textextractor.extract(settings.rootSelector, settings.exclusions);
             }
 
+            var ssmlMappings = {
+                b: {
+                    start: '#emphasis level="strong">',
+                    end: '#/emphasis>'
+                },
+                strong: {
+                    start: '#emphasis level="strong">',
+                    end: '#/emphasis>'
+                },
+                em: {
+                    start: '#emphasis level="strong">',
+                    end: '#/emphasis>'
+                },
+                i: {
+                    start: '#emphasis level="reduced">',
+                    end: '#/emphasis>'
+                },
+                br: {
+                    start: '#break strength="x-strong">#/break>',
+                    end: ''
+                }
+            };
+
+
             for (var i = 0; i < settings.domElements.length; i++) {
-                var text;
+                var text, ssml;
                 var element = null;
 
                 if (typeof settings.domElements[i] === "string") {
                     text = settings.domElements[i];
                 } else {
                     element = settings.domElements[i];
+
+                    var ssml = element.innerHTML.trim();
+
+                    //TODO: remove all other occurances of html tags
+                    for (var key in ssmlMappings) {
+                        ssml = ssml.split('<' + key + '>').join(ssmlMappings[key].start);
+                        ssml = ssml.split('</' + key + '>').join(ssmlMappings[key].end);
+                    }
+
+                    ssml = ssml.replace(/<[^>]*>?/gm, '');
+                    ssml = ssml.split('#').join('<');
+
+                    console.log("SSML", ssml);
+
                     text = element.innerText.trim();
                 }
 
@@ -264,7 +302,7 @@ talkify.playlist = function () {
                     continue;
                 }
 
-                push(createItems(text, element));
+                push(createItems(text, ssml, element));
 
                 if (text.length > playlist.refrenceText.length) {
                     playlist.refrenceText = text;
@@ -355,7 +393,7 @@ talkify.playlist = function () {
                 var isSelectionAfterQueueItem = element.compareDocumentPosition(item.element) == documentPositionFollowing;
 
                 if (isSelectionAfterQueueItem) {
-                    var queueItems = createItems(text, element);
+                    var queueItems = createItems(text, null, element);
 
                     insertAt(j, queueItems);
 
@@ -367,7 +405,7 @@ talkify.playlist = function () {
                 var shouldAddToBottom = j === playlist.queue.length - 1;
 
                 if (shouldAddToBottom) {
-                    var qItems = createItems(text, element);
+                    var qItems = createItems(text, null, element);
 
                     push(qItems);
 

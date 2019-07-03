@@ -182,12 +182,17 @@ talkify.TtsPlayer = function () {
 
         var sources = audioElement.getElementsByTagName("source");
 
-        var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
+        var textType = talkify.config.useSsml && item.ssml ? "ssml" : "text";
+
+        var textToPlay = textType === "ssml" ? 
+            encodeURIComponent(item.ssml.replace(/\n/g, " ")) : 
+            encodeURIComponent(item.text.replace(/\n/g, " "));
+
         var voice = this.forcedVoice ? this.forcedVoice.name : "";
 
         var requestId = talkify.generateGuid();
 
-        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?texttype=" + textType + " &text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
 
         if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
