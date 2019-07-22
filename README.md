@@ -3,7 +3,7 @@ A javascript text to speech (TTS) library. Originally from and used by https://t
 
 Give a voice to your website in a matter of minutes. Talkify library provides you with high quality text to speech (TTS) voices in many languages.
 
-To use our backend services (our hosted voices) you will require an api-key. Visit our portal (https://manage.talkify.net) to create your own API-key, each key includes 1000 free requests per month. 
+To use our backend services (our hosted voices) you will require an api-key. Visit our portal (https://manage.talkify.net) to create your own API-key, Talkify offers 1000 free requests per month. 
 
 ## ReactJs
 Do you need to use Talkify in an ReactJs environment please visit https://github.com/Hagsten/TalkifyReactJs.
