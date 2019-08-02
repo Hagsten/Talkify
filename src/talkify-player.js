@@ -62,7 +62,7 @@ talkify.TtsPlayer = function () {
     }
 
     function onSeek() {
-        talkify.messageHub.publish(me.correlationId + ".player.tts.seeked", this.currentTime);
+        talkify.messageHub.publish(me.correlationId + ".player.tts.seeked", { time: this.currentTime, item: me.currentContext.item, positions: me.currentContext.positions });
 
         if (me.audioSource.paused() && me.audioSource.currentTime() > 0.1) {
             me.audioSource.play();
@@ -184,8 +184,8 @@ talkify.TtsPlayer = function () {
 
         var textType = talkify.config.useSsml && item.ssml ? "ssml" : "text";
 
-        var textToPlay = textType === "ssml" ? 
-            encodeURIComponent(item.ssml.replace(/\n/g, " ")) : 
+        var textToPlay = textType === "ssml" ?
+            encodeURIComponent(item.ssml.replace(/\n/g, " ")) :
             encodeURIComponent(item.text.replace(/\n/g, " "));
 
         var voice = this.forcedVoice ? this.forcedVoice.name : "";

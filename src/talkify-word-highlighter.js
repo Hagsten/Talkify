@@ -2,6 +2,7 @@
 talkify.wordHighlighter = function (correlationId) {
     var currentItem = null;
     var currentPositions = [];
+    var currentPosition = -1;
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
     talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"], cancel);
@@ -19,6 +20,11 @@ talkify.wordHighlighter = function (correlationId) {
         var currentPos = 0;
 
         if (time < currentPositions[0].Position) {
+            if(currentPosition === 0){
+                return;
+            }
+            
+            currentPosition = 0;
             highlight(currentItem, currentPositions[0].Word, currentPositions[0].CharPosition);
             return;
         }
@@ -37,31 +43,117 @@ talkify.wordHighlighter = function (correlationId) {
             }
         }
 
+        if (currentPosition === currentPos) {
+            return;
+        }
+
+        currentPosition = currentPos;
+
         highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
     });
+
+    function adjustPositionsToSsml(result, ssml, positions, originalPositions, pos) {
+        var internalPos = JSON.parse(JSON.stringify(positions));
+
+        pos = pos || 0;
+
+        if (pos >= result.length) {
+            return internalPos;
+        }
+
+        var lengthToCompensateFor = result[pos].length;
+        var index = ssml.indexOf(result[pos]);
+
+        for (var i = 0; i < internalPos.length; i++) {
+            if (originalPositions[i] < index) {
+                continue;
+            }
+
+            internalPos[i].CharPosition -= lengthToCompensateFor;
+        }
+
+        internalPos = adjustPositionsToSsml(result, ssml.substring(0, index) + "#" + ssml.substring(index + 1, ssml.length), internalPos, originalPositions, pos + 1);
+
+        return internalPos;
+    }
 
     function highlight(item, word, charPosition) {
         resetCurrentItem();
 
         currentItem = item;
 
-        //TODO: Fixa text highlighting med SSML på. Kontrollera också att SAPI och Amazon fungerar lika
-        var text = item.ssml ? item.ssml : item.text;//item.element.innerText.trim();
-
-        //Om det är SSML så är charposition anpassad...
+        var text = item.element.innerText.trim();
 
         var sentence = findCurrentSentence(item, charPosition);
 
-        item.element.innerHTML =
-            text.substring(0, sentence.start) +
-            '<span class="talkify-sentence-highlight">' +
-            text.substring(sentence.start, charPosition) +
-            '<span class="talkify-word-highlight">' +
-            text.substring(charPosition, charPosition + word.length) +
-            '</span>' +
-            text.substring(charPosition + word.length, sentence.end) +
-            '</span>' +
-            text.substring(sentence.end);
+        //Samma som i playlist. Utilmetod om denna behålls?
+        item.element.innerHTML = item.element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
+        // console.log(word);
+        newHighlight(word, charPosition, 0, item.element.childNodes);
+
+
+
+
+        // item.element.innerHTML =
+        //     text.substring(0, sentence.start) +
+        //     '<span class="talkify-sentence-highlight">' +
+        //     text.substring(sentence.start, charPosition) +
+        //     '<span class="talkify-word-highlight">' +
+        //     text.substring(charPosition, charPosition + word.length) +
+        //     '</span>' +
+        //     text.substring(charPosition + word.length, sentence.end) +
+        //     '</span>' +
+        //     text.substring(sentence.end);
+    }
+
+    function newHighlight(word, charPosition, textIndex, nodes) {
+        //TODO: Get it to work with test.html's all examples
+        for (var i = 0; i < nodes.length; i++) {
+            var childNode = nodes[i];
+
+            var isTextNode = childNode.nodeType === 3;
+            
+            if (isTextNode) {
+                var leadingWhiteSpaces = childNode.textContent.length - childNode.textContent.trimStart().length;
+                
+                textIndex += leadingWhiteSpaces;
+
+                var isInsideTextNode = charPosition >= textIndex && charPosition < textIndex + childNode.textContent.trimStart().length;
+
+                if (isInsideTextNode) {
+                    console.log("text inside node...Node:", childNode.textContent, word, textIndex, charPosition);
+
+                    var splitOffset = charPosition - textIndex;
+                    var rigthHandSide = childNode.splitText(splitOffset);
+
+                    var wrapper = document.createElement('span');
+                    wrapper.className = "talkify-word-highlight";
+
+                    if (rigthHandSide.textContent.length > word.length) {
+                        var firstOccurranceOfWord = rigthHandSide.textContent.indexOf(word);
+                        
+                        if(firstOccurranceOfWord === 0){
+                            rigthHandSide.splitText(word.length);
+                        } else{
+                            rigthHandSide = rigthHandSide.splitText(firstOccurranceOfWord);
+
+                            rigthHandSide.splitText(word.length);
+                        }
+                    } 
+
+                    rigthHandSide.parentElement.insertBefore(wrapper, rigthHandSide);
+                    wrapper.appendChild(rigthHandSide);      
+
+                    return textIndex;
+                }
+
+                textIndex += childNode.textContent.length - leadingWhiteSpaces;
+            } else {
+               textIndex = newHighlight(word, charPosition, textIndex, childNode.childNodes);
+            }
+        }
+
+        return textIndex;
     }
 
     function cancel() {
@@ -77,12 +169,20 @@ talkify.wordHighlighter = function (correlationId) {
             return;
         }
 
-        currentPositions = positions;
+        if (item.ssml) {
+            var text = item.ssml;
+
+            var result = text.match(/<[^>]*>/g) || [];
+
+            currentPositions = adjustPositionsToSsml(result, text, positions, positions.map(function (x) { return x.CharPosition; }));
+        } else {
+            currentPositions = positions;
+        }
 
         var i = startFrom || 0;
 
         var internalCallback = function () {
-            highlight(item, positions[i].Word, positions[i].CharPosition);
+            currentItem = item;
 
             i++;
 
@@ -106,13 +206,13 @@ talkify.wordHighlighter = function (correlationId) {
         }
     }
 
-    function setPosition(time) {
+    function setPosition(message) {
         var diff = 0;
-        var timeInMs = time * 1000;
+        var timeInMs = message.time * 1000;
         var nextPosition = 0;
 
-        for (var i = 0; i < currentPositions.length; i++) {
-            var pos = currentPositions[i];
+        for (var i = 0; i < message.positions.length; i++) {
+            var pos = message.positions[i];
 
             if (pos.Position < timeInMs) {
                 continue;
@@ -125,7 +225,7 @@ talkify.wordHighlighter = function (correlationId) {
         }
 
         var item = currentItem;
-        var positions = currentPositions;
+        var positions = message.positions;
 
         cancel();
 

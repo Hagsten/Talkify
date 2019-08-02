@@ -13,17 +13,17 @@
 <body>
     <section id="root">
         <div>
-            This text is <b>bold</b> and this is <strong>strong</strong>.
-
+            <!-- This <b>text</b> is <b style="color: yellow; font-size: 20px;">bold</b> and this is <strong style="background-color: green;">strong</strong>. -->
+<!-- 
             <p>
                 And <i>this</i> text is italic.
-            </p>
+            </p>  -->
 
-            <span> Okej, this is some <strong> text. </strong></span>
+            <!-- <span> Ok, this is some <strong> text. </strong></span>
             <br>
-            Did we add a pause?
+            Did we add a pause?-->
             <br>
-            <br>
+            <br> 
             Longer pause? Hope not!
 
             <span>Finally <i>something interesting.</i> <strong>This works!</strong></span>
@@ -35,11 +35,12 @@
     <script src="../dist/talkify.js"></script>
 
     <script>
+        talkify.config.useSsml = true;
         talkify.config.remoteService.active = true;
         talkify.config.keyboardCommands.enabled = true;
         talkify.config.voiceCommands.enabled = true;
         
-        talkify.config.remoteService.apiKey = "";
+        talkify.config.remoteService.apiKey = "d463610f-e9d6-4894-9f3c-84ef50dab408";
         talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
         talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
 
@@ -54,7 +55,8 @@
             var player = new talkify.TtsPlayer()
                 .enableTextHighlighting();
 
-            player.forceVoice({name: 'Brian'});
+            player.setRate(-5);
+            player.forceVoice({name: 'Zira'});
 
             var playlist = new talkify.playlist()
                 .begin()

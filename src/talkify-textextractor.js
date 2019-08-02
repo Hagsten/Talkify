@@ -68,7 +68,7 @@ talkify.textextractor = function () {
         var isTextNode = node.nodeType === 3;
         var textLength = getStrippedText(node.textContent).length;
 
-        return (isTextNode && textLength >= 5) || (!isForbidden(node) && elementIsInlineElement(node));
+        return (isTextNode && textLength >= 2) || (!isForbidden(node) && elementIsInlineElement(node));
     }
 
     function getConnectedElements(nodes, firstIndex) {

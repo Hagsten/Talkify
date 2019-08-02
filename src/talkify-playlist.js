@@ -252,23 +252,28 @@ talkify.playlist = function () {
             var ssmlMappings = {
                 b: {
                     start: '#emphasis level="strong">',
-                    end: '#/emphasis>'
+                    end: '#/emphasis>',
+                    trim: false
                 },
                 strong: {
                     start: '#emphasis level="strong">',
-                    end: '#/emphasis>'
+                    end: '#/emphasis>',
+                    trim: false
                 },
                 em: {
                     start: '#emphasis level="strong">',
-                    end: '#/emphasis>'
+                    end: '#/emphasis>',
+                    trim: false
                 },
                 i: {
                     start: '#emphasis level="reduced">',
-                    end: '#/emphasis>'
+                    end: '#/emphasis>',
+                    trim: false
                 },
                 br: {
                     start: '#break strength="x-strong">#/break>',
-                    end: ''
+                    end: '',
+                    trim: true
                 }
             };
 
@@ -282,12 +287,29 @@ talkify.playlist = function () {
                 } else {
                     element = settings.domElements[i];
 
-                    var ssml = element.innerHTML.trim();
+                    var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
 
                     //TODO: remove all other occurances of html tags
                     for (var key in ssmlMappings) {
-                        ssml = ssml.split('<' + key + '>').join(ssmlMappings[key].start);
-                        ssml = ssml.split('</' + key + '>').join(ssmlMappings[key].end);
+                        var mapping = ssmlMappings[key];
+
+                        var startTagMatches = ssml.match(new RegExp('<' + key + '+(>|.*?[^?]>)', 'gi')) || [];
+
+                        for (var j = 0; j < startTagMatches.length; j++) {
+                            if (startTagMatches[j] !== '<' + key + '>' && startTagMatches[j].indexOf('<' + key + ' ') !== 0) {
+                                continue;
+                            }
+
+                            ssml = ssml.replace(startTagMatches[j], mapping.start);
+
+                            if (mapping.trim) {
+                                ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
+                            } else{
+                                ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start + ' ');
+                            }
+                        }
+
+                        ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
                     }
 
                     ssml = ssml.replace(/<[^>]*>?/gm, '');
