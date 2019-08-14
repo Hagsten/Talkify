@@ -20,10 +20,10 @@ talkify.wordHighlighter = function (correlationId) {
         var currentPos = 0;
 
         if (time < currentPositions[0].Position) {
-            if(currentPosition === 0){
+            if (currentPosition === 0) {
                 return;
             }
-            
+
             currentPosition = 0;
             highlight(currentItem, currentPositions[0].Word, currentPositions[0].CharPosition);
             return;
@@ -107,18 +107,24 @@ talkify.wordHighlighter = function (correlationId) {
     }
 
     function newHighlight(word, charPosition, textIndex, nodes) {
-        //TODO: Get it to work with test.html's all examples
+        //TODO: Det "sista" problemet verkar vara att vi inte kan hantera whitespace i slutet av ett ord och i början av nästa ord.
+        //D.v.s. det är egentligen för många whitespaces...kan vi lösa detta med en lookahead? 
+
         for (var i = 0; i < nodes.length; i++) {
             var childNode = nodes[i];
 
-            var isTextNode = childNode.nodeType === 3;
-            
+            var isTextNode = childNode.nodeType === 3 && childNode.textContent.trim() !== '';
+
             if (isTextNode) {
                 var leadingWhiteSpaces = childNode.textContent.length - childNode.textContent.trimStart().length;
-                
-                textIndex += leadingWhiteSpaces;
 
-                var isInsideTextNode = charPosition >= textIndex && charPosition < textIndex + childNode.textContent.trimStart().length;
+                if (textIndex > 0) {
+                    textIndex += leadingWhiteSpaces;
+                }
+
+                var isInsideTextNode =  childNode.textContent.indexOf(word) > -1 && 
+                                        charPosition >= textIndex && 
+                                        charPosition < textIndex + childNode.textContent.trimStart().length;
 
                 if (isInsideTextNode) {
                     console.log("text inside node...Node:", childNode.textContent, word, textIndex, charPosition);
@@ -131,25 +137,25 @@ talkify.wordHighlighter = function (correlationId) {
 
                     if (rigthHandSide.textContent.length > word.length) {
                         var firstOccurranceOfWord = rigthHandSide.textContent.indexOf(word);
-                        
-                        if(firstOccurranceOfWord === 0){
+
+                        if (firstOccurranceOfWord === 0) {
                             rigthHandSide.splitText(word.length);
-                        } else{
+                        } else {
                             rigthHandSide = rigthHandSide.splitText(firstOccurranceOfWord);
 
                             rigthHandSide.splitText(word.length);
                         }
-                    } 
+                    }
 
                     rigthHandSide.parentElement.insertBefore(wrapper, rigthHandSide);
-                    wrapper.appendChild(rigthHandSide);      
+                    wrapper.appendChild(rigthHandSide);
 
                     return textIndex;
                 }
 
                 textIndex += childNode.textContent.length - leadingWhiteSpaces;
             } else {
-               textIndex = newHighlight(word, charPosition, textIndex, childNode.childNodes);
+                textIndex = newHighlight(word, charPosition, textIndex, childNode.childNodes);
             }
         }
 

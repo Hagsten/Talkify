@@ -13,20 +13,20 @@
 <body>
     <section id="root">
         <div>
-            <!-- This <b>text</b> is <b style="color: yellow; font-size: 20px;">bold</b> and this is <strong style="background-color: green;">strong</strong>. -->
-<!-- 
+            This <b>text</b> is <b style="color: yellow; font-size: 20px;">bold</b> and this is <strong style="background-color: green;">strong</strong>.
+
             <p>
                 And <i>this</i> text is italic.
-            </p>  -->
+            </p>
 
-            <!-- <span> Ok, this is some <strong> text. </strong></span>
+            <span> Ok, this is some <strong>text.</strong></span>
             <br>
-            Did we add a pause?-->
+            Did we add a pause?
             <br>
             <br> 
             Longer pause? Hope not!
 
-            <span>Finally <i>something interesting.</i> <strong>This works!</strong></span>
+            <span>Finally <i>something interesting.</i><strong>This works!</strong></span>
         </div>
     </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
@@ -55,7 +55,7 @@
             var player = new talkify.TtsPlayer()
                 .enableTextHighlighting();
 
-            player.setRate(-5);
+            // player.setRate(-5);
             player.forceVoice({name: 'Zira'});
 
             var playlist = new talkify.playlist()

@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 window.promise = require('./src/promise.js').promise;
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
@@ -22,211 +22,7 @@ var talkifyFormReader = require('./src/talkify-formreader.js');
  *  Licensed under the New BSD License.
  *  https://github.com/stackp/promisejs
  */
-
-(function (exports) {
-
-    function Promise() {
-        this._callbacks = [];
-    }
-
-    Promise.prototype.then = function (func, context) {
-        var p;
-        if (this._isdone) {
-            p = func.apply(context, this.result);
-        } else {
-            p = new Promise();
-            this._callbacks.push(function () {
-                var res = func.apply(context, arguments);
-                if (res && typeof res.then === 'function')
-                    res.then(p.done, p);
-            });
-        }
-        return p;
-    };
-
-    Promise.prototype.done = function () {
-        this.result = arguments;
-        this._isdone = true;
-        for (var i = 0; i < this._callbacks.length; i++) {
-            this._callbacks[i].apply(null, arguments);
-        }
-        this._callbacks = [];
-    };
-
-    function join(promises) {
-        var p = new Promise();
-        var results = [];
-
-        if (!promises || !promises.length) {
-            p.done(results);
-            return p;
-        }
-
-        var numdone = 0;
-        var total = promises.length;
-
-        function notifier(i) {
-            return function () {
-                numdone += 1;
-                results[i] = Array.prototype.slice.call(arguments);
-                if (numdone === total) {
-                    p.done(results);
-                }
-            };
-        }
-
-        for (var i = 0; i < total; i++) {
-            promises[i].then(notifier(i));
-        }
-
-        return p;
-    }
-
-    function chain(funcs, args) {
-        var p = new Promise();
-        if (funcs.length === 0) {
-            p.done.apply(p, args);
-        } else {
-            funcs[0].apply(null, args).then(function () {
-                funcs.splice(0, 1);
-                chain(funcs, arguments).then(function () {
-                    p.done.apply(p, arguments);
-                });
-            });
-        }
-        return p;
-    }
-
-    /*
-     * AJAX requests
-     */
-
-    function _encode(data) {
-        var result = "";
-        if (typeof data === "string") {
-            result = data;
-        } else {
-            var e = encodeURIComponent;
-            for (var k in data) {
-                if (data.hasOwnProperty(k)) {
-                    result += '&' + e(k) + '=' + e(data[k]);
-                }
-            }
-        }
-        return result;
-    }
-
-    function new_xhr() {
-        var xhr;
-        if (window.XMLHttpRequest) {
-            xhr = new XMLHttpRequest();
-        } else if (window.ActiveXObject) {
-            try {
-                xhr = new ActiveXObject("Msxml2.XMLHTTP");
-            } catch (e) {
-                xhr = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-        }
-        return xhr;
-    }
-
-
-    function ajax(method, url, data, headers) {
-        var p = new Promise();
-        var xhr, payload;
-        data = data || {};
-        headers = headers || {};
-
-        try {
-            xhr = new_xhr();
-        } catch (e) {
-            p.done(promise.ENOXHR, "");
-            return p;
-        }
-
-        payload = _encode(data);
-        if (method === 'GET' && payload) {
-            url += '?' + payload;
-            payload = null;
-        }
-
-        xhr.open(method, url);
-        xhr.setRequestHeader('Content-type',
-                             'application/x-www-form-urlencoded');
-        for (var h in headers) {
-            if (headers.hasOwnProperty(h)) {
-                xhr.setRequestHeader(h, headers[h]);
-            }
-        }
-
-        function onTimeout() {
-            xhr.abort();
-            p.done(promise.ETIMEOUT, "", xhr);
-        }
-
-        var timeout = promise.ajaxTimeout;
-        if (timeout) {
-            var tid = setTimeout(onTimeout, timeout);
-        }
-
-        xhr.onreadystatechange = function () {
-            if (timeout) {
-                clearTimeout(tid);
-            }
-            if (xhr.readyState === 4) {
-                var err = (!xhr.status ||
-                           (xhr.status < 200 || xhr.status >= 300) &&
-                           xhr.status !== 304);
-                p.done(err, xhr.responseText, xhr);
-            }
-        };
-
-        xhr.send(payload);
-        return p;
-    }
-
-    function _ajaxer(method) {
-        return function (url, data, headers) {
-            return ajax(method, url, data, headers);
-        };
-    }
-
-    var promise = {
-        Promise: Promise,
-        join: join,
-        chain: chain,
-        ajax: ajax,
-        get: _ajaxer('GET'),
-        post: _ajaxer('POST'),
-        put: _ajaxer('PUT'),
-        del: _ajaxer('DELETE'),
-
-        /* Error codes */
-        ENOXHR: 1,
-        ETIMEOUT: 2,
-
-        /**
-         * Configuration parameter: time in milliseconds after which a
-         * pending AJAX request is considered unresponsive and is
-         * aborted. Useful to deal with bad connectivity (e.g. on a
-         * mobile network). A 0 value disables AJAX timeouts.
-         *
-         * Aborted requests resolve the promise with a ETIMEOUT error
-         * code.
-         */
-        ajaxTimeout: 0
-    };
-
-    if (typeof define === 'function' && define.amd) {
-        /* AMD support */
-        define(function () {
-            return promise;
-        });
-    } else {
-        exports.promise = promise;
-    }
-
-})(this);
+(function(a){function b(){this._callbacks=[];}b.prototype.then=function(a,c){var d;if(this._isdone)d=a.apply(c,this.result);else{d=new b();this._callbacks.push(function(){var b=a.apply(c,arguments);if(b&&typeof b.then==='function')b.then(d.done,d);});}return d;};b.prototype.done=function(){this.result=arguments;this._isdone=true;for(var a=0;a<this._callbacks.length;a++)this._callbacks[a].apply(null,arguments);this._callbacks=[];};function c(a){var c=new b();var d=[];if(!a||!a.length){c.done(d);return c;}var e=0;var f=a.length;function g(a){return function(){e+=1;d[a]=Array.prototype.slice.call(arguments);if(e===f)c.done(d);};}for(var h=0;h<f;h++)a[h].then(g(h));return c;}function d(a,c){var e=new b();if(a.length===0)e.done.apply(e,c);else a[0].apply(null,c).then(function(){a.splice(0,1);d(a,arguments).then(function(){e.done.apply(e,arguments);});});return e;}function e(a){var b="";if(typeof a==="string")b=a;else{var c=encodeURIComponent;var d=[];for(var e in a)if(a.hasOwnProperty(e))d.push(c(e)+'='+c(a[e]));b=d.join('&');}return b;}function f(){var a;if(window.XMLHttpRequest)a=new XMLHttpRequest();else if(window.ActiveXObject)try{a=new ActiveXObject("Msxml2.XMLHTTP");}catch(b){a=new ActiveXObject("Microsoft.XMLHTTP");}return a;}function g(a,c,d,g){var h=new b();var j,k;d=d||{};g=g||{};try{j=f();}catch(l){h.done(i.ENOXHR,"");return h;}k=e(d);if(a==='GET'&&k){c+='?'+k;k=null;}j.open(a,c);var m='application/x-www-form-urlencoded';for(var n in g)if(g.hasOwnProperty(n))if(n.toLowerCase()==='content-type')m=g[n];else j.setRequestHeader(n,g[n]);j.setRequestHeader('Content-type',m);function o(){j.abort();h.done(i.ETIMEOUT,"",j);}var p=i.ajaxTimeout;if(p)var q=setTimeout(o,p);j.onreadystatechange=function(){if(p)clearTimeout(q);if(j.readyState===4){var a=(!j.status||(j.status<200||j.status>=300)&&j.status!==304);h.done(a,j.responseText,j);}};j.send(k);return h;}function h(a){return function(b,c,d){return g(a,b,c,d);};}var i={Promise:b,join:c,chain:d,ajax:g,get:h('GET'),post:h('POST'),put:h('PUT'),del:h('DELETE'),ENOXHR:1,ETIMEOUT:2,ajaxTimeout:0};if(typeof define==='function'&&define.amd)define(function(){return i;});else a.promise=i;})(this);
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
@@ -2002,9 +1798,10 @@ talkify.playlist = function () {
 
                             if (mapping.trim) {
                                 ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
-                            } else{
-                                ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start + ' ');
-                            }
+                            } 
+                            // else{
+                            //     ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start + ' ');
+                            // }
                         }
 
                         ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
@@ -2783,10 +2580,10 @@ talkify.wordHighlighter = function (correlationId) {
         var currentPos = 0;
 
         if (time < currentPositions[0].Position) {
-            if(currentPosition === 0){
+            if (currentPosition === 0) {
                 return;
             }
-            
+
             currentPosition = 0;
             highlight(currentItem, currentPositions[0].Word, currentPositions[0].CharPosition);
             return;
@@ -2870,57 +2667,55 @@ talkify.wordHighlighter = function (correlationId) {
     }
 
     function newHighlight(word, charPosition, textIndex, nodes) {
+        //TODO: Det "sista" problemet verkar vara att vi inte kan hantera whitespace i slutet av ett ord och i början av nästa ord.
+        //D.v.s. det är egentligen för många whitespaces...kan vi lösa detta med en lookahead? 
+
         for (var i = 0; i < nodes.length; i++) {
             var childNode = nodes[i];
 
-            var isTextNode = childNode.nodeType === 3;
-            
+            var isTextNode = childNode.nodeType === 3 && childNode.textContent.trim() !== '';
+
             if (isTextNode) {
-                //TODO: Here...
-                // console.log(charPosition, textIndex);
-
                 var leadingWhiteSpaces = childNode.textContent.length - childNode.textContent.trimStart().length;
-                
-                textIndex += leadingWhiteSpaces;
 
-                var isInsideTextNode = charPosition >= textIndex && charPosition < textIndex + childNode.textContent.trimStart().length;
+                if (textIndex > 0) {
+                    textIndex += leadingWhiteSpaces;
+                }
+
+                var isInsideTextNode =  childNode.textContent.indexOf(word) > -1 && 
+                                        charPosition >= textIndex && 
+                                        charPosition < textIndex + childNode.textContent.trimStart().length;
 
                 if (isInsideTextNode) {
                     console.log("text inside node...Node:", childNode.textContent, word, textIndex, charPosition);
+
                     var splitOffset = charPosition - textIndex;
                     var rigthHandSide = childNode.splitText(splitOffset);
 
                     var wrapper = document.createElement('span');
-
                     wrapper.className = "talkify-word-highlight";
 
                     if (rigthHandSide.textContent.length > word.length) {
-                        var wordIndex = rigthHandSide.textContent.indexOf(word);
-                        
-                        if(wordIndex === 0){
+                        var firstOccurranceOfWord = rigthHandSide.textContent.indexOf(word);
+
+                        if (firstOccurranceOfWord === 0) {
                             rigthHandSide.splitText(word.length);
-                        } else{
-                            rigthHandSide = rigthHandSide.splitText(wordIndex);
+                        } else {
+                            rigthHandSide = rigthHandSide.splitText(firstOccurranceOfWord);
 
                             rigthHandSide.splitText(word.length);
                         }
-                    } 
+                    }
 
                     rigthHandSide.parentElement.insertBefore(wrapper, rigthHandSide);
-                    wrapper.appendChild(rigthHandSide);      
-
-
-                    // childNode.parentElement.insertBefore(wrapper, childNode);
-                    // wrapper.appendChild(childNode);
+                    wrapper.appendChild(rigthHandSide);
 
                     return textIndex;
                 }
 
                 textIndex += childNode.textContent.length - leadingWhiteSpaces;
-             //   console.log(textIndex);
             } else {
-               // console.log("not a text node, drill down");
-               textIndex = newHighlight(word, charPosition, textIndex, childNode.childNodes);
+                textIndex = newHighlight(word, charPosition, textIndex, childNode.childNodes);
             }
         }
 

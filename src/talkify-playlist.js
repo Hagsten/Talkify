@@ -304,9 +304,7 @@ talkify.playlist = function () {
 
                             if (mapping.trim) {
                                 ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
-                            } else{
-                                ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start + ' ');
-                            }
+                            } 
                         }
 
                         ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
