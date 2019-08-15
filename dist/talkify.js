@@ -1783,7 +1783,6 @@ talkify.playlist = function () {
 
                     var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
 
-                    //TODO: remove all other occurances of html tags
                     for (var key in ssmlMappings) {
                         var mapping = ssmlMappings[key];
 
@@ -1799,15 +1798,13 @@ talkify.playlist = function () {
                             if (mapping.trim) {
                                 ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
                             } 
-                            // else{
-                            //     ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start + ' ');
-                            // }
                         }
 
                         ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
                     }
 
-                    ssml = ssml.replace(/<[^>]*>?/gm, '');
+                    ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
+                    ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
                     ssml = ssml.split('#').join('<');
 
                     console.log("SSML", ssml);
