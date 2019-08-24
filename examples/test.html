@@ -1,15 +1,17 @@
 <html>
+
 <head>
-        <style>
-            .talkify-word-highlight{
-                background-color: black;
-                color: white;
-            }
-        </style>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
-        <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
-        <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-audiocontrols.css">
+    <style>
+        .talkify-word-highlight {
+            background-color: black;
+            color: white;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-audiocontrols.css">
 </head>
+
 <body>
     <section id="root">
         <div>
@@ -28,7 +30,7 @@
 
             <span>Finally <i>something interesting.</i><strong>This works!</strong></span> -->
 
-            <p class="byline talkify-highlight" style="cursor: pointer;">
+            <!-- <p class="byline talkify-highlight" style="cursor: pointer;">
                 By
                 <span class="no-wrap by-author"><a href="https://www.loudersound.com/author/briony-edwards" rel="author"><span style="white-space:nowrap">Briony Edwards</span></a></span>
                 <span class="no-wrap by-author"> <a href="https://www.loudersound.com/louder" rel="author">Louder</a></span> <time class="no-wrap relative-date chunk" datetime="2019-04-29T12:09:32+00:00">April 29, 2019</time>
@@ -37,12 +39,13 @@
                 Louder
                 </a>&nbsp;<i class=" icon icon-category-louder"></i>
                 </span>
-                </p>
+                </p> -->
+
+                <p class="talkify-highlight" style="cursor: pointer;"><a href="https://amzn.to/2Zbm6qD">Unifi G3 Flex PoE camera</a>. PoE later on but you can just plug this in anywhere in the house - no AC adapter - and you've got a crystal clear security camera or cameras anywhere in the house. They are all powered from the PoE switch!</p>
         </div>
     </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="../dist/talkify.js"></script>
 
     <script>
@@ -50,7 +53,7 @@
         talkify.config.remoteService.active = true;
         talkify.config.keyboardCommands.enabled = true;
         talkify.config.voiceCommands.enabled = true;
-        
+
         talkify.config.remoteService.apiKey = "d463610f-e9d6-4894-9f3c-84ef50dab408";
         talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
         talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
@@ -67,7 +70,7 @@
                 .enableTextHighlighting();
 
             // player.setRate(-5);
-            player.forceVoice({name: 'Zira'});
+            player.forceVoice({ name: 'Zira' });
 
             var playlist = new talkify.playlist()
                 .begin()
@@ -84,4 +87,5 @@
 
     </script>
 </body>
+
 </html>

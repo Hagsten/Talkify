@@ -251,32 +251,39 @@ talkify.playlist = function () {
 
             var ssmlMappings = {
                 b: {
-                    start: '#emphasis level="strong">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 strong: {
-                    start: '#emphasis level="strong">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 em: {
-                    start: '#emphasis level="strong">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 i: {
-                    start: '#emphasis level="reduced">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="reduced">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 br: {
-                    start: '#break strength="x-strong">#/break>',
+                    start: '###break strength="x-strong">###/break>',
                     end: '',
                     trim: true
                 }
             };
 
+            var htmlEntities = {};
+            htmlEntities["&nbsp;"] = " ";
+            htmlEntities["&lt;"] = "<";
+            htmlEntities["&gt;"] = ">";
+            htmlEntities["&qout;"] = "\"";
+            htmlEntities["&apos;"] = "'";
+            htmlEntities["&amp;"] = "&";
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text, ssml;
@@ -288,6 +295,10 @@ talkify.playlist = function () {
                     element = settings.domElements[i];
 
                     var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
+                    
+                    for (var key in htmlEntities) {
+                        ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);
+                    }
 
                     for (var key in ssmlMappings) {
                         var mapping = ssmlMappings[key];
@@ -311,7 +322,7 @@ talkify.playlist = function () {
 
                     ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
                     ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
-                    ssml = ssml.split('#').join('<');
+                    ssml = ssml.split('###').join('<');
 
                     console.log("SSML", ssml);
 

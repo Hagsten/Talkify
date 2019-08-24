@@ -106,29 +106,32 @@ talkify.wordHighlighter = function (correlationId) {
         //     text.substring(sentence.end);
     }
 
-    function newHighlight(word, charPosition, textIndex, nodes) {
-        //TODO: Det "sista" problemet verkar vara att vi inte kan hantera whitespace i slutet av ett ord och i början av nästa ord.
-        //D.v.s. det är egentligen för många whitespaces...kan vi lösa detta med en lookahead? 
+    function newHighlight(word, charPosition, textIndex, nodes, previousCharWasWhitespace) {
+        var lastCharIsWhitespace = false;
 
         for (var i = 0; i < nodes.length; i++) {
             var childNode = nodes[i];
 
-            var isTextNode = childNode.nodeType === 3 && childNode.textContent.trim() !== '';
+            var isTextNode = childNode.nodeType === 3; //&& childNode.textContent.trim() !== '';
 
             if (isTextNode) {
-                var leadingWhiteSpaces = childNode.textContent.length - childNode.textContent.trimStart().length;
+                if (previousCharWasWhitespace && childNode.textContent.trim() === "") {
+                    continue;
+                }
+
+                var leadingWhiteSpaces = previousCharWasWhitespace ? 0 : childNode.textContent.length - childNode.textContent.trimStart().length;
 
                 if (textIndex > 0) {
                     textIndex += leadingWhiteSpaces;
                 }
 
-                var isInsideTextNode =  childNode.textContent.indexOf(word) > -1 && 
-                                        charPosition >= textIndex && 
-                                        charPosition < textIndex + childNode.textContent.trimStart().length;
+                lastCharIsWhitespace = childNode.textContent.trimEnd() !== childNode.textContent;
+
+                var isInsideTextNode = childNode.textContent.indexOf(word) > -1 &&
+                    charPosition >= textIndex &&
+                    charPosition < textIndex + childNode.textContent.trimStart().length;
 
                 if (isInsideTextNode) {
-                    console.log("text inside node...Node:", childNode.textContent, word, textIndex, charPosition);
-
                     var splitOffset = charPosition - textIndex;
                     var rigthHandSide = childNode.splitText(splitOffset);
 
@@ -150,16 +153,28 @@ talkify.wordHighlighter = function (correlationId) {
                     rigthHandSide.parentElement.insertBefore(wrapper, rigthHandSide);
                     wrapper.appendChild(rigthHandSide);
 
-                    return textIndex;
+                    return {
+                        found: true,
+                        textIndex: textIndex
+                    };
                 }
 
                 textIndex += childNode.textContent.length - leadingWhiteSpaces;
             } else {
-                textIndex = newHighlight(word, charPosition, textIndex, childNode.childNodes);
+                var response = newHighlight(word, charPosition, textIndex, childNode.childNodes, lastCharIsWhitespace || previousCharWasWhitespace);
+
+                if (response.found) {
+                    return response;
+                }
+
+                textIndex = response.textIndex;
             }
         }
 
-        return textIndex;
+        return {
+            found: false,
+            textIndex: textIndex
+        };
     }
 
     function cancel() {

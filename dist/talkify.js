@@ -1745,32 +1745,39 @@ talkify.playlist = function () {
 
             var ssmlMappings = {
                 b: {
-                    start: '#emphasis level="strong">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 strong: {
-                    start: '#emphasis level="strong">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 em: {
-                    start: '#emphasis level="strong">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 i: {
-                    start: '#emphasis level="reduced">',
-                    end: '#/emphasis>',
+                    start: '###emphasis level="reduced">',
+                    end: '###/emphasis>',
                     trim: false
                 },
                 br: {
-                    start: '#break strength="x-strong">#/break>',
+                    start: '###break strength="x-strong">###/break>',
                     end: '',
                     trim: true
                 }
             };
 
+            var htmlEntities = {};
+            htmlEntities["&nbsp;"] = " ";
+            htmlEntities["&lt;"] = "<";
+            htmlEntities["&gt;"] = ">";
+            htmlEntities["&qout;"] = "\"";
+            htmlEntities["&apos;"] = "'";
+            htmlEntities["&amp;"] = "&";
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text, ssml;
@@ -1782,6 +1789,10 @@ talkify.playlist = function () {
                     element = settings.domElements[i];
 
                     var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
+                    
+                    for (var key in htmlEntities) {
+                        ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);
+                    }
 
                     for (var key in ssmlMappings) {
                         var mapping = ssmlMappings[key];
@@ -1805,7 +1816,7 @@ talkify.playlist = function () {
 
                     ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
                     ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
-                    ssml = ssml.split('#').join('<');
+                    ssml = ssml.split('###').join('<');
 
                     console.log("SSML", ssml);
 
@@ -2663,25 +2674,30 @@ talkify.wordHighlighter = function (correlationId) {
         //     text.substring(sentence.end);
     }
 
-    function newHighlight(word, charPosition, textIndex, nodes) {
-        //TODO: Det "sista" problemet verkar vara att vi inte kan hantera whitespace i slutet av ett ord och i början av nästa ord.
-        //D.v.s. det är egentligen för många whitespaces...kan vi lösa detta med en lookahead? 
+    function newHighlight(word, charPosition, textIndex, nodes, previousCharWasWhitespace) {
+        var lastCharIsWhitespace = false;
 
         for (var i = 0; i < nodes.length; i++) {
             var childNode = nodes[i];
 
-            var isTextNode = childNode.nodeType === 3 && childNode.textContent.trim() !== '';
+            var isTextNode = childNode.nodeType === 3; //&& childNode.textContent.trim() !== '';
 
             if (isTextNode) {
-                var leadingWhiteSpaces = childNode.textContent.length - childNode.textContent.trimStart().length;
+                if (previousCharWasWhitespace && childNode.textContent.trim() === "") {
+                    continue;
+                }
+
+                var leadingWhiteSpaces = previousCharWasWhitespace ? 0 : childNode.textContent.length - childNode.textContent.trimStart().length;
 
                 if (textIndex > 0) {
                     textIndex += leadingWhiteSpaces;
                 }
 
-                var isInsideTextNode =  childNode.textContent.indexOf(word) > -1 && 
-                                        charPosition >= textIndex && 
-                                        charPosition < textIndex + childNode.textContent.trimStart().length;
+                lastCharIsWhitespace = childNode.textContent.trimEnd() !== childNode.textContent;
+
+                var isInsideTextNode = childNode.textContent.indexOf(word) > -1 &&
+                    charPosition >= textIndex &&
+                    charPosition < textIndex + childNode.textContent.trimStart().length;
 
                 if (isInsideTextNode) {
                     console.log("text inside node...Node:", childNode.textContent, word, textIndex, charPosition);
@@ -2707,16 +2723,28 @@ talkify.wordHighlighter = function (correlationId) {
                     rigthHandSide.parentElement.insertBefore(wrapper, rigthHandSide);
                     wrapper.appendChild(rigthHandSide);
 
-                    return textIndex;
+                    return {
+                        found: true,
+                        textIndex: textIndex
+                    };
                 }
 
                 textIndex += childNode.textContent.length - leadingWhiteSpaces;
             } else {
-                textIndex = newHighlight(word, charPosition, textIndex, childNode.childNodes);
+                var response = newHighlight(word, charPosition, textIndex, childNode.childNodes, lastCharIsWhitespace || previousCharWasWhitespace);
+
+                if (response.found) {
+                    return response;
+                }
+
+                textIndex = response.textIndex;
             }
         }
 
-        return textIndex;
+        return {
+            found: false,
+            textIndex: textIndex
+        };
     }
 
     function cancel() {
