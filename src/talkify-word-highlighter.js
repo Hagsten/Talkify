@@ -82,13 +82,15 @@ talkify.wordHighlighter = function (correlationId) {
 
         currentItem = item;
 
-        var text = item.element.innerText.trim();
+        // var text = item.element.innerText.trim();
 
         var sentence = findCurrentSentence(item, charPosition);
 
         //Samma som i playlist. Utilmetod om denna behålls?
         item.element.innerHTML = item.element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
-        // console.log(word);
+
+        newFindCurrentSentence(item.element, charPosition);
+
         newHighlight(word, charPosition, 0, item.element.childNodes);
 
 
@@ -106,13 +108,122 @@ talkify.wordHighlighter = function (correlationId) {
         //     text.substring(sentence.end);
     }
 
+    function newFindCurrentSentence(element, charPosition, currentPosition) {
+        //TODO: Måste ta hänsyn till whitespaces precis som i highlight...
+
+        //1. Leta efter meningar. Sätt start vid varje ny mening
+        //2. Om ett ord träffas, Kolla om charPosition finns i nuvarande meing
+        //3. Om charposition finns inom nuvarande mening, leta efter nästa sluttecken.
+        //4. slut
+
+        var index = 0;
+
+        var sentence = findSentence(element.childNodes, 0);
+
+        index += sentence.text.length;
+
+        if (charPosition <= index) {
+            var wrapper = document.createElement('span');
+            wrapper.className = "talkify-sentence-highlight";
+            
+            sentence.nodes[0].parentElement.insertBefore(wrapper, sentence.nodes[0]);
+
+            for(var i = 0; i < sentence.nodes.length; i++){
+                wrapper.appendChild(sentence.nodes[i]);
+            }
+
+            return;
+        }
+
+
+        while (sentence.next.length) {
+            sentence = findSentence(sentence.next, charPosition)
+
+            index += sentence.text.length;
+
+            if (charPosition <= index) {
+                
+                var wrapper = document.createElement('span');
+                wrapper.className = "talkify-sentence-highlight";
+                
+                sentence.nodes[0].parentElement.insertBefore(wrapper, sentence.nodes[0]);
+    
+                for(var i = 0; i < sentence.nodes.length; i++){
+                    wrapper.appendChild(sentence.nodes[i]);
+                }
+    
+
+                return;
+            }
+        }
+    }
+
+    function findSentence(nodes, textIndex) {
+        var nodesInSentence = [];
+        var nodesRemaining = [];
+        var textIndex = textIndex || 0;
+        var text = "";
+        var index = 0;
+
+        for (var i = 0; i < nodes.length; i++) {
+            index = i;
+            var node = nodes[i];
+
+            nodesInSentence.push(node);
+
+            if (node.nodeType === 3) { //textcontent
+                var indexOfSentenceEnd =
+                    ((node.textContent.indexOf(".") + 1) ||
+                        (node.textContent.indexOf("?") + 1) ||
+                        (node.textContent.indexOf("!") + 1)) - 1;
+
+                if (indexOfSentenceEnd > -1) {
+                    var rightHandSide = node.splitText(indexOfSentenceEnd + 1);
+
+                    nodesRemaining.push(rightHandSide);
+
+                    text += node.textContent;
+
+                    break;
+
+                } else {
+                    text += node.textContent;
+
+                    textIndex += node.textContent.length;
+                }
+
+            } else {
+                var response = findSentence(node.childNodes, textIndex);
+
+                textIndex += response.textIndex;
+                text += response.text;
+            }
+        }
+
+        for (var i = index + 1; i < nodes.length; i++) {
+            if (nodesRemaining.indexOf(nodes[i] > -1)) {
+                console.log("skipping..");
+                continue;
+            }
+
+            nodesRemaining.push(nodes[i]);
+        }
+
+        return {
+            nodes: nodesInSentence,
+            next: nodesRemaining,
+            text: text,
+            textIndex: textIndex
+        };
+    }
+
     function newHighlight(word, charPosition, textIndex, nodes, previousCharWasWhitespace) {
         var lastCharIsWhitespace = false;
 
         for (var i = 0; i < nodes.length; i++) {
             var childNode = nodes[i];
 
-            var isTextNode = childNode.nodeType === 3; //&& childNode.textContent.trim() !== '';
+            var isTextNode = childNode.nodeType === 3;
 
             if (isTextNode) {
                 if (previousCharWasWhitespace && childNode.textContent.trim() === "") {
