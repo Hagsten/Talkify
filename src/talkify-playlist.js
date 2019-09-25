@@ -347,7 +347,7 @@ talkify.playlist = function () {
             htmlEntities["&apos;"] = "'";
             htmlEntities["&amp;"] = "&";
 
-            var ssml = element.outerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
+            var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
 
             for (var key in htmlEntities) {
                 ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);

@@ -2045,7 +2045,7 @@ talkify.playlist = function () {
             htmlEntities["&apos;"] = "'";
             htmlEntities["&amp;"] = "&";
 
-            var ssml = element.outerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
+            var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
 
             for (var key in htmlEntities) {
                 ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);
@@ -2074,8 +2074,6 @@ talkify.playlist = function () {
             ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
             ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
             ssml = ssml.split('###').join('<');
-
-            console.log("SSML", ssml);
 
             return ssml;
         }
@@ -2969,7 +2967,6 @@ talkify.wordHighlighter = function (correlationId) {
 
         for (var i = index + 1; i < nodes.length; i++) {
             if (nodesRemaining.indexOf(nodes[i]) > -1) {
-                console.log("skipping..");
                 continue;
             }
 
