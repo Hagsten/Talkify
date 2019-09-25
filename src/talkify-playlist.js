@@ -377,8 +377,6 @@ talkify.playlist = function () {
             ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
             ssml = ssml.split('###').join('<');
 
-            console.log("SSML", ssml);
-
             return ssml;
         }
 

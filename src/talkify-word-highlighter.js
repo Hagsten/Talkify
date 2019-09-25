@@ -172,7 +172,6 @@ talkify.wordHighlighter = function (correlationId) {
 
         for (var i = index + 1; i < nodes.length; i++) {
             if (nodesRemaining.indexOf(nodes[i]) > -1) {
-                console.log("skipping..");
                 continue;
             }
 
