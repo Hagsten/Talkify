@@ -22,7 +22,211 @@ var talkifyFormReader = require('./src/talkify-formreader.js');
  *  Licensed under the New BSD License.
  *  https://github.com/stackp/promisejs
  */
-(function(a){function b(){this._callbacks=[];}b.prototype.then=function(a,c){var d;if(this._isdone)d=a.apply(c,this.result);else{d=new b();this._callbacks.push(function(){var b=a.apply(c,arguments);if(b&&typeof b.then==='function')b.then(d.done,d);});}return d;};b.prototype.done=function(){this.result=arguments;this._isdone=true;for(var a=0;a<this._callbacks.length;a++)this._callbacks[a].apply(null,arguments);this._callbacks=[];};function c(a){var c=new b();var d=[];if(!a||!a.length){c.done(d);return c;}var e=0;var f=a.length;function g(a){return function(){e+=1;d[a]=Array.prototype.slice.call(arguments);if(e===f)c.done(d);};}for(var h=0;h<f;h++)a[h].then(g(h));return c;}function d(a,c){var e=new b();if(a.length===0)e.done.apply(e,c);else a[0].apply(null,c).then(function(){a.splice(0,1);d(a,arguments).then(function(){e.done.apply(e,arguments);});});return e;}function e(a){var b="";if(typeof a==="string")b=a;else{var c=encodeURIComponent;var d=[];for(var e in a)if(a.hasOwnProperty(e))d.push(c(e)+'='+c(a[e]));b=d.join('&');}return b;}function f(){var a;if(window.XMLHttpRequest)a=new XMLHttpRequest();else if(window.ActiveXObject)try{a=new ActiveXObject("Msxml2.XMLHTTP");}catch(b){a=new ActiveXObject("Microsoft.XMLHTTP");}return a;}function g(a,c,d,g){var h=new b();var j,k;d=d||{};g=g||{};try{j=f();}catch(l){h.done(i.ENOXHR,"");return h;}k=e(d);if(a==='GET'&&k){c+='?'+k;k=null;}j.open(a,c);var m='application/x-www-form-urlencoded';for(var n in g)if(g.hasOwnProperty(n))if(n.toLowerCase()==='content-type')m=g[n];else j.setRequestHeader(n,g[n]);j.setRequestHeader('Content-type',m);function o(){j.abort();h.done(i.ETIMEOUT,"",j);}var p=i.ajaxTimeout;if(p)var q=setTimeout(o,p);j.onreadystatechange=function(){if(p)clearTimeout(q);if(j.readyState===4){var a=(!j.status||(j.status<200||j.status>=300)&&j.status!==304);h.done(a,j.responseText,j);}};j.send(k);return h;}function h(a){return function(b,c,d){return g(a,b,c,d);};}var i={Promise:b,join:c,chain:d,ajax:g,get:h('GET'),post:h('POST'),put:h('PUT'),del:h('DELETE'),ENOXHR:1,ETIMEOUT:2,ajaxTimeout:0};if(typeof define==='function'&&define.amd)define(function(){return i;});else a.promise=i;})(this);
+
+(function (exports) {
+
+    function Promise() {
+        this._callbacks = [];
+    }
+
+    Promise.prototype.then = function (func, context) {
+        var p;
+        if (this._isdone) {
+            p = func.apply(context, this.result);
+        } else {
+            p = new Promise();
+            this._callbacks.push(function () {
+                var res = func.apply(context, arguments);
+                if (res && typeof res.then === 'function')
+                    res.then(p.done, p);
+            });
+        }
+        return p;
+    };
+
+    Promise.prototype.done = function () {
+        this.result = arguments;
+        this._isdone = true;
+        for (var i = 0; i < this._callbacks.length; i++) {
+            this._callbacks[i].apply(null, arguments);
+        }
+        this._callbacks = [];
+    };
+
+    function join(promises) {
+        var p = new Promise();
+        var results = [];
+
+        if (!promises || !promises.length) {
+            p.done(results);
+            return p;
+        }
+
+        var numdone = 0;
+        var total = promises.length;
+
+        function notifier(i) {
+            return function () {
+                numdone += 1;
+                results[i] = Array.prototype.slice.call(arguments);
+                if (numdone === total) {
+                    p.done(results);
+                }
+            };
+        }
+
+        for (var i = 0; i < total; i++) {
+            promises[i].then(notifier(i));
+        }
+
+        return p;
+    }
+
+    function chain(funcs, args) {
+        var p = new Promise();
+        if (funcs.length === 0) {
+            p.done.apply(p, args);
+        } else {
+            funcs[0].apply(null, args).then(function () {
+                funcs.splice(0, 1);
+                chain(funcs, arguments).then(function () {
+                    p.done.apply(p, arguments);
+                });
+            });
+        }
+        return p;
+    }
+
+    /*
+     * AJAX requests
+     */
+
+    function _encode(data) {
+        var result = "";
+        if (typeof data === "string") {
+            result = data;
+        } else {
+            var e = encodeURIComponent;
+            for (var k in data) {
+                if (data.hasOwnProperty(k)) {
+                    result += '&' + e(k) + '=' + e(data[k]);
+                }
+            }
+        }
+        return result;
+    }
+
+    function new_xhr() {
+        var xhr;
+        if (window.XMLHttpRequest) {
+            xhr = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            try {
+                xhr = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+                xhr = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+        }
+        return xhr;
+    }
+
+
+    function ajax(method, url, data, headers) {
+        var p = new Promise();
+        var xhr, payload;
+        data = data || {};
+        headers = headers || {};
+
+        try {
+            xhr = new_xhr();
+        } catch (e) {
+            p.done(promise.ENOXHR, "");
+            return p;
+        }
+
+        payload = _encode(data);
+        if (method === 'GET' && payload) {
+            url += '?' + payload;
+            payload = null;
+        }
+
+        xhr.open(method, url);
+        xhr.setRequestHeader('Content-type',
+                             'application/x-www-form-urlencoded');
+        for (var h in headers) {
+            if (headers.hasOwnProperty(h)) {
+                xhr.setRequestHeader(h, headers[h]);
+            }
+        }
+
+        function onTimeout() {
+            xhr.abort();
+            p.done(promise.ETIMEOUT, "", xhr);
+        }
+
+        var timeout = promise.ajaxTimeout;
+        if (timeout) {
+            var tid = setTimeout(onTimeout, timeout);
+        }
+
+        xhr.onreadystatechange = function () {
+            if (timeout) {
+                clearTimeout(tid);
+            }
+            if (xhr.readyState === 4) {
+                var err = (!xhr.status ||
+                           (xhr.status < 200 || xhr.status >= 300) &&
+                           xhr.status !== 304);
+                p.done(err, xhr.responseText, xhr);
+            }
+        };
+
+        xhr.send(payload);
+        return p;
+    }
+
+    function _ajaxer(method) {
+        return function (url, data, headers) {
+            return ajax(method, url, data, headers);
+        };
+    }
+
+    var promise = {
+        Promise: Promise,
+        join: join,
+        chain: chain,
+        ajax: ajax,
+        get: _ajaxer('GET'),
+        post: _ajaxer('POST'),
+        put: _ajaxer('PUT'),
+        del: _ajaxer('DELETE'),
+
+        /* Error codes */
+        ENOXHR: 1,
+        ETIMEOUT: 2,
+
+        /**
+         * Configuration parameter: time in milliseconds after which a
+         * pending AJAX request is considered unresponsive and is
+         * aborted. Useful to deal with bad connectivity (e.g. on a
+         * mobile network). A 0 value disables AJAX timeouts.
+         *
+         * Aborted requests resolve the promise with a ETIMEOUT error
+         * code.
+         */
+        ajaxTimeout: 0
+    };
+
+    if (typeof define === 'function' && define.amd) {
+        /* AMD support */
+        define(function () {
+            return promise;
+        });
+    } else {
+        exports.promise = promise;
+    }
+
+})(this);
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
@@ -1743,7 +1947,69 @@ talkify.playlist = function () {
                 settings.domElements = textextractor.extract(settings.rootSelector, settings.exclusions);
             }
 
+            for (var i = 0; i < settings.domElements.length; i++) {
+                var text, ssml;
+                var element = null;
+
+                if (typeof settings.domElements[i] === "string") {
+                    text = settings.domElements[i];
+                } else {
+                    element = settings.domElements[i];
+
+                    ssml = convertToSsml(element);
+                    
+                    text = element.innerText.trim();
+                }
+
+                if (text === "") {
+                    continue;
+                }
+
+                push(createItems(text, ssml, element));
+
+                if (text.length > playlist.refrenceText.length) {
+                    playlist.refrenceText = text;
+                }
+            }
+
+            if (settings.useTextInteraction) {
+                for (var j = 0; j < playlist.queue.length; j++) {
+                    var item = playlist.queue[j];
+
+                    if (j > 0) {
+                        var isSameAsPrevious = item.element === playlist.queue[j - 1].element;
+
+                        if (isSameAsPrevious) {
+                            continue;
+                        }
+                    }
+
+                    setupItemForUserInteraction(item);
+                }
+            }
+        }
+
+        function convertToSsml(element) {
+            if(!talkify.config.useSsml){
+                return null;
+            }
+
             var ssmlMappings = {
+                h1: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                h2: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                h3: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
                 b: {
                     start: '###emphasis level="strong">',
                     end: '###/emphasis>',
@@ -1779,76 +2045,39 @@ talkify.playlist = function () {
             htmlEntities["&apos;"] = "'";
             htmlEntities["&amp;"] = "&";
 
-            for (var i = 0; i < settings.domElements.length; i++) {
-                var text, ssml;
-                var element = null;
+            var ssml = element.outerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
 
-                if (typeof settings.domElements[i] === "string") {
-                    text = settings.domElements[i];
-                } else {
-                    element = settings.domElements[i];
-
-                    var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
-                    
-                    for (var key in htmlEntities) {
-                        ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);
-                    }
-
-                    for (var key in ssmlMappings) {
-                        var mapping = ssmlMappings[key];
-
-                        var startTagMatches = ssml.match(new RegExp('<' + key + '+(>|.*?[^?]>)', 'gi')) || [];
-
-                        for (var j = 0; j < startTagMatches.length; j++) {
-                            if (startTagMatches[j] !== '<' + key + '>' && startTagMatches[j].indexOf('<' + key + ' ') !== 0) {
-                                continue;
-                            }
-
-                            ssml = ssml.replace(startTagMatches[j], mapping.start);
-
-                            if (mapping.trim) {
-                                ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
-                            } 
-                        }
-
-                        ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
-                    }
-
-                    ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
-                    ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
-                    ssml = ssml.split('###').join('<');
-
-                    console.log("SSML", ssml);
-
-                    text = element.innerText.trim();
-                }
-
-                if (text === "") {
-                    continue;
-                }
-
-                push(createItems(text, ssml, element));
-
-                if (text.length > playlist.refrenceText.length) {
-                    playlist.refrenceText = text;
-                }
+            for (var key in htmlEntities) {
+                ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);
             }
 
-            if (settings.useTextInteraction) {
-                for (var j = 0; j < playlist.queue.length; j++) {
-                    var item = playlist.queue[j];
+            for (var key in ssmlMappings) {
+                var mapping = ssmlMappings[key];
 
-                    if (j > 0) {
-                        var isSameAsPrevious = item.element === playlist.queue[j - 1].element;
+                var startTagMatches = ssml.match(new RegExp('<' + key + '+(>|.*?[^?]>)', 'gi')) || [];
 
-                        if (isSameAsPrevious) {
-                            continue;
-                        }
+                for (var j = 0; j < startTagMatches.length; j++) {
+                    if (startTagMatches[j] !== '<' + key + '>' && startTagMatches[j].indexOf('<' + key + ' ') !== 0) {
+                        continue;
                     }
 
-                    setupItemForUserInteraction(item);
+                    ssml = ssml.replace(startTagMatches[j], mapping.start);
+
+                    if (mapping.trim) {
+                        ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
+                    }
                 }
+
+                ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
             }
+
+            ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
+            ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
+            ssml = ssml.split('###').join('<');
+
+            console.log("SSML", ssml);
+
+            return ssml;
         }
 
         function getNextItem() {
@@ -2650,40 +2879,15 @@ talkify.wordHighlighter = function (correlationId) {
 
         currentItem = item;
 
-        // var text = item.element.innerText.trim();
-
-        var sentence = findCurrentSentence(item, charPosition);
-
-        //Samma som i playlist. Utilmetod om denna behålls?
+        //Same as in playlist. Utilmetod?
         item.element.innerHTML = item.element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
 
-        newFindCurrentSentence(item.element, charPosition);
-
-        newHighlight(word, charPosition, 0, item.element.childNodes);
-
-
-
-
-        // item.element.innerHTML =
-        //     text.substring(0, sentence.start) +
-        //     '<span class="talkify-sentence-highlight">' +
-        //     text.substring(sentence.start, charPosition) +
-        //     '<span class="talkify-word-highlight">' +
-        //     text.substring(charPosition, charPosition + word.length) +
-        //     '</span>' +
-        //     text.substring(charPosition + word.length, sentence.end) +
-        //     '</span>' +
-        //     text.substring(sentence.end);
+        highlightCurrentSentence(item.element, charPosition);
+        highlightCurrentWord(word, charPosition, 0, item.element.childNodes);
     }
 
-    function newFindCurrentSentence(element, charPosition, currentPosition) {
+    function highlightCurrentSentence(element, charPosition, currentPosition) {
         //TODO: Måste ta hänsyn till whitespaces precis som i highlight...
-
-        //1. Leta efter meningar. Sätt start vid varje ny mening
-        //2. Om ett ord träffas, Kolla om charPosition finns i nuvarande meing
-        //3. Om charposition finns inom nuvarande mening, leta efter nästa sluttecken.
-        //4. slut
-
         var index = 0;
 
         var sentence = findSentence(element.childNodes, 0);
@@ -2691,18 +2895,10 @@ talkify.wordHighlighter = function (correlationId) {
         index += sentence.text.length;
 
         if (charPosition <= index) {
-            var wrapper = document.createElement('span');
-            wrapper.className = "talkify-sentence-highlight";
-            
-            sentence.nodes[0].parentElement.insertBefore(wrapper, sentence.nodes[0]);
-
-            for(var i = 0; i < sentence.nodes.length; i++){
-                wrapper.appendChild(sentence.nodes[i]);
-            }
+            wrapSentence(sentence);
 
             return;
         }
-
 
         while (sentence.next.length) {
             sentence = findSentence(sentence.next, charPosition)
@@ -2710,20 +2906,23 @@ talkify.wordHighlighter = function (correlationId) {
             index += sentence.text.length;
 
             if (charPosition <= index) {
-                
-                var wrapper = document.createElement('span');
-                wrapper.className = "talkify-sentence-highlight";
-                
-                sentence.nodes[0].parentElement.insertBefore(wrapper, sentence.nodes[0]);
-    
-                for(var i = 0; i < sentence.nodes.length; i++){
-                    wrapper.appendChild(sentence.nodes[i]);
-                }
-    
+                wrapSentence(sentence);
 
                 return;
             }
         }
+    }
+
+    function wrapSentence(sentence) {
+        var wrapper = document.createElement('span');
+        wrapper.className = "talkify-sentence-highlight";
+
+        sentence.nodes[0].parentElement.insertBefore(wrapper, sentence.nodes[0]);
+
+        for (var i = 0; i < sentence.nodes.length; i++) {
+            wrapper.appendChild(sentence.nodes[i]);
+        }
+
     }
 
     function findSentence(nodes, textIndex) {
@@ -2769,7 +2968,7 @@ talkify.wordHighlighter = function (correlationId) {
         }
 
         for (var i = index + 1; i < nodes.length; i++) {
-            if (nodesRemaining.indexOf(nodes[i] > -1)) {
+            if (nodesRemaining.indexOf(nodes[i]) > -1) {
                 console.log("skipping..");
                 continue;
             }
@@ -2785,7 +2984,7 @@ talkify.wordHighlighter = function (correlationId) {
         };
     }
 
-    function newHighlight(word, charPosition, textIndex, nodes, previousCharWasWhitespace) {
+    function highlightCurrentWord(word, charPosition, textIndex, nodes, previousCharWasWhitespace) {
         var lastCharIsWhitespace = false;
 
         for (var i = 0; i < nodes.length; i++) {
@@ -2840,7 +3039,7 @@ talkify.wordHighlighter = function (correlationId) {
 
                 textIndex += childNode.textContent.length - leadingWhiteSpaces;
             } else {
-                var response = newHighlight(word, charPosition, textIndex, childNode.childNodes, lastCharIsWhitespace || previousCharWasWhitespace);
+                var response = highlightCurrentWord(word, charPosition, textIndex, childNode.childNodes, lastCharIsWhitespace || previousCharWasWhitespace);
 
                 if (response.found) {
                     return response;
