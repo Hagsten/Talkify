@@ -2847,17 +2847,19 @@ talkify.wordHighlighter = function (correlationId) {
         highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
     });
 
-    function adjustPositionsToSsml(result, ssml, positions, originalPositions, pos) {
+    function adjustPositionsToSsml(ssmlSections, ssml, positions, originalPositions, pos) {
         var internalPos = JSON.parse(JSON.stringify(positions));
 
         pos = pos || 0;
 
-        if (pos >= result.length) {
+        if (pos >= ssmlSections.length) {
             return internalPos;
         }
 
-        var lengthToCompensateFor = result[pos].length;
-        var index = ssml.indexOf(result[pos]);
+        var internalSsml = ssml.replace("&", "&amp;");
+
+        var lengthToCompensateFor = ssmlSections[pos].length + (internalSsml.length - ssml.length);
+        var index = internalSsml.indexOf(ssmlSections[pos]);
 
         for (var i = 0; i < internalPos.length; i++) {
             if (originalPositions[i] < index) {
@@ -2867,7 +2869,7 @@ talkify.wordHighlighter = function (correlationId) {
             internalPos[i].CharPosition -= lengthToCompensateFor;
         }
 
-        internalPos = adjustPositionsToSsml(result, ssml.substring(0, index) + "#" + ssml.substring(index + 1, ssml.length), internalPos, originalPositions, pos + 1);
+        internalPos = adjustPositionsToSsml(ssmlSections, internalSsml.substring(0, index) + "#" + internalSsml.substring(index + 1, internalSsml.length), internalPos, originalPositions, pos + 1);
 
         return internalPos;
     }
