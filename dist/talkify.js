@@ -22,7 +22,211 @@ var talkifyFormReader = require('./src/talkify-formreader.js');
  *  Licensed under the New BSD License.
  *  https://github.com/stackp/promisejs
  */
-(function(a){function b(){this._callbacks=[];}b.prototype.then=function(a,c){var d;if(this._isdone)d=a.apply(c,this.result);else{d=new b();this._callbacks.push(function(){var b=a.apply(c,arguments);if(b&&typeof b.then==='function')b.then(d.done,d);});}return d;};b.prototype.done=function(){this.result=arguments;this._isdone=true;for(var a=0;a<this._callbacks.length;a++)this._callbacks[a].apply(null,arguments);this._callbacks=[];};function c(a){var c=new b();var d=[];if(!a||!a.length){c.done(d);return c;}var e=0;var f=a.length;function g(a){return function(){e+=1;d[a]=Array.prototype.slice.call(arguments);if(e===f)c.done(d);};}for(var h=0;h<f;h++)a[h].then(g(h));return c;}function d(a,c){var e=new b();if(a.length===0)e.done.apply(e,c);else a[0].apply(null,c).then(function(){a.splice(0,1);d(a,arguments).then(function(){e.done.apply(e,arguments);});});return e;}function e(a){var b="";if(typeof a==="string")b=a;else{var c=encodeURIComponent;var d=[];for(var e in a)if(a.hasOwnProperty(e))d.push(c(e)+'='+c(a[e]));b=d.join('&');}return b;}function f(){var a;if(window.XMLHttpRequest)a=new XMLHttpRequest();else if(window.ActiveXObject)try{a=new ActiveXObject("Msxml2.XMLHTTP");}catch(b){a=new ActiveXObject("Microsoft.XMLHTTP");}return a;}function g(a,c,d,g){var h=new b();var j,k;d=d||{};g=g||{};try{j=f();}catch(l){h.done(i.ENOXHR,"");return h;}k=e(d);if(a==='GET'&&k){c+='?'+k;k=null;}j.open(a,c);var m='application/x-www-form-urlencoded';for(var n in g)if(g.hasOwnProperty(n))if(n.toLowerCase()==='content-type')m=g[n];else j.setRequestHeader(n,g[n]);j.setRequestHeader('Content-type',m);function o(){j.abort();h.done(i.ETIMEOUT,"",j);}var p=i.ajaxTimeout;if(p)var q=setTimeout(o,p);j.onreadystatechange=function(){if(p)clearTimeout(q);if(j.readyState===4){var a=(!j.status||(j.status<200||j.status>=300)&&j.status!==304);h.done(a,j.responseText,j);}};j.send(k);return h;}function h(a){return function(b,c,d){return g(a,b,c,d);};}var i={Promise:b,join:c,chain:d,ajax:g,get:h('GET'),post:h('POST'),put:h('PUT'),del:h('DELETE'),ENOXHR:1,ETIMEOUT:2,ajaxTimeout:0};if(typeof define==='function'&&define.amd)define(function(){return i;});else a.promise=i;})(this);
+
+(function (exports) {
+
+    function Promise() {
+        this._callbacks = [];
+    }
+
+    Promise.prototype.then = function (func, context) {
+        var p;
+        if (this._isdone) {
+            p = func.apply(context, this.result);
+        } else {
+            p = new Promise();
+            this._callbacks.push(function () {
+                var res = func.apply(context, arguments);
+                if (res && typeof res.then === 'function')
+                    res.then(p.done, p);
+            });
+        }
+        return p;
+    };
+
+    Promise.prototype.done = function () {
+        this.result = arguments;
+        this._isdone = true;
+        for (var i = 0; i < this._callbacks.length; i++) {
+            this._callbacks[i].apply(null, arguments);
+        }
+        this._callbacks = [];
+    };
+
+    function join(promises) {
+        var p = new Promise();
+        var results = [];
+
+        if (!promises || !promises.length) {
+            p.done(results);
+            return p;
+        }
+
+        var numdone = 0;
+        var total = promises.length;
+
+        function notifier(i) {
+            return function () {
+                numdone += 1;
+                results[i] = Array.prototype.slice.call(arguments);
+                if (numdone === total) {
+                    p.done(results);
+                }
+            };
+        }
+
+        for (var i = 0; i < total; i++) {
+            promises[i].then(notifier(i));
+        }
+
+        return p;
+    }
+
+    function chain(funcs, args) {
+        var p = new Promise();
+        if (funcs.length === 0) {
+            p.done.apply(p, args);
+        } else {
+            funcs[0].apply(null, args).then(function () {
+                funcs.splice(0, 1);
+                chain(funcs, arguments).then(function () {
+                    p.done.apply(p, arguments);
+                });
+            });
+        }
+        return p;
+    }
+
+    /*
+     * AJAX requests
+     */
+
+    function _encode(data) {
+        var result = "";
+        if (typeof data === "string") {
+            result = data;
+        } else {
+            var e = encodeURIComponent;
+            for (var k in data) {
+                if (data.hasOwnProperty(k)) {
+                    result += '&' + e(k) + '=' + e(data[k]);
+                }
+            }
+        }
+        return result;
+    }
+
+    function new_xhr() {
+        var xhr;
+        if (window.XMLHttpRequest) {
+            xhr = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            try {
+                xhr = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+                xhr = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+        }
+        return xhr;
+    }
+
+
+    function ajax(method, url, data, headers) {
+        var p = new Promise();
+        var xhr, payload;
+        data = data || {};
+        headers = headers || {};
+
+        try {
+            xhr = new_xhr();
+        } catch (e) {
+            p.done(promise.ENOXHR, "");
+            return p;
+        }
+
+        payload = _encode(data);
+        if (method === 'GET' && payload) {
+            url += '?' + payload;
+            payload = null;
+        }
+
+        xhr.open(method, url);
+        xhr.setRequestHeader('Content-type',
+                             'application/x-www-form-urlencoded');
+        for (var h in headers) {
+            if (headers.hasOwnProperty(h)) {
+                xhr.setRequestHeader(h, headers[h]);
+            }
+        }
+
+        function onTimeout() {
+            xhr.abort();
+            p.done(promise.ETIMEOUT, "", xhr);
+        }
+
+        var timeout = promise.ajaxTimeout;
+        if (timeout) {
+            var tid = setTimeout(onTimeout, timeout);
+        }
+
+        xhr.onreadystatechange = function () {
+            if (timeout) {
+                clearTimeout(tid);
+            }
+            if (xhr.readyState === 4) {
+                var err = (!xhr.status ||
+                           (xhr.status < 200 || xhr.status >= 300) &&
+                           xhr.status !== 304);
+                p.done(err, xhr.responseText, xhr);
+            }
+        };
+
+        xhr.send(payload);
+        return p;
+    }
+
+    function _ajaxer(method) {
+        return function (url, data, headers) {
+            return ajax(method, url, data, headers);
+        };
+    }
+
+    var promise = {
+        Promise: Promise,
+        join: join,
+        chain: chain,
+        ajax: ajax,
+        get: _ajaxer('GET'),
+        post: _ajaxer('POST'),
+        put: _ajaxer('PUT'),
+        del: _ajaxer('DELETE'),
+
+        /* Error codes */
+        ENOXHR: 1,
+        ETIMEOUT: 2,
+
+        /**
+         * Configuration parameter: time in milliseconds after which a
+         * pending AJAX request is considered unresponsive and is
+         * aborted. Useful to deal with bad connectivity (e.g. on a
+         * mobile network). A 0 value disables AJAX timeouts.
+         *
+         * Aborted requests resolve the promise with a ETIMEOUT error
+         * code.
+         */
+        ajaxTimeout: 0
+    };
+
+    if (typeof define === 'function' && define.amd) {
+        /* AMD support */
+        define(function () {
+            return promise;
+        });
+    } else {
+        exports.promise = promise;
+    }
+
+})(this);
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
@@ -55,6 +259,7 @@ talkify.http = (function ajax() {
 talkify = talkify || {};
 talkify.config = {
     debug: false,
+    useSsml: true,
     ui:
     {
         audioControls: {
@@ -1322,7 +1527,7 @@ talkify.TtsPlayer = function () {
     }
 
     function onSeek() {
-        talkify.messageHub.publish(me.correlationId + ".player.tts.seeked", this.currentTime);
+        talkify.messageHub.publish(me.correlationId + ".player.tts.seeked", { time: this.currentTime, item: me.currentContext.item, positions: me.currentContext.positions });
 
         if (me.audioSource.paused() && me.audioSource.currentTime() > 0.1) {
             me.audioSource.play();
@@ -1442,12 +1647,17 @@ talkify.TtsPlayer = function () {
 
         var sources = audioElement.getElementsByTagName("source");
 
-        var textToPlay = encodeURIComponent(item.text.replace(/\n/g, " "));
+        var textType = talkify.config.useSsml && item.ssml ? "ssml" : "text";
+
+        var textToPlay = textType === "ssml" ?
+            encodeURIComponent(item.ssml.replace(/\n/g, " ")) :
+            encodeURIComponent(item.text.replace(/\n/g, " "));
+
         var voice = this.forcedVoice ? this.forcedVoice.name : "";
 
         var requestId = talkify.generateGuid();
 
-        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?texttype=" + textType + " &text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
 
         if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
@@ -1512,7 +1722,6 @@ talkify.playlist = function () {
     }
 
     function implementation(_settings, player) {
-
         var textextractor = new talkify.textextractor();
 
         var playlist = {
@@ -1655,7 +1864,7 @@ talkify.playlist = function () {
             p = player.playItem(item);
         };
 
-        function createItems(text, element) {
+        function createItems(text, ssml, element) {
             var safeMaxQuerystringLength = 1000;
 
             var items = [];
@@ -1669,21 +1878,22 @@ talkify.playlist = function () {
 
                 items.push(template(f, element));
 
-                items = items.concat(createItems(text.substr(breakAt, text.length - 1), element));
+                items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
 
                 return items;
             }
 
-            items.push(template(text, element));
+            items.push(template(text, ssml, element));
 
             return items;
 
-            function template(t, el) {
+            function template(t, s, el) {
                 el = el || document.createElement("span");
                 var clone = el.cloneNode(true);
 
                 return {
                     text: t,
+                    ssml: s,
                     preview: t.substr(0, 40),
                     element: el,
                     originalElement: clone,
@@ -1738,13 +1948,16 @@ talkify.playlist = function () {
             }
 
             for (var i = 0; i < settings.domElements.length; i++) {
-                var text;
+                var text, ssml;
                 var element = null;
 
                 if (typeof settings.domElements[i] === "string") {
                     text = settings.domElements[i];
                 } else {
                     element = settings.domElements[i];
+
+                    ssml = convertToSsml(element);
+                    
                     text = element.innerText.trim();
                 }
 
@@ -1752,7 +1965,7 @@ talkify.playlist = function () {
                     continue;
                 }
 
-                push(createItems(text, element));
+                push(createItems(text, ssml, element));
 
                 if (text.length > playlist.refrenceText.length) {
                     playlist.refrenceText = text;
@@ -1774,6 +1987,95 @@ talkify.playlist = function () {
                     setupItemForUserInteraction(item);
                 }
             }
+        }
+
+        function convertToSsml(element) {
+            if(!talkify.config.useSsml){
+                return null;
+            }
+
+            var ssmlMappings = {
+                h1: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                h2: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                h3: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                b: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                strong: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                em: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                i: {
+                    start: '###emphasis level="reduced">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                br: {
+                    start: '###break strength="x-strong">###/break>',
+                    end: '',
+                    trim: true
+                }
+            };
+
+            var htmlEntities = {};
+            htmlEntities["&nbsp;"] = " ";
+            htmlEntities["&lt;"] = "<";
+            htmlEntities["&gt;"] = ">";
+            htmlEntities["&qout;"] = "\"";
+            htmlEntities["&apos;"] = "'";
+            htmlEntities["&amp;"] = "&";
+
+            var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
+
+            for (var key in htmlEntities) {
+                ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);
+            }
+
+            for (var key in ssmlMappings) {
+                var mapping = ssmlMappings[key];
+
+                var startTagMatches = ssml.match(new RegExp('<' + key + '+(>|.*?[^?]>)', 'gi')) || [];
+
+                for (var j = 0; j < startTagMatches.length; j++) {
+                    if (startTagMatches[j] !== '<' + key + '>' && startTagMatches[j].indexOf('<' + key + ' ') !== 0) {
+                        continue;
+                    }
+
+                    ssml = ssml.replace(startTagMatches[j], mapping.start);
+
+                    if (mapping.trim) {
+                        ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
+                    }
+                }
+
+                ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
+            }
+
+            ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
+            ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
+            ssml = ssml.split('###').join('<');
+
+            return ssml;
         }
 
         function getNextItem() {
@@ -1843,7 +2145,7 @@ talkify.playlist = function () {
                 var isSelectionAfterQueueItem = element.compareDocumentPosition(item.element) == documentPositionFollowing;
 
                 if (isSelectionAfterQueueItem) {
-                    var queueItems = createItems(text, element);
+                    var queueItems = createItems(text, null, element);
 
                     insertAt(j, queueItems);
 
@@ -1855,7 +2157,7 @@ talkify.playlist = function () {
                 var shouldAddToBottom = j === playlist.queue.length - 1;
 
                 if (shouldAddToBottom) {
-                    var qItems = createItems(text, element);
+                    var qItems = createItems(text, null, element);
 
                     push(qItems);
 
@@ -2219,7 +2521,7 @@ talkify.textextractor = function () {
     var validElements = [];
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
-    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'br', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt'];
+    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt']; //removed br...revert?
     var userExcludedElements = [];
 
     function getVisible(elements) {
@@ -2277,10 +2579,14 @@ talkify.textextractor = function () {
     }
 
     function isValidForGrouping(node) {
+        if(node.nodeName === "BR"){
+            return true;
+        }
+        
         var isTextNode = node.nodeType === 3;
         var textLength = getStrippedText(node.textContent).length;
 
-        return (isTextNode && textLength >= 5) || (!isForbidden(node) && elementIsInlineElement(node));
+        return (isTextNode && textLength >= 2) || (!isForbidden(node) && elementIsInlineElement(node));
     }
 
     function getConnectedElements(nodes, firstIndex) {
@@ -2312,7 +2618,7 @@ talkify.textextractor = function () {
     function wrapInSelectableElement(node) {
         wrapping = document.createElement('span');
         wrapping.classList.add("foobar");
-        wrapping.innerText = node.textContent;
+        wrapping.innerText = node.textContent.trim();
         return wrapping;
     }
 
@@ -2391,8 +2697,6 @@ talkify.textextractor = function () {
         validElements = [];
 
         var topLevelElements = document.querySelectorAll(rootSelector + ' > ' + generateExcludesFromForbiddenElements());
-
-        var date = new Date();
 
         for (var i = 0; i < topLevelElements.length; i++) {
             var element = topLevelElements[i];
@@ -2493,6 +2797,7 @@ talkify = talkify || {};
 talkify.wordHighlighter = function (correlationId) {
     var currentItem = null;
     var currentPositions = [];
+    var currentPosition = -1;
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
     talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"], cancel);
@@ -2510,6 +2815,11 @@ talkify.wordHighlighter = function (correlationId) {
         var currentPos = 0;
 
         if (time < currentPositions[0].Position) {
+            if (currentPosition === 0) {
+                return;
+            }
+
+            currentPosition = 0;
             highlight(currentItem, currentPositions[0].Word, currentPositions[0].CharPosition);
             return;
         }
@@ -2528,27 +2838,220 @@ talkify.wordHighlighter = function (correlationId) {
             }
         }
 
+        if (currentPosition === currentPos) {
+            return;
+        }
+
+        currentPosition = currentPos;
+
         highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
     });
+
+    function adjustPositionsToSsml(ssmlSections, ssml, positions, originalPositions, pos) {
+        var internalPos = JSON.parse(JSON.stringify(positions));
+
+        pos = pos || 0;
+
+        if (pos >= ssmlSections.length) {
+            return internalPos;
+        }
+
+        var internalSsml = ssml.replace("&", "&amp;");
+
+        var lengthToCompensateFor = ssmlSections[pos].length + (internalSsml.length - ssml.length);
+        var index = internalSsml.indexOf(ssmlSections[pos]);
+
+        for (var i = 0; i < internalPos.length; i++) {
+            if (originalPositions[i] < index) {
+                continue;
+            }
+
+            internalPos[i].CharPosition -= lengthToCompensateFor;
+        }
+
+        internalPos = adjustPositionsToSsml(ssmlSections, internalSsml.substring(0, index) + "#" + internalSsml.substring(index + 1, internalSsml.length), internalPos, originalPositions, pos + 1);
+
+        return internalPos;
+    }
 
     function highlight(item, word, charPosition) {
         resetCurrentItem();
 
         currentItem = item;
-        var text = item.element.innerText.trim();
 
-        var sentence = findCurrentSentence(item, charPosition);
+        //Same as in playlist. Utilmetod?
+        item.element.innerHTML = item.element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
 
-        item.element.innerHTML =
-            text.substring(0, sentence.start) +
-            '<span class="talkify-sentence-highlight">' +
-            text.substring(sentence.start, charPosition) +
-            '<span class="talkify-word-highlight">' +
-            text.substring(charPosition, charPosition + word.length) +
-            '</span>' +
-            text.substring(charPosition + word.length, sentence.end) +
-            '</span>' +
-            text.substring(sentence.end);
+        highlightCurrentSentence(item.element, charPosition);
+        highlightCurrentWord(word, charPosition, 0, item.element.childNodes);
+    }
+
+    function highlightCurrentSentence(element, charPosition, currentPosition) {
+        //TODO: Måste ta hänsyn till whitespaces precis som i highlight...
+        var index = 0;
+
+        var sentence = findSentence(element.childNodes, 0);
+
+        index += sentence.text.length;
+
+        if (charPosition <= index) {
+            wrapSentence(sentence);
+
+            return;
+        }
+
+        while (sentence.next.length) {
+            sentence = findSentence(sentence.next, charPosition)
+
+            index += sentence.text.length;
+
+            if (charPosition <= index) {
+                wrapSentence(sentence);
+
+                return;
+            }
+        }
+    }
+
+    function wrapSentence(sentence) {
+        var wrapper = document.createElement('span');
+        wrapper.className = "talkify-sentence-highlight";
+
+        sentence.nodes[0].parentElement.insertBefore(wrapper, sentence.nodes[0]);
+
+        for (var i = 0; i < sentence.nodes.length; i++) {
+            wrapper.appendChild(sentence.nodes[i]);
+        }
+
+    }
+
+    function findSentence(nodes, textIndex) {
+        var nodesInSentence = [];
+        var nodesRemaining = [];
+        var textIndex = textIndex || 0;
+        var text = "";
+        var index = 0;
+
+        for (var i = 0; i < nodes.length; i++) {
+            index = i;
+            var node = nodes[i];
+
+            nodesInSentence.push(node);
+
+            if (node.nodeType === 3) { //textcontent
+                var indexOfSentenceEnd =
+                    ((node.textContent.indexOf(".") + 1) ||
+                        (node.textContent.indexOf("?") + 1) ||
+                        (node.textContent.indexOf("!") + 1)) - 1;
+
+                if (indexOfSentenceEnd > -1) {
+                    var rightHandSide = node.splitText(indexOfSentenceEnd + 1);
+
+                    nodesRemaining.push(rightHandSide);
+
+                    text += node.textContent;
+
+                    break;
+
+                } else {
+                    text += node.textContent;
+
+                    textIndex += node.textContent.length;
+                }
+
+            } else {
+                var response = findSentence(node.childNodes, textIndex);
+
+                textIndex += response.textIndex;
+                text += response.text;
+            }
+        }
+
+        for (var i = index + 1; i < nodes.length; i++) {
+            if (nodesRemaining.indexOf(nodes[i]) > -1) {
+                continue;
+            }
+
+            nodesRemaining.push(nodes[i]);
+        }
+
+        return {
+            nodes: nodesInSentence,
+            next: nodesRemaining,
+            text: text,
+            textIndex: textIndex
+        };
+    }
+
+    function highlightCurrentWord(word, charPosition, textIndex, nodes, previousCharWasWhitespace) {
+        var lastCharIsWhitespace = false;
+
+        for (var i = 0; i < nodes.length; i++) {
+            var childNode = nodes[i];
+
+            var isTextNode = childNode.nodeType === 3;
+
+            if (isTextNode) {
+                if (previousCharWasWhitespace && childNode.textContent.trim() === "") {
+                    continue;
+                }
+
+                var leadingWhiteSpaces = previousCharWasWhitespace ? 0 : childNode.textContent.length - childNode.textContent.trimStart().length;
+
+                if (textIndex > 0) {
+                    textIndex += leadingWhiteSpaces;
+                }
+
+                lastCharIsWhitespace = childNode.textContent.trimEnd() !== childNode.textContent;
+
+                var isInsideTextNode = childNode.textContent.indexOf(word) > -1 &&
+                    charPosition >= textIndex &&
+                    charPosition < textIndex + childNode.textContent.trimStart().length;
+
+                if (isInsideTextNode) {
+                    var splitOffset = charPosition - textIndex;
+                    var rigthHandSide = childNode.splitText(splitOffset);
+
+                    var wrapper = document.createElement('span');
+                    wrapper.className = "talkify-word-highlight";
+
+                    if (rigthHandSide.textContent.length > word.length) {
+                        var firstOccurranceOfWord = rigthHandSide.textContent.indexOf(word);
+
+                        if (firstOccurranceOfWord === 0) {
+                            rigthHandSide.splitText(word.length);
+                        } else {
+                            rigthHandSide = rigthHandSide.splitText(firstOccurranceOfWord);
+
+                            rigthHandSide.splitText(word.length);
+                        }
+                    }
+
+                    rigthHandSide.parentElement.insertBefore(wrapper, rigthHandSide);
+                    wrapper.appendChild(rigthHandSide);
+
+                    return {
+                        found: true,
+                        textIndex: textIndex
+                    };
+                }
+
+                textIndex += childNode.textContent.length - leadingWhiteSpaces;
+            } else {
+                var response = highlightCurrentWord(word, charPosition, textIndex, childNode.childNodes, lastCharIsWhitespace || previousCharWasWhitespace);
+
+                if (response.found) {
+                    return response;
+                }
+
+                textIndex = response.textIndex;
+            }
+        }
+
+        return {
+            found: false,
+            textIndex: textIndex
+        };
     }
 
     function cancel() {
@@ -2564,12 +3067,20 @@ talkify.wordHighlighter = function (correlationId) {
             return;
         }
 
-        currentPositions = positions;
+        if (item.ssml) {
+            var text = item.ssml;
+
+            var result = text.match(/<[^>]*>/g) || [];
+
+            currentPositions = adjustPositionsToSsml(result, text, positions, positions.map(function (x) { return x.CharPosition; }));
+        } else {
+            currentPositions = positions;
+        }
 
         var i = startFrom || 0;
 
         var internalCallback = function () {
-            highlight(item, positions[i].Word, positions[i].CharPosition);
+            currentItem = item;
 
             i++;
 
@@ -2593,13 +3104,13 @@ talkify.wordHighlighter = function (correlationId) {
         }
     }
 
-    function setPosition(time) {
+    function setPosition(message) {
         var diff = 0;
-        var timeInMs = time * 1000;
+        var timeInMs = message.time * 1000;
         var nextPosition = 0;
 
-        for (var i = 0; i < currentPositions.length; i++) {
-            var pos = currentPositions[i];
+        for (var i = 0; i < message.positions.length; i++) {
+            var pos = message.positions[i];
 
             if (pos.Position < timeInMs) {
                 continue;
@@ -2612,7 +3123,7 @@ talkify.wordHighlighter = function (correlationId) {
         }
 
         var item = currentItem;
-        var positions = currentPositions;
+        var positions = message.positions;
 
         cancel();
 
