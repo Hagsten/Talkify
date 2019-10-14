@@ -146,7 +146,8 @@ talkify.wordHighlighter = function (correlationId) {
                 var indexOfSentenceEnd =
                     ((node.textContent.indexOf(".") + 1) ||
                         (node.textContent.indexOf("?") + 1) ||
-                        (node.textContent.indexOf("!") + 1)) - 1;
+                        (node.textContent.indexOf("!") + 1) || 
+                        (node.textContent.indexOf("。") + 1)) - 1;
 
                 if (indexOfSentenceEnd > -1) {
                     var rightHandSide = node.splitText(indexOfSentenceEnd + 1);

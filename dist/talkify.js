@@ -259,7 +259,7 @@ talkify.http = (function ajax() {
 talkify = talkify || {};
 talkify.config = {
     debug: false,
-    useSsml: true,
+    useSsml: false,
     ui:
     {
         audioControls: {
@@ -1872,11 +1872,12 @@ talkify.playlist = function () {
             if (text.length > safeMaxQuerystringLength) {
                 var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); //TODO: What about ckj characters?
 
+                breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
                 breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
 
                 var f = text.substr(0, breakAt);
 
-                items.push(template(f, element));
+                items.push(template(f, null, element));
 
                 items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
 
@@ -2105,7 +2106,9 @@ talkify.playlist = function () {
                 return;
             }
 
-            talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + playlist.refrenceText)
+            var text = playlist.refrenceText.length <= 1000 ? playlist.refrenceText : playlist.refrenceText.substr(0, 1000);
+
+            talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + text)
                 .then(function (error, data) {
                     if (error) {
                         onComplete({ Culture: '', Language: -1 });
@@ -2887,7 +2890,6 @@ talkify.wordHighlighter = function (correlationId) {
     }
 
     function highlightCurrentSentence(element, charPosition, currentPosition) {
-        //TODO: Måste ta hänsyn till whitespaces precis som i highlight...
         var index = 0;
 
         var sentence = findSentence(element.childNodes, 0);
@@ -2942,7 +2944,8 @@ talkify.wordHighlighter = function (correlationId) {
                 var indexOfSentenceEnd =
                     ((node.textContent.indexOf(".") + 1) ||
                         (node.textContent.indexOf("?") + 1) ||
-                        (node.textContent.indexOf("!") + 1)) - 1;
+                        (node.textContent.indexOf("!") + 1) || 
+                        (node.textContent.indexOf("。") + 1)) - 1;
 
                 if (indexOfSentenceEnd > -1) {
                     var rightHandSide = node.splitText(indexOfSentenceEnd + 1);

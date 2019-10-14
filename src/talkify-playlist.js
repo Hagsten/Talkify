@@ -172,13 +172,14 @@ talkify.playlist = function () {
             var items = [];
 
             if (text.length > safeMaxQuerystringLength) {
-                var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); //TODO: What about ckj characters?
+                var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
 
+                breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
                 breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
 
                 var f = text.substr(0, breakAt);
 
-                items.push(template(f, element));
+                items.push(template(f, null, element));
 
                 items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
 
@@ -407,7 +408,9 @@ talkify.playlist = function () {
                 return;
             }
 
-            talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + playlist.refrenceText)
+            var text = playlist.refrenceText.length <= 1000 ? playlist.refrenceText : playlist.refrenceText.substr(0, 1000);
+
+            talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + text)
                 .then(function (error, data) {
                     if (error) {
                         onComplete({ Culture: '', Language: -1 });
