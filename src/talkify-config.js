@@ -1,6 +1,7 @@
 ﻿talkify = talkify || {};
 talkify.config = {
     debug: false,
+    useSsml: false,
     ui:
     {
         audioControls: {

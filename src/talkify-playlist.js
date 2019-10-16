@@ -24,7 +24,6 @@ talkify.playlist = function () {
     }
 
     function implementation(_settings, player) {
-
         var textextractor = new talkify.textextractor();
 
         var playlist = {
@@ -167,35 +166,37 @@ talkify.playlist = function () {
             p = player.playItem(item);
         };
 
-        function createItems(text, element) {
+        function createItems(text, ssml, element) {
             var safeMaxQuerystringLength = 1000;
 
             var items = [];
 
             if (text.length > safeMaxQuerystringLength) {
-                var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); //TODO: What about ckj characters?
+                var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
 
+                breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
                 breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
 
                 var f = text.substr(0, breakAt);
 
-                items.push(template(f, element));
+                items.push(template(f, null, element));
 
-                items = items.concat(createItems(text.substr(breakAt, text.length - 1), element));
+                items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
 
                 return items;
             }
 
-            items.push(template(text, element));
+            items.push(template(text, ssml, element));
 
             return items;
 
-            function template(t, el) {
+            function template(t, s, el) {
                 el = el || document.createElement("span");
                 var clone = el.cloneNode(true);
 
                 return {
                     text: t,
+                    ssml: s,
                     preview: t.substr(0, 40),
                     element: el,
                     originalElement: clone,
@@ -250,13 +251,16 @@ talkify.playlist = function () {
             }
 
             for (var i = 0; i < settings.domElements.length; i++) {
-                var text;
+                var text, ssml;
                 var element = null;
 
                 if (typeof settings.domElements[i] === "string") {
                     text = settings.domElements[i];
                 } else {
                     element = settings.domElements[i];
+
+                    ssml = convertToSsml(element);
+                    
                     text = element.innerText.trim();
                 }
 
@@ -264,7 +268,7 @@ talkify.playlist = function () {
                     continue;
                 }
 
-                push(createItems(text, element));
+                push(createItems(text, ssml, element));
 
                 if (text.length > playlist.refrenceText.length) {
                     playlist.refrenceText = text;
@@ -286,6 +290,95 @@ talkify.playlist = function () {
                     setupItemForUserInteraction(item);
                 }
             }
+        }
+
+        function convertToSsml(element) {
+            if(!talkify.config.useSsml){
+                return null;
+            }
+
+            var ssmlMappings = {
+                h1: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                h2: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                h3: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                b: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                strong: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                em: {
+                    start: '###emphasis level="strong">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                i: {
+                    start: '###emphasis level="reduced">',
+                    end: '###/emphasis>',
+                    trim: false
+                },
+                br: {
+                    start: '###break strength="x-strong">###/break>',
+                    end: '',
+                    trim: true
+                }
+            };
+
+            var htmlEntities = {};
+            htmlEntities["&nbsp;"] = " ";
+            htmlEntities["&lt;"] = "<";
+            htmlEntities["&gt;"] = ">";
+            htmlEntities["&qout;"] = "\"";
+            htmlEntities["&apos;"] = "'";
+            htmlEntities["&amp;"] = "&";
+
+            var ssml = element.innerHTML.replace(/ +/g, " ").replace(/(\r\n|\n|\r)/gm, "").trim();
+
+            for (var key in htmlEntities) {
+                ssml = ssml.replace(new RegExp(key, 'g'), htmlEntities[key]);
+            }
+
+            for (var key in ssmlMappings) {
+                var mapping = ssmlMappings[key];
+
+                var startTagMatches = ssml.match(new RegExp('<' + key + '+(>|.*?[^?]>)', 'gi')) || [];
+
+                for (var j = 0; j < startTagMatches.length; j++) {
+                    if (startTagMatches[j] !== '<' + key + '>' && startTagMatches[j].indexOf('<' + key + ' ') !== 0) {
+                        continue;
+                    }
+
+                    ssml = ssml.replace(startTagMatches[j], mapping.start);
+
+                    if (mapping.trim) {
+                        ssml = ssml.split(mapping.start).map(function (x) { return x.trim() }).join(mapping.start);
+                    }
+                }
+
+                ssml = ssml.split('</' + key + '>').map(function (x, i) { return mapping.trim ? x.trim() : x; }).join(mapping.end);
+            }
+
+            ssml = ssml.replace(/<[^>]*>?/gm, ''); //removes html-tags
+            ssml = ssml.replace(/\s+/g, ' '); //removes multiple whitespaces
+            ssml = ssml.split('###').join('<');
+
+            return ssml;
         }
 
         function getNextItem() {
@@ -315,7 +408,9 @@ talkify.playlist = function () {
                 return;
             }
 
-            talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + playlist.refrenceText)
+            var text = playlist.refrenceText.length <= 1000 ? playlist.refrenceText : playlist.refrenceText.substr(0, 1000);
+
+            talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + text)
                 .then(function (error, data) {
                     if (error) {
                         onComplete({ Cultures: [], Language: -1 });
@@ -355,7 +450,7 @@ talkify.playlist = function () {
                 var isSelectionAfterQueueItem = element.compareDocumentPosition(item.element) == documentPositionFollowing;
 
                 if (isSelectionAfterQueueItem) {
-                    var queueItems = createItems(text, element);
+                    var queueItems = createItems(text, null, element);
 
                     insertAt(j, queueItems);
 
@@ -367,7 +462,7 @@ talkify.playlist = function () {
                 var shouldAddToBottom = j === playlist.queue.length - 1;
 
                 if (shouldAddToBottom) {
-                    var qItems = createItems(text, element);
+                    var qItems = createItems(text, null, element);
 
                     push(qItems);
 

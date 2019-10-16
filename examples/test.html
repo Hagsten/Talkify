@@ -1,40 +1,40 @@
 <html>
+
 <head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
-        <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
-        <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-audiocontrols.css">
+    <style>
+        .talkify-word-highlight {
+            background-color: black;
+            color: white;
+        }
+
+        .talkify-sentence-highlight {
+            background-color: orange;
+            color: white;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-audiocontrols.css">
 </head>
+
 <body>
     <section id="root">
-        <h3>
-            This demo will load automatically, be patient.
-        </h3>
-        <p>
-            Hi, this is a short demo of the Talkify library. Let me describe some of my features.
-        </p>
-        <p>
-            I work for any elements, such as paragraphs, divs and many more. I also support many languages and I will detect them automatically for you, like this:
-        </p>
-        <p>
-            Hey, ich kann sehr hilfreich sein, wenn Sie versuchen, Deutsch zu lernen werden
-        </p>
-        <p>
-            Hej, jag kan vara till stor hj�lp om du f�rs�ker l�ra dig svenska
-        </p>
+        <div>
+            Some text
+        </div>
     </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="../dist/talkify.js"></script>
 
     <script>
+        talkify.config.useSsml = true;
         talkify.config.remoteService.active = true;
         talkify.config.keyboardCommands.enabled = true;
         talkify.config.voiceCommands.enabled = true;
-        
 
-        talkify.config.remoteService.speechBaseUrl = '/api/internal/speech';
-        talkify.config.remoteService.languageBaseUrl = '/api/internal/language';
+        talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
+        talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
 
         talkify.config.remoteService.host = 'http://localhost:6719';
 
@@ -46,6 +46,9 @@
         $(document).ready(function () {
             var player = new talkify.TtsPlayer()
                 .enableTextHighlighting();
+
+            // player.setRate(-5);
+            player.forceVoice({ name: 'Zira' });
 
             var playlist = new talkify.playlist()
                 .begin()
@@ -62,4 +65,5 @@
 
     </script>
 </body>
+
 </html>
