@@ -172,14 +172,27 @@ talkify.playlist = function () {
             var items = [];
 
             if (text.length > safeMaxQuerystringLength) {
-                var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
+                // var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
 
-                breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
-                breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
+                // breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
+                // breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
 
-                var f = text.substr(0, breakAt);
+                // var safeText = text.substr(0, breakAt);
 
-                items.push(template(f, null, element));
+                var chuncks = getSafeTextChunks(text, safeMaxQuerystringLength);
+
+                element.innerHTML = '';
+
+                for(var i = 0; i < chuncks.length; i++){
+                    var span = document.createElement("span");
+                    span.textContent = chuncks[i];
+
+                    element.appendChild(span);
+
+                    items.push(template(chuncks[i], null, span));
+                }
+
+                items.push(template(safeText, null, element));
 
                 items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
 
@@ -204,6 +217,30 @@ talkify.playlist = function () {
                     isLoading: false
                 };
             }
+        }
+
+        function getSafeTextChunks(text, safeMaxQuerystringLength){
+            var chuncks = [];
+            
+            var chunck = getNextChunck(text, safeMaxQuerystringLength);
+            chuncks.push(chunck);
+
+            while(chunck){
+                var remaining = text.replace(chunck, "");
+
+                chunck = getNextChunck(remaining, safeMaxQuerystringLength);
+                chuncks.push(chunck);
+            }
+
+            return chuncks;
+        }
+
+        function getNextChunck(text, safeMaxQuerystringLength){
+            var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
+            breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
+            breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
+
+            return text.substr(0, breakAt);            
         }
 
         function play(item) {
