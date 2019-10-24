@@ -172,29 +172,18 @@ talkify.playlist = function () {
             var items = [];
 
             if (text.length > safeMaxQuerystringLength) {
-                // var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
-
-                // breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
-                // breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
-
-                // var safeText = text.substr(0, breakAt);
-
                 var chuncks = getSafeTextChunks(text, safeMaxQuerystringLength);
 
                 element.innerHTML = '';
 
-                for(var i = 0; i < chuncks.length; i++){
-                    var span = document.createElement("span");
-                    span.textContent = chuncks[i];
+                for (var i = 0; i < chuncks.length; i++) {
+                    var p = document.createElement("p");
+                    p.textContent = chuncks[i];
 
-                    element.appendChild(span);
+                    element.appendChild(p);
 
-                    items.push(template(chuncks[i], null, span));
+                    items.push(template(chuncks[i], null, p));
                 }
-
-                items.push(template(safeText, null, element));
-
-                items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
 
                 return items;
             }
@@ -219,28 +208,40 @@ talkify.playlist = function () {
             }
         }
 
-        function getSafeTextChunks(text, safeMaxQuerystringLength){
+        function getSafeTextChunks(text, safeMaxQuerystringLength) {
             var chuncks = [];
-            
+            var remaining = text;
+
             var chunck = getNextChunck(text, safeMaxQuerystringLength);
             chuncks.push(chunck);
 
-            while(chunck){
-                var remaining = text.replace(chunck, "");
+            while (chunck) {
+                remaining = remaining.replace(chunck, "");
 
                 chunck = getNextChunck(remaining, safeMaxQuerystringLength);
-                chuncks.push(chunck);
+
+                if (chunck) {
+                    chuncks.push(chunck);
+                }
             }
 
             return chuncks;
         }
 
-        function getNextChunck(text, safeMaxQuerystringLength){
-            var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
+        function getNextChunck(text, safeMaxQuerystringLength) {
+            if (!text) {
+                return null;
+            }
+
+            if (text.length < safeMaxQuerystringLength) {
+                return text;
+            }
+
+            var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.');
             breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
             breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
 
-            return text.substr(0, breakAt);            
+            return text.substr(0, breakAt + 1);
         }
 
         function play(item) {
@@ -297,7 +298,7 @@ talkify.playlist = function () {
                     element = settings.domElements[i];
 
                     ssml = convertToSsml(element);
-                    
+
                     text = element.innerText.trim();
                 }
 
@@ -330,7 +331,7 @@ talkify.playlist = function () {
         }
 
         function convertToSsml(element) {
-            if(!talkify.config.useSsml){
+            if (!talkify.config.useSsml) {
                 return null;
             }
 
