@@ -172,16 +172,18 @@ talkify.playlist = function () {
             var items = [];
 
             if (text.length > safeMaxQuerystringLength) {
-                var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
+                var chuncks = getSafeTextChunks(text, safeMaxQuerystringLength);
 
-                breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
-                breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
+                element.innerHTML = '';
 
-                var f = text.substr(0, breakAt);
+                for (var i = 0; i < chuncks.length; i++) {
+                    var p = document.createElement("p");
+                    p.textContent = chuncks[i];
 
-                items.push(template(f, null, element));
+                    element.appendChild(p);
 
-                items = items.concat(createItems(text.substr(breakAt, text.length - 1), null, element));
+                    items.push(template(chuncks[i], null, p));
+                }
 
                 return items;
             }
@@ -204,6 +206,42 @@ talkify.playlist = function () {
                     isLoading: false
                 };
             }
+        }
+
+        function getSafeTextChunks(text, safeMaxQuerystringLength) {
+            var chuncks = [];
+            var remaining = text;
+
+            var chunck = getNextChunck(text, safeMaxQuerystringLength);
+            chuncks.push(chunck);
+
+            while (chunck) {
+                remaining = remaining.replace(chunck, "");
+
+                chunck = getNextChunck(remaining, safeMaxQuerystringLength);
+
+                if (chunck) {
+                    chuncks.push(chunck);
+                }
+            }
+
+            return chuncks;
+        }
+
+        function getNextChunck(text, safeMaxQuerystringLength) {
+            if (!text) {
+                return null;
+            }
+
+            if (text.length < safeMaxQuerystringLength) {
+                return text;
+            }
+
+            var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.');
+            breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
+            breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
+
+            return text.substr(0, breakAt + 1);
         }
 
         function play(item) {
@@ -260,7 +298,7 @@ talkify.playlist = function () {
                     element = settings.domElements[i];
 
                     ssml = convertToSsml(element);
-                    
+
                     text = element.innerText.trim();
                 }
 
@@ -293,7 +331,7 @@ talkify.playlist = function () {
         }
 
         function convertToSsml(element) {
-            if(!talkify.config.useSsml){
+            if (!talkify.config.useSsml) {
                 return null;
             }
 
