@@ -121,6 +121,7 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 ```javascript
 talkify.config = {
     debug: false, //true to turn on debug print outs
+    useSsml: false, //true to turn on automatic HTML to SSML translation. This should give a smoother reading voice (https://en.wikipedia.org/wiki/Speech_Synthesis_Markup_Language)
     remoteService: {
         host : 'https://talkify.net',
         apiKey = 'your-api-key',
