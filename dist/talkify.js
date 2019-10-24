@@ -1874,7 +1874,7 @@ talkify.playlist = function () {
 
                 element.innerHTML = '';
 
-                for(var i = 0; i < chuncks.length; i++){
+                for (var i = 0; i < chuncks.length; i++) {
                     var p = document.createElement("p");
                     p.textContent = chuncks[i];
 
@@ -1906,19 +1906,19 @@ talkify.playlist = function () {
             }
         }
 
-        function getSafeTextChunks(text, safeMaxQuerystringLength){
+        function getSafeTextChunks(text, safeMaxQuerystringLength) {
             var chuncks = [];
             var remaining = text;
 
             var chunck = getNextChunck(text, safeMaxQuerystringLength);
             chuncks.push(chunck);
 
-            while(chunck){
+            while (chunck) {
                 remaining = remaining.replace(chunck, "");
 
                 chunck = getNextChunck(remaining, safeMaxQuerystringLength);
-                
-                if(chunck){
+
+                if (chunck) {
                     chuncks.push(chunck);
                 }
             }
@@ -1926,20 +1926,20 @@ talkify.playlist = function () {
             return chuncks;
         }
 
-        function getNextChunck(text, safeMaxQuerystringLength){
-            if(!text){
+        function getNextChunck(text, safeMaxQuerystringLength) {
+            if (!text) {
                 return null;
             }
-            
-            if(text.length < safeMaxQuerystringLength){
+
+            if (text.length < safeMaxQuerystringLength) {
                 return text;
             }
-            
-            var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.'); 
+
+            var breakAt = text.substr(0, safeMaxQuerystringLength).lastIndexOf('.');
             breakAt = breakAt > -1 ? breakAt : text.substr(0, safeMaxQuerystringLength).lastIndexOf('。');
             breakAt = breakAt > -1 ? breakAt : safeMaxQuerystringLength;
 
-            return text.substr(0, breakAt + 1);            
+            return text.substr(0, breakAt + 1);
         }
 
         function play(item) {
@@ -1996,7 +1996,7 @@ talkify.playlist = function () {
                     element = settings.domElements[i];
 
                     ssml = convertToSsml(element);
-                    
+
                     text = element.innerText.trim();
                 }
 
@@ -2029,7 +2029,7 @@ talkify.playlist = function () {
         }
 
         function convertToSsml(element) {
-            if(!talkify.config.useSsml){
+            if (!talkify.config.useSsml) {
                 return null;
             }
 
