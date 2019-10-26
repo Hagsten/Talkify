@@ -1911,7 +1911,7 @@ talkify.playlist = function () {
         };
 
         function createItems(text, ssml, element) {
-            var safeMaxQuerystringLength = 3000;
+            var safeMaxQuerystringLength = 1000;
 
             var items = [];
 
