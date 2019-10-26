@@ -1911,7 +1911,7 @@ talkify.playlist = function () {
         };
 
         function createItems(text, ssml, element) {
-            var safeMaxQuerystringLength = 1000;
+            var safeMaxQuerystringLength = 3000;
 
             var items = [];
 
@@ -2939,29 +2939,15 @@ talkify.wordHighlighter = function (correlationId) {
         highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
     });
 
-    function adjustPositionsToSsml(ssmlSections, ssml, positions, originalPositions, pos) {
+    function adjustPositionsToSsml(text, positions) {
         var internalPos = JSON.parse(JSON.stringify(positions));
 
-        pos = pos || 0;
-
-        if (pos >= ssmlSections.length) {
-            return internalPos;
-        }
-
-        var internalSsml = ssml.replace("&", "&amp;");
-
-        var lengthToCompensateFor = ssmlSections[pos].length + (internalSsml.length - ssml.length);
-        var index = internalSsml.indexOf(ssmlSections[pos]);
+        var lastFound = 0;
 
         for (var i = 0; i < internalPos.length; i++) {
-            if (originalPositions[i] < index) {
-                continue;
-            }
-
-            internalPos[i].CharPosition -= lengthToCompensateFor;
+            lastFound = text.indexOf(internalPos[i].Word, lastFound);
+            internalPos[i].CharPosition = lastFound
         }
-
-        internalPos = adjustPositionsToSsml(ssmlSections, internalSsml.substring(0, index) + "#" + internalSsml.substring(index + 1, internalSsml.length), internalPos, originalPositions, pos + 1);
 
         return internalPos;
     }
@@ -2999,11 +2985,7 @@ talkify.wordHighlighter = function (correlationId) {
         }
 
         if (item.ssml) {
-            var text = item.ssml;
-
-            var result = text.match(/<[^>]*>/g) || [];
-
-            currentPositions = adjustPositionsToSsml(result, text, positions, positions.map(function (x) { return x.CharPosition; }));
+            currentPositions = adjustPositionsToSsml(item.text, positions);
         } else {
             currentPositions = positions;
         }
@@ -3066,7 +3048,20 @@ talkify.wordHighlighter = function (correlationId) {
 
     function findCurrentSentence(item, charPosition) {
         var text = item.element.innerText.trim();
-        var result = text.match(/[^\.!\?。]+[\.!\?。]+/g) || [];
+        var separators = ['\.', '\?', '!', '。'];
+        var baseline = text.split(new RegExp('[' + separators.join('') + ']', 'g'));
+        var result = [];
+
+        var currentSentence = "";
+
+        for (var i = 0; i < baseline.length - 1; i++) {
+            currentSentence += baseline[i] + ".";
+
+            if (baseline[i + 1].startsWith(" ") || baseline[i + 1].startsWith("\n")) {
+                result.push(currentSentence);
+                currentSentence = "";
+            }
+        }
 
         var charactersTraversed = 0;
         var sentenceStart = 0;
