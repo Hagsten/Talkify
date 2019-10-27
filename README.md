@@ -44,13 +44,14 @@ http://jsfiddle.net/dx53bg6k/2/
 ```javascript		
     var player = new talkify.TtsPlayer().enableTextHighlighting();
 
-    new talkify.playlist()
+    var playlist = new talkify.playlist()
         .begin()
         .usingPlayer(player)
         .withTextInteraction()
         .withElements(document.querySelectorAll('p')) //<--Any element you'd like. Leave blank to let Talkify make a good guess
-        .build() //<-- Returns an instance.
-        .play();
+        .build();
+    
+    playlist.play();
 ```
 
 ## Play simple text
