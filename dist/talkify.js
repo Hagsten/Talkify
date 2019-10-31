@@ -1566,6 +1566,9 @@ talkify.TtsPlayer = function () {
 
     talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
+    this.settings.whisper = false;
+    this.settings.soft = false;
+
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
         audioElement.addEventListener("play", onPlay);
@@ -1703,7 +1706,17 @@ talkify.TtsPlayer = function () {
 
         var requestId = talkify.generateGuid();
 
-        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?texttype=" + textType + " &text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+        var audioUrl = talkify.config.remoteService.host +
+            talkify.config.remoteService.speechBaseUrl +
+            "?texttype=" + textType +
+            "&text=" + textToPlay +
+            "&fallbackLanguage=" + this.settings.referenceLanguage.Language +
+            "&voice=" + (voice) +
+            "&rate=" + this.settings.rate +
+            "&key=" + talkify.config.remoteService.apiKey +
+            "&whisper=" + (item.whisper || this.settings.whisper) +
+            "&soft=" + (item.soft || this.settings.soft) +
+            "&wordbreakms=" + item.wordbreakms;
 
         if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
@@ -1735,6 +1748,24 @@ talkify.TtsPlayer = function () {
         audioElement.onended = function () {
             talkify.messageHub.publish(me.correlationId + ".player.tts.ended", item);
         };
+    };
+
+    this.usePhonation = function (phonation) {
+        this.settings.soft = phonation === "soft";
+
+        return this;
+    };
+
+    this.whisper = function () {
+        this.settings.whisper = true;
+
+        return this;
+    };
+
+    this.normalTone = function () {
+        this.settings.whisper = false;
+
+        return this;
     };
 
     setupBindings();
@@ -1940,6 +1971,10 @@ talkify.playlist = function () {
                 el = el || document.createElement("span");
                 var clone = el.cloneNode(true);
 
+                var wordbreakms = el.getAttribute("data-talkify-wordbreakms");
+                var whisper = el.getAttribute("data-talkify-whisper");
+                var phonation = el.getAttribute("data-talkify-phonation");
+                
                 return {
                     text: t,
                     ssml: s,
@@ -1947,7 +1982,10 @@ talkify.playlist = function () {
                     element: el,
                     originalElement: clone,
                     isPlaying: false,
-                    isLoading: false
+                    isLoading: false,
+                    wordbreakms: wordbreakms ? parseInt(wordbreakms) : null,
+                    whisper: whisper ? whisper === "true" : null,
+                    soft: phonation ? phonation === "soft" : null
                 };
             }
         }
@@ -2984,12 +3022,11 @@ talkify.wordHighlighter = function (correlationId) {
             return;
         }
 
-        if (item.ssml) {
+        if (item.ssml || item.wordbreakms) {
             currentPositions = adjustPositionsToSsml(item.text, positions);
         } else {
             currentPositions = positions;
         }
-
 
         var i = startFrom || 0;
 
