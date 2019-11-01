@@ -114,7 +114,7 @@ talkify.playbar = function (parent, correlationId) {
                     ' <button class="talkify-attached" title="Detach player"> ' +
                     '<i class="fa fa-window-maximize"></i> ' +
                     '</button> ' +
-                '</li>'
+                '</li>' +
             '</ul> ' +
             ' <div class="talkify-voice-selector"> ' +
             ' Voice: <span></span>' +
