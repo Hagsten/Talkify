@@ -96,12 +96,11 @@ talkify.wordHighlighter = function (correlationId) {
             return;
         }
 
-        if (item.ssml) {
+        if (item.ssml || item.wordbreakms) {
             currentPositions = adjustPositionsToSsml(item.text, positions);
         } else {
             currentPositions = positions;
         }
-
 
         var i = startFrom || 0;
 

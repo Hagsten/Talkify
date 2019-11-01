@@ -55,6 +55,10 @@ talkify.TtsPlayer = function () {
 
     talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
+    this.settings.whisper = false;
+    this.settings.soft = false;
+    this.settings.wordbreakms = 0;
+
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
         audioElement.addEventListener("play", onPlay);
@@ -192,7 +196,17 @@ talkify.TtsPlayer = function () {
 
         var requestId = talkify.generateGuid();
 
-        var audioUrl = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?texttype=" + textType + " &text=" + textToPlay + "&fallbackLanguage=" + this.settings.referenceLanguage.Language + "&voice=" + (voice) + "&rate=" + this.settings.rate + "&key=" + talkify.config.remoteService.apiKey;
+        var audioUrl = talkify.config.remoteService.host +
+            talkify.config.remoteService.speechBaseUrl +
+            "?texttype=" + textType +
+            "&text=" + textToPlay +
+            "&fallbackLanguage=" + this.settings.referenceLanguage.Language +
+            "&voice=" + (voice) +
+            "&rate=" + this.settings.rate +
+            "&key=" + talkify.config.remoteService.apiKey +
+            "&whisper=" + (item.whisper || this.settings.whisper) +
+            "&soft=" + (item.soft || this.settings.soft) +
+            "&wordbreakms=" + (item.wordbreakms || this.settings.wordbreakms);
 
         if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
@@ -224,6 +238,30 @@ talkify.TtsPlayer = function () {
         audioElement.onended = function () {
             talkify.messageHub.publish(me.correlationId + ".player.tts.ended", item);
         };
+    };
+
+    this.usePhonation = function (phonation) {
+        this.settings.soft = phonation === "soft";
+
+        return this;
+    };
+
+    this.whisper = function () {
+        this.settings.whisper = true;
+
+        return this;
+    };
+
+    this.normalTone = function () {
+        this.settings.whisper = false;
+
+        return this;
+    };
+
+    this.useWordBreak = function (ms) {
+        this.settings.wordbreakms = Math.min(1000, Math.max(0, ms));
+
+        return this;
     };
 
     setupBindings();

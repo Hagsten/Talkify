@@ -196,6 +196,10 @@ talkify.playlist = function () {
                 el = el || document.createElement("span");
                 var clone = el.cloneNode(true);
 
+                var wordbreakms = el.getAttribute("data-talkify-wordbreakms");
+                var whisper = el.getAttribute("data-talkify-whisper");
+                var phonation = el.getAttribute("data-talkify-phonation");
+                
                 return {
                     text: t,
                     ssml: s,
@@ -203,7 +207,10 @@ talkify.playlist = function () {
                     element: el,
                     originalElement: clone,
                     isPlaying: false,
-                    isLoading: false
+                    isLoading: false,
+                    wordbreakms: wordbreakms ? parseInt(wordbreakms) : null,
+                    whisper: whisper ? whisper === "true" : null,
+                    soft: phonation ? phonation === "soft" : null
                 };
             }
         }
