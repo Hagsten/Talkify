@@ -1568,6 +1568,7 @@ talkify.TtsPlayer = function () {
 
     this.settings.whisper = false;
     this.settings.soft = false;
+    this.settings.wordbreakms = 0;
 
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
@@ -1716,7 +1717,7 @@ talkify.TtsPlayer = function () {
             "&key=" + talkify.config.remoteService.apiKey +
             "&whisper=" + (item.whisper || this.settings.whisper) +
             "&soft=" + (item.soft || this.settings.soft) +
-            "&wordbreakms=" + item.wordbreakms;
+            "&wordbreakms=" + (item.wordbreakms || this.settings.wordbreakms);
 
         if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
@@ -1764,6 +1765,12 @@ talkify.TtsPlayer = function () {
 
     this.normalTone = function () {
         this.settings.whisper = false;
+
+        return this;
+    };
+
+    this.useWordBreak = function (ms) {
+        this.settings.wordbreakms = ms;
 
         return this;
     };
