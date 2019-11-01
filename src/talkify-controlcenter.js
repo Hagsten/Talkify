@@ -5,7 +5,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
-    var attachElement, detatchedElement, dragArea, loader, settingsElement;
+    var attachElement, detatchedElement, dragArea, loader;
 
     function hide(element) {
         if (element.classList.contains("talkify-hidden")) {
@@ -97,16 +97,16 @@ talkify.playbar = function (parent, correlationId) {
                     '<i class="fa fa-closed-captioning"></i> ' +
                     '</button> ' +
                 ' </li> ' +
-                '<li class="controlcenter-settings">' + 
-                    '<ul>' + 
-                        '<li>' + 
-                            createCheckbox("talkify-soft", "Speak softer") + 
-                        '</li>' + 
-                        '<li>' + 
-                            createCheckbox("talkify-whisper", "Whisper") + 
-                        '</li>' + 
-                    '</ul>'
-                '</li>'
+                // '<li class="controlcenter-settings">' + 
+                //     '<ul>' + 
+                //         '<li>' + 
+                //             createCheckbox("talkify-soft", "Speak softer") + 
+                //         '</li>' + 
+                //         '<li>' + 
+                //             createCheckbox("talkify-whisper", "Whisper") + 
+                //         '</li>' + 
+                //     '</ul>'
+                // '</li>'
                 ' <li> ' +
                     ' <button class="talkify-detatched" title="Dock player to screen"> ' +
                     ' <i class="fa fa-window-minimize"></i> ' +
@@ -132,8 +132,7 @@ talkify.playbar = function (parent, correlationId) {
         detatchedElement = wrapper.getElementsByClassName("talkify-attached")[0];
         voiceWrapperElement = wrapper.querySelector(".talkify-voice-selector select");
         dragArea = wrapper.getElementsByClassName("drag-area")[0];
-        settingsElement = wrapper.getElementsByClassName("controlcenter-settings");
-
+        // settingsElement = wrapper.getElementsByClassName("controlcenter-settings");
 
         settings.parentElement.appendChild(wrapper);
 
@@ -142,9 +141,9 @@ talkify.playbar = function (parent, correlationId) {
         pause();
     }
 
-    function createCheckbox(id, labelText){
-        return '<label class="checkbox-container"><label for="soft-speech">Softer speech</label><input type="checkbox" id="soft-speech"><span class="checkmark"></span></label>';
-    }
+    // function createCheckbox(id, labelText){
+    //     return '<label class="checkbox-container"><label for="soft-speech">Softer speech</label><input type="checkbox" id="soft-speech"><span class="checkmark"></span></label>';
+    // }
 
     function setupBindings() {
         var controlCenter = document.getElementsByClassName("talkify-control-center")[0];
