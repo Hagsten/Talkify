@@ -95,6 +95,8 @@ player.playText('Hello world');
 talkify.config.useSsml = true;
 ```
 
+When useSSML is active, Talkify will translate the following markup into SSML. This has the potential of creating a smoother voice experience.
+
 | HTML tags | SSML |
 |----------|:------ |
 | h1 - h3 | emphasis strong |
@@ -103,6 +105,14 @@ talkify.config.useSsml = true;
 | i | emphasis reduced |
 | em | emphasis strong |
 | br | break-strength strong |
+
+Talkify also supports declarative SSML settings. These settings can be used alone or in conjunction with the above. These settings will work no matter the configuration for "useSSML". The following attributes can be added to any element that Talkify is connected to. When these attributes is present, Talkify will translate them to corresponding SSML.
+
+| data-attribute | Accepted values | Example |
+|----------|:------ |:-------|
+| data-talkify-wordbreakms | 0-1000 | data-talkify-wordbreakms="100" |
+| data-talkify-phonation | "soft", "normal" or "" | data-talkify-phonation="soft" |
+| data-talkify-whisper | "true" or "false" | data-talkify-whisper="true" |
 
 # Configuration
 ```javascript
