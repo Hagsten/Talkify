@@ -219,6 +219,10 @@ Entry point: talkify.TtsPlayer().
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
 | setRate | int | 1 | Playback rate. A value between -5 and 5 |
+| whisper | | | Sets the player to whispering mode |
+| normalTone | | | Sets the player to normal mode (opposite of whispering) |
+| usePhonation | string | normal | Supports for two phonations. "soft" and "normal". Empty string translates to "normal". Case sensitive |
+| useWordBreak | int | 0 | [0-1000] Adds a break between each word. Any value above 0 adds to the voices standard break length. |
 
 ### Player Events
 | Event   |
