@@ -94,12 +94,15 @@ player.playText('Hello world');
 ```javascript
 talkify.config.useSsml = true;
 ```
-h1 - h3 ==> emphasis strong
-b ==> emphasis strong
-strong ==> emphasis strong
-i ==> emphasis reduced
-em ==> emphasis strong
-br ==> break-strength strong
+
+| HTML tags | SSML |
+|----------|:------ |
+| h1 - h3 | emphasis strong |
+| b | emphasis strong |
+| strong | emphasis strong |
+| i | emphasis reduced |
+| em | emphasis strong |
+| br | break-strength strong |
 
 # Configuration
 ```javascript
