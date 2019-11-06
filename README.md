@@ -110,7 +110,7 @@ Talkify also supports declarative SSML settings. These settings can be used alon
 
 | data-attribute | Accepted values | Example |
 |----------|:------ |:-------|
-| data-talkify-wordbreakms | 0-1000 | data-talkify-wordbreakms="100" |
+| data-talkify-wordbreakms | 0-10000 | data-talkify-wordbreakms="100" |
 | data-talkify-phonation | "soft", "normal" or "" | data-talkify-phonation="soft" |
 | data-talkify-whisper | "true" or "false" | data-talkify-whisper="true" |
 
@@ -235,7 +235,7 @@ Entry point: talkify.TtsPlayer().
 | whisper | | | Sets the player to whispering mode |
 | normalTone | | | Sets the player to normal mode (opposite of whispering) |
 | usePhonation | string | normal | Supports for two phonations. "soft" and "normal". Empty string translates to "normal". Case sensitive |
-| useWordBreak | int | 0 | [0-1000] Adds a break between each word. Any value above 0 adds to the voices standard break length. |
+| useWordBreak | int | 0 | [0-10000] Adds a break between each word. Any value above 0 adds to the voices standard break length. |
 
 ### Player Events
 | Event   |
