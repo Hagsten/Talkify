@@ -1780,7 +1780,7 @@ talkify.TtsPlayer = function () {
     };
 
     this.useWordBreak = function (ms) {
-        this.settings.wordbreakms = Math.min(1000, Math.max(0, ms));
+        this.settings.wordbreakms = Math.max(0, ms);
 
         return this;
     };
