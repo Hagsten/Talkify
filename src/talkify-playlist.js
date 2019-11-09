@@ -196,6 +196,8 @@ talkify.playlist = function () {
                 el = el || document.createElement("span");
                 var clone = el.cloneNode(true);
 
+                var rate = el.getAttribute("data-talkify-rate");
+                var voice = el.getAttribute("data-talkify-voice");
                 var wordbreakms = el.getAttribute("data-talkify-wordbreakms");
                 var whisper = el.getAttribute("data-talkify-whisper");
                 var phonation = el.getAttribute("data-talkify-phonation");
@@ -208,6 +210,8 @@ talkify.playlist = function () {
                     originalElement: clone,
                     isPlaying: false,
                     isLoading: false,
+                    rate: rate ? parseInt(rate) : null,
+                    voice: voice ? voice : null,
                     wordbreakms: wordbreakms ? parseInt(wordbreakms) : null,
                     whisper: whisper ? whisper === "true" : null,
                     soft: phonation ? phonation === "soft" : null
