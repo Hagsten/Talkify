@@ -273,7 +273,7 @@ talkify.TtsPlayer = function () {
         return this;
     };
 
-    this.volumeBaseline = function (volumeDb) {
+    this.useVolumeBaseline = function (volumeDb) {
         this.settings.volumeDb = volumeDb;
 
         talkify.messageHub.publish(me.correlationId + ".player.tts.volumechanged", volumeDb);
