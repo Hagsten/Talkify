@@ -3,10 +3,15 @@ talkify.wordHighlighter = function (correlationId) {
     var currentItem = null;
     var currentPositions = [];
     var currentPosition = -1;
+    var currentWordbreakMs = 0;
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
     talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed", correlationId + ".player.tts.ended"], cancel);
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
+    });
+
+    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.wordbreakchanged", function(wordbreakms){
+        currentWordbreakMs = wordbreakms;
     });
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.timeupdated", function (timeInfo) {
@@ -96,7 +101,7 @@ talkify.wordHighlighter = function (correlationId) {
             return;
         }
 
-        if (item.ssml || item.wordbreakms) {
+        if (item.ssml || item.wordbreakms || currentWordbreakMs) {
             currentPositions = adjustPositionsToSsml(item.text, positions);
         } else {
             currentPositions = positions;
