@@ -260,6 +260,7 @@ talkify = talkify || {};
 talkify.config = {
     debug: false,
     useSsml: false,
+    maximumTextLength: 5000,
     ui:
     {
         audioControls: {
@@ -1405,7 +1406,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.createItems = function (text) {
-        var safeMaxQuerystringLength = 1000;
+        var safeMaxQuerystringLength = window.talkify.config.maximumTextLength || 1000;
 
         var items = [];
 
@@ -1976,7 +1977,7 @@ talkify.playlist = function () {
         };
 
         function createItems(text, ssml, element) {
-            var safeMaxQuerystringLength = 1000;
+            var safeMaxQuerystringLength = window.talkify.config.maximumTextLength || 1000;
 
             var items = [];
 
