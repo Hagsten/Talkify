@@ -2,6 +2,7 @@
 talkify.config = {
     debug: false,
     useSsml: false,
+    maximumTextLength: 5000,
     ui:
     {
         audioControls: {

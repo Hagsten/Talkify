@@ -96,7 +96,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.createItems = function (text) {
-        var safeMaxQuerystringLength = 1000;
+        var safeMaxQuerystringLength = window.talkify.config.maximumTextLength || 1000;
 
         var items = [];
 
