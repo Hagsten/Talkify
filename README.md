@@ -119,6 +119,7 @@ Talkify also supports declarative SSML settings. These settings can be used alon
 talkify.config = {
     debug: false, //true to turn on debug print outs
     useSsml: false, //true to turn on automatic HTML to SSML translation. This should give a smoother reading voice (https://en.wikipedia.org/wiki/Speech_Synthesis_Markup_Language)
+    maximumTextLength: 5000, //texts exceeding this limit will be splitted into multiple requests
     remoteService: {
         host : 'https://talkify.net',
         apiKey = 'your-api-key',
