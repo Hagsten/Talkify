@@ -88,6 +88,15 @@ talkify.playlist = function () {
 
                 playItem(item);
             });
+
+            talkify.messageHub.subscribe("playlist", player.correlationId + ".player.tts.unplayable", function () {
+                if (playlist.currentlyPlaying) {
+                    playItem(playlist.currentlyPlaying);
+                    return;
+                }
+
+                playFromBeginning();
+            });
         }
 
         function reset() {
@@ -114,7 +123,7 @@ talkify.playlist = function () {
                 //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
-                item.element.classList.remove("playing"); 
+                item.element.classList.remove("playing");
             }
         };
 
@@ -199,7 +208,7 @@ talkify.playlist = function () {
                 var wordbreakms = el.getAttribute("data-talkify-wordbreakms");
                 var whisper = el.getAttribute("data-talkify-whisper");
                 var phonation = el.getAttribute("data-talkify-phonation");
-                
+
                 return {
                     text: t,
                     ssml: s,
@@ -335,6 +344,8 @@ talkify.playlist = function () {
                     setupItemForUserInteraction(item);
                 }
             }
+
+            talkify.messageHub.publish(player.correlationId + ".playlist.loaded");
         }
 
         function convertToSsml(element) {
@@ -578,6 +589,7 @@ talkify.playlist = function () {
             },
             setPlayer: function (p) {
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.*.ended");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.tts.unplayable");
 
                 player = p;
                 player.withReferenceLanguage(playlist.referenceLanguage);
@@ -592,7 +604,7 @@ talkify.playlist = function () {
 
                 for (var i = 0; i < playlist.queue.length; i++) {
                     var item = playlist.queue[i];
-    
+
                     removeUserInteractionForItem(item);
                 }
 
@@ -601,6 +613,7 @@ talkify.playlist = function () {
                 }
 
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.*.ended");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.tts.unplayable");
             },
             startListeningToVoiceCommands: function () {
                 voiceCommands.start();

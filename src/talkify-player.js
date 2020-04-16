@@ -90,6 +90,12 @@ talkify.TtsPlayer = function () {
             talkify.messageHub.publish(me.correlationId + ".player.tts.timeupdated", { currentTime: audioElement.currentTime, duration: audioElement.duration });
         }, 50);
 
+        if (!me.currentContext.item) {
+            talkify.messageHub.publish(me.correlationId + ".player.tts.unplayable");
+
+            me.audioSource.pause();
+        }
+
         if (!me.currentContext.positions.length) {
             talkify.messageHub.publish(me.correlationId + ".player.tts.play", { item: me.currentContext.item, positions: [], currentTime: me.audioSource.currentTime() });
             return;

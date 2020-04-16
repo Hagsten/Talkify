@@ -31,6 +31,7 @@
     <script src="../dist/talkify.js"></script>
 
     <script>
+        talkify.config.debug = true;
         talkify.config.useSsml = true;
         talkify.config.remoteService.active = true;
         talkify.config.keyboardCommands.enabled = true;
@@ -51,8 +52,9 @@
                 .enableTextHighlighting();
 
             // player.setRate(-5);
-            player.forceVoice({ name: 'Zira' });
+            player.forceVoice({ name: 'Zira', description: "Zira" });
 
+            // player.playText("yo");
             var playlist = new talkify.playlist()
                 .begin()
                 .usingPlayer(player)

@@ -236,6 +236,8 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.loaded", function () {
             removeClass(pauseElement, "talkify-disabled");
             removeClass(playElement, "talkify-disabled");
+            show(playElement);
+            hide(loader);
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.texthighlight.enabled", function () {
@@ -258,6 +260,10 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.timeupdated", updateClock);
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.html5.timeupdated", function (value) {
             progressElement.setAttribute("value", value);
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.loaded", function () {
+            removeClass(playElement, "talkify-disabled");
         });
     };
 
@@ -340,6 +346,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.voiceset");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.timeupdated");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.timeupdated");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".playlist.loaded");
     }
 
     initialize();
