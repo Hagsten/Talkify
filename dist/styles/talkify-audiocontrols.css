@@ -9,6 +9,7 @@
     background-color: rgba(0, 135, 205, 1);
     box-shadow: 2px 2px 5px 0px #5f5e5e;
     border: 1px solid #0084b3;
+    width: 100%;
 }
     .talkify-control-center .drag-area {
         padding-left: 10px;
@@ -66,20 +67,45 @@
         margin: 0;
         padding: 0;
         list-style-type: none;
+        display: flex;
+        height: 45px;
+        align-items: center;
+        width: 100%;
     }
 
-    .talkify-control-center li {
-        display: inline-block;
-        vertical-align: middle;
+    .talkify-control-center > ul > li {
         border-style: none;
         cursor: pointer;
         background-color: rgba(0, 135, 205, 1);
         transition: all 0.5s;
-        padding: 6px 1px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    .talkify-control-center li.talkify-voice-selector{
+        margin-left: auto;
+        width: 200px;
+        background-color: #01679c;
+        text-align: center;
+        color: white;        
+    }
+
+    .talkify-control-center li.talkify-voice-selector > label{
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
     }
 
         .talkify-control-center li:not(.progress-wrapper):not(.talkify-voice-selector):hover {
             filter: brightness(115%);
+        }
+
+        .talkify-control-center li.talkify-voice-selector > input[type=checkbox]:checked + .voice-selector{
+            display: block;
         }
 
 
@@ -265,6 +291,80 @@
     .talkify-control-center .fa-spin {
         animation-duration: 0.75s;
     }
+
+
+
+
+
+    .talkify-control-center .flag{
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+    }
+
+    .talkify-control-center .voice-selector{
+        background-color: #01679c;
+        display: none;
+    }
+
+    .talkify-control-center .voice-selector > li{
+        display: block;
+        padding: 5px;
+        text-align: left;
+        border-bottom: 1px solid;
+        transition: all 0.5s;
+    }
+
+    .talkify-control-center .voice-selector li input[type=checkbox]:checked + .language{
+        display: block;
+    }
+
+    .talkify-control-center .voice-selector .language {
+        display: none;
+        padding: 0;
+    }
+
+    .talkify-control-center .voice-selector .language > li {
+        margin: auto;
+        padding: 2px 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .talkify-control-center .voice-selector .language > li > div:last-of-type{
+        margin-left: auto;
+    }
+
+    .talkify-control-center .voice-selector{
+        padding: 0;;
+        margin: 0;
+        position: absolute;
+        bottom: 46px;
+        right: 0;
+        width: 200px;
+        max-height: 500px;
+        overflow-y: auto;    
+    }
+
+    /* width */
+    .talkify-control-center .voice-selector::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    /* Track */
+    .talkify-control-center .voice-selector::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    /* Handle */
+    .talkify-control-center .voice-selector::-webkit-scrollbar-thumb {
+        background: #8ac832;
+    }
+
+        /* Handle on hover */
+        .talkify-control-center .voice-selector::-webkit-scrollbar-thumb:hover {
+            background: #555;
+
 
     @media screen and (max-device-width : 900px), only screen and (max-width : 900px) {
         .talkify-control-center.attached .talkify-time-element{

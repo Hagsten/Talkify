@@ -54,72 +54,85 @@ talkify.playbar = function (parent, correlationId) {
     var groupBy = function (xs, keyFn) {
         return xs.reduce(function (rv, x) {
             var key = keyFn(x);
-            (rv[x[key]] = rv[x[key]] || []).push(x);
+
+            (rv[key] = rv[key] || []).push(x);
             return rv;
         }, {});
     };
 
-
     function createVoicePicker(voices) {
         var mainUl = createElement("ul", "voice-selector");
 
+        if (!voices.length) {
+            return mainUl;
+        }
+
         var byLanguage = groupBy(voices, function (v) {
-            return v.Culture.split('-')[0];
+            return v.Culture;//.split('-')[0];
         });
 
-        for (var i = 0; i <= byLanguages.length; i++) {
-            var defaultVoice = byLanguages[i].filter(x => x.Value.VoiceClass == 0 && x.Value.Language == 0);
-            var foo = byLanguage[i][0].Culture.split("-")[1].toLowerCase();
+        for (var prop in byLanguage) {
+            if (!byLanguage.hasOwnProperty(prop)) {
+                continue;
+            }
+
+            var defaultVoice = byLanguage[prop].filter(x => x.IsStandard)[0];
+            var foo = byLanguage[prop][0].Culture.split("-")[1].toLowerCase();
             var mainFlag = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + foo + ".svg";
 
-            var li = createElement("li", "");
-            var flagWrapper = createElement("div", "toggle talkify-clickable");
+            var li = createElement("li");
+
 
             var flagImg = createElement("img", "flag");
             flagImg.src = mainFlag;
 
-            var s = createElement("span");
-            s.innerHTML = byLanguage[0].Language;
+            var label = createElement("label", "talkify-clickable");            
+            label.innerHTML = byLanguage[prop][0].Language; //TODO: Exponera från backend?
+            label.htmlFor = "chk_" + prop;
 
-            flagWrapper.appendChild(flagImg);
-            flagWrapper.appendChild(s);
-
-            li.appendChild(flagWrapper);
+            var checkbox = createElement("input", "");
+            checkbox.id = "chk_" + prop;
+            checkbox.type = "checkbox";
+            checkbox.style = "display: none";
+            
+            li.appendChild(flagImg);
+            li.appendChild(label);
+            li.appendChild(checkbox);
 
             var innerUl = createElement("ul", "language");
 
             li.appendChild(innerUl);
 
-            for (var j = 0; j <= byLanguage[i].length; j++) {
-                var language = byLanguage[i][j];
-                var isDefault = !!defaultVoice && language === defaultVoice;
+            for (var j = 0; j < byLanguage[prop].length; j++) {
+                var voice = byLanguage[prop][j];
+                var isDefault = !!defaultVoice && voice === defaultVoice;
 
-                var innerLi = createElement("li", "talkify-clickable talkify-primary"); //talkify-clickable row around-xs talkify-primary
+                var innerLi = createElement("li", "talkify-clickable");
                 innerLi.setAttribute("data-default", isDefault);
-                innerLi.setAttribute("data-voice", JSON.stringify(language));
-                innerLi.setAttribute("data-voice-name", language.DisplayName);
+                innerLi.setAttribute("data-voice", JSON.stringify(voice));
+                innerLi.setAttribute("data-voice-name", voice.Name);
 
                 var d = createElement("div", "");
 
-                if (language.IsExclusive) {
+                if (voice.IsExclusive) {
                     var i = createElement("i", "fas fa-star");
                 }
-                else if (language.IsPremium) {
+                else if (voice.IsPremium) {
                     var i = createElement("i", "fas fa-star");
                 } else {
                     var i = createElement("i", "far fa-check-circle");
                 }
 
                 var span = createElement("span");
-                span.innerHTML = language.DisplayName;
+                span.innerHTML = voice.Name;
 
                 d.appendChild(i);
                 d.appendChild(span);
 
                 var flagDiv = createElement("div");
-                var svg = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + , language.Culture.split("-"[1].toLowerCase()); + ".svg";
+                var svg = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + voice.Culture.split("-")[1].toLowerCase() + ".svg";
 
-                var svgImg = createElement("img");
+                var svgImg = createElement("img", "flag");
                 svgImg.src = svg;
 
                 flagDiv.appendChild(svgImg);
@@ -199,10 +212,12 @@ talkify.playbar = function (parent, correlationId) {
             '<i class="fa fa-window-maximize"></i> ' +
             '</button> ' +
             '</li>' +
-            '</ul> ' +
-            ' <div class="talkify-voice-selector"> ' +
+            '<li class="talkify-voice-selector">' +
+            '<label for="voice-selector-toggle">' +
             ' Voice: <span></span>' +
-            '</div>';
+            '</label><input type="checkbox" id="voice-selector-toggle" style="display: none;"/>'; +
+                '</li>' +
+                '</ul>';
 
         playElement = wrapper.getElementsByClassName("talkify-play-button")[0];
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0];
@@ -349,6 +364,13 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.loaded", function () {
             removeClass(playElement, "talkify-disabled");
         });
+
+        talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/voices")
+            .then(function (error, data) {
+                voicePicker = createVoicePicker(data);
+
+                wrapper.getElementsByClassName("talkify-voice-selector")[0].appendChild(voicePicker);
+            });
     };
 
     function updateClock(timeInfo) {
@@ -397,7 +419,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function setVoiceName(voice) {
-        var voiceElement = document.querySelector(".talkify-voice-selector > span");
+        var voiceElement = document.querySelector(".talkify-voice-selector span");
 
         if (!voice) {
             voiceElement.textContent = "Automatic voice detection";
