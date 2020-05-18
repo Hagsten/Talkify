@@ -4,7 +4,7 @@ talkify.playbar = function (parent, correlationId) {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
 
-    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
+    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper, voicePicker;
     var attachElement, detatchedElement, dragArea, loader;
 
     function hide(element) {
@@ -51,6 +51,90 @@ talkify.playbar = function (parent, correlationId) {
         return element;
     }
 
+    var groupBy = function (xs, keyFn) {
+        return xs.reduce(function (rv, x) {
+            var key = keyFn(x);
+            (rv[x[key]] = rv[x[key]] || []).push(x);
+            return rv;
+        }, {});
+    };
+
+
+    function createVoicePicker(voices) {
+        var mainUl = createElement("ul", "voice-selector");
+
+        var byLanguage = groupBy(voices, function (v) {
+            return v.Culture.split('-')[0];
+        });
+
+        for (var i = 0; i <= byLanguages.length; i++) {
+            var defaultVoice = byLanguages[i].filter(x => x.Value.VoiceClass == 0 && x.Value.Language == 0);
+            var foo = byLanguage[i][0].Culture.split("-")[1].toLowerCase();
+            var mainFlag = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + foo + ".svg";
+
+            var li = createElement("li", "");
+            var flagWrapper = createElement("div", "toggle talkify-clickable");
+
+            var flagImg = createElement("img", "flag");
+            flagImg.src = mainFlag;
+
+            var s = createElement("span");
+            s.innerHTML = byLanguage[0].Language;
+
+            flagWrapper.appendChild(flagImg);
+            flagWrapper.appendChild(s);
+
+            li.appendChild(flagWrapper);
+
+            var innerUl = createElement("ul", "language");
+
+            li.appendChild(innerUl);
+
+            for (var j = 0; j <= byLanguage[i].length; j++) {
+                var language = byLanguage[i][j];
+                var isDefault = !!defaultVoice && language === defaultVoice;
+
+                var innerLi = createElement("li", "talkify-clickable talkify-primary"); //talkify-clickable row around-xs talkify-primary
+                innerLi.setAttribute("data-default", isDefault);
+                innerLi.setAttribute("data-voice", JSON.stringify(language));
+                innerLi.setAttribute("data-voice-name", language.DisplayName);
+
+                var d = createElement("div", "");
+
+                if (language.IsExclusive) {
+                    var i = createElement("i", "fas fa-star");
+                }
+                else if (language.IsPremium) {
+                    var i = createElement("i", "fas fa-star");
+                } else {
+                    var i = createElement("i", "far fa-check-circle");
+                }
+
+                var span = createElement("span");
+                span.innerHTML = language.DisplayName;
+
+                d.appendChild(i);
+                d.appendChild(span);
+
+                var flagDiv = createElement("div");
+                var svg = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + , language.Culture.split("-"[1].toLowerCase()); + ".svg";
+
+                var svgImg = createElement("img");
+                svgImg.src = svg;
+
+                flagDiv.appendChild(svgImg);
+
+                innerLi.appendChild(d);
+                innerLi.appendChild(flagDiv);
+                innerUl.appendChild(innerLi);
+            }
+
+            mainUl.appendChild(li);
+        }
+
+        return mainUl;
+    }
+
     function render() {
         var existingControl = document.getElementsByClassName("talkify-control-center")[0];
         if (existingControl) {
@@ -61,60 +145,60 @@ talkify.playbar = function (parent, correlationId) {
 
         wrapper.innerHTML =
             ' <ul> ' +
-                '<li class="drag-area"> ' +
-                    ' <i class="fa fa-grip-horizontal"></i> ' +
-                ' </li> ' +
-                ' <li> ' +
-                    ' <button class="talkify-play-button talkify-disabled" title="Play"> ' +
-                    ' <i class="fa fa-play"></i> ' +
-                    ' </button> ' +
-                    ' <button class="talkify-pause-button talkify-disabled" title="Pause"> ' +
-                        ' <i class="fa fa-pause"></i> ' +
-                    ' </button> ' +
-                    ' <i class="fa fa-circle-notch fa-spin audio-loading"></i>' +
-                ' </li> ' +
-                ' <li class="progress-wrapper"> ' +
-                    ' <progress value="0.0" max="1.0"></progress> ' +
-                    '<span class="talkify-time-element"> 00:00 / 00:00 </span>' +
-                ' </li> ' +
-                ' <li> ' +
-                    ' <button class="volume-button" title="Volume"> ' +
-                    ' <i class="fa fa-volume-up"></i> ' +
-                    ' <div class="volume-slider"> ' +
-                    ' <input type="range" value="10" min="0" max="10" title="Adjust playback volume"> ' +
-                    ' </div> ' +
-                    ' </button></li> ' +
-                '<li> ' +
-                    '<button class="rate-button" title="Rate of speech"> ' +
-                    '<i class="fa fa-tachometer-alt"></i> ' +
-                    ' <div class="rate-slider"> ' +
-                    '<input type="range" value="10" min="0" max="10" title="Adjust playback rate"> ' +
-                    '</div> ' +
-                    ' </button> ' +
-                ' </li> ' +
-                ' <li> ' +
-                    ' <button class="talkify-cc-button" title="Enable/disable text highlighting"> ' +
-                    '<i class="fa fa-closed-captioning"></i> ' +
-                    '</button> ' +
-                ' </li> ' +
-                // '<li class="controlcenter-settings">' + 
-                //     '<ul>' + 
-                //         '<li>' + 
-                //             createCheckbox("talkify-soft", "Speak softer") + 
-                //         '</li>' + 
-                //         '<li>' + 
-                //             createCheckbox("talkify-whisper", "Whisper") + 
-                //         '</li>' + 
-                //     '</ul>'
-                // '</li>'
-                ' <li> ' +
-                    ' <button class="talkify-detatched" title="Dock player to screen"> ' +
-                    ' <i class="fa fa-window-minimize"></i> ' +
-                    ' </button> ' +
-                    ' <button class="talkify-attached" title="Detach player"> ' +
-                    '<i class="fa fa-window-maximize"></i> ' +
-                    '</button> ' +
-                '</li>' +
+            '<li class="drag-area"> ' +
+            ' <i class="fa fa-grip-horizontal"></i> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-play-button talkify-disabled" title="Play"> ' +
+            ' <i class="fa fa-play"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-pause-button talkify-disabled" title="Pause"> ' +
+            ' <i class="fa fa-pause"></i> ' +
+            ' </button> ' +
+            ' <i class="fa fa-circle-notch fa-spin audio-loading"></i>' +
+            ' </li> ' +
+            ' <li class="progress-wrapper"> ' +
+            ' <progress value="0.0" max="1.0"></progress> ' +
+            '<span class="talkify-time-element"> 00:00 / 00:00 </span>' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="volume-button" title="Volume"> ' +
+            ' <i class="fa fa-volume-up"></i> ' +
+            ' <div class="volume-slider"> ' +
+            ' <input type="range" value="10" min="0" max="10" title="Adjust playback volume"> ' +
+            ' </div> ' +
+            ' </button></li> ' +
+            '<li> ' +
+            '<button class="rate-button" title="Rate of speech"> ' +
+            '<i class="fa fa-tachometer-alt"></i> ' +
+            ' <div class="rate-slider"> ' +
+            '<input type="range" value="10" min="0" max="10" title="Adjust playback rate"> ' +
+            '</div> ' +
+            ' </button> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-cc-button" title="Enable/disable text highlighting"> ' +
+            '<i class="fa fa-closed-captioning"></i> ' +
+            '</button> ' +
+            ' </li> ' +
+            // '<li class="controlcenter-settings">' + 
+            //     '<ul>' + 
+            //         '<li>' + 
+            //             createCheckbox("talkify-soft", "Speak softer") + 
+            //         '</li>' + 
+            //         '<li>' + 
+            //             createCheckbox("talkify-whisper", "Whisper") + 
+            //         '</li>' + 
+            //     '</ul>'
+            // '</li>'
+            ' <li> ' +
+            ' <button class="talkify-detatched" title="Dock player to screen"> ' +
+            ' <i class="fa fa-window-minimize"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-attached" title="Detach player"> ' +
+            '<i class="fa fa-window-maximize"></i> ' +
+            '</button> ' +
+            '</li>' +
             '</ul> ' +
             ' <div class="talkify-voice-selector"> ' +
             ' Voice: <span></span>' +
