@@ -305,6 +305,9 @@
     .talkify-control-center .voice-selector{
         background-color: #01679c;
         display: none;
+        border: 2px solid #004c73;
+        border-bottom-style: none;
+        box-sizing: border-box;
     }
 
     .talkify-control-center .voice-selector > li{

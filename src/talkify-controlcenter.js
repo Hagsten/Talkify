@@ -86,7 +86,7 @@ talkify.playbar = function (parent, correlationId) {
             var flagImg = createElement("img", "flag");
             flagImg.src = mainFlag;
 
-            var label = createElement("label", "talkify-clickable");            
+            var label = createElement("label", "talkify-clickable");
             label.innerHTML = byLanguage[prop][0].Language; //TODO: Exponera från backend?
             label.htmlFor = "chk_" + prop;
 
@@ -94,7 +94,7 @@ talkify.playbar = function (parent, correlationId) {
             checkbox.id = "chk_" + prop;
             checkbox.type = "checkbox";
             checkbox.style = "display: none";
-            
+
             li.appendChild(flagImg);
             li.appendChild(label);
             li.appendChild(checkbox);
@@ -240,10 +240,6 @@ talkify.playbar = function (parent, correlationId) {
         pause();
     }
 
-    // function createCheckbox(id, labelText){
-    //     return '<label class="checkbox-container"><label for="soft-speech">Softer speech</label><input type="checkbox" id="soft-speech"><span class="checkmark"></span></label>';
-    // }
-
     function setupBindings() {
         var controlCenter = document.getElementsByClassName("talkify-control-center")[0];
 
@@ -304,6 +300,7 @@ talkify.playbar = function (parent, correlationId) {
 
         dragArea.addEventListener("mousedown", onMouseDown);
         document.addEventListener("mouseup", onMouseUp);
+
 
         function onMouseUp(e) {
             document.removeEventListener("mousemove", onMouseMove);
@@ -370,8 +367,28 @@ talkify.playbar = function (parent, correlationId) {
                 voicePicker = createVoicePicker(data);
 
                 wrapper.getElementsByClassName("talkify-voice-selector")[0].appendChild(voicePicker);
+
+                voicePicker.querySelectorAll(".language > li").forEach(item => {
+                    item.addEventListener('click', e => {
+                        var voice = JSON.parse(e.currentTarget.dataset.voice);
+
+                        talkify.messageHub.publish(correlationId + ".controlcenter.request.setvoice", toLowerCaseKeys(voice));
+                    });
+                })
             });
     };
+
+    function toLowerCaseKeys(obj) {
+        var key, keys = Object.keys(obj);
+        var n = keys.length;
+        var newobj = {}
+        while (n--) {
+            key = keys[n];
+            newobj[key.toLowerCase()] = obj[key];
+        }
+
+        return newobj;
+    }
 
     function updateClock(timeInfo) {
         var currentTime = timeInfo.currentTime;
@@ -427,7 +444,7 @@ talkify.playbar = function (parent, correlationId) {
         }
 
         if (isTalkifyHostedVoice(voice)) {
-            voiceElement.textContent = voice.description;
+            voiceElement.textContent = voice.name;
             return;
         }
 

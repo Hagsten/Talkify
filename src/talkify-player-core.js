@@ -33,6 +33,10 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         me.settings.useTextHighlight = enabled;
     });
 
+    talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.request.setvoice", function (voice) {
+        me.forceVoice(voice);
+     });
+
     talkify.messageHub.publish(this.correlationId + ".player.*.ratechanged", me.settings.rate);
 
     this.withReferenceLanguage = function (refLang) {
@@ -72,7 +76,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.subscribe("core-player", this.correlationId + ".player.*.loaded", subscriptions.onItemLoaded || function () { });
         talkify.messageHub.subscribe("core-player", [this.correlationId + ".wordhighlighter.complete", this.correlationId + ".player.html5.utterancecomplete"], subscriptions.onItemFinished || function () { });
         talkify.messageHub.subscribe("core-player", this.correlationId + ".player.*.prepareplay", subscriptions.onBeforeItemPlaying || function () { });
-        talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged || function () { });
+        talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged || function () { });        
 
         return this;
     };
