@@ -6,36 +6,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgba(0, 135, 205, 1);
     box-shadow: 2px 2px 5px 0px #5f5e5e;
-    border: 1px solid #0084b3;
+    border: 1px solid #0084b3;    
 }
     .talkify-control-center .drag-area {
         padding-left: 10px;
         padding-right: 10px;
         cursor: move;
-        color: white;
-        background-color: #01334c;
     }
 
     .talkify-control-center progress {
         margin: 0 5px;
-        background-color: white;
         width: 120px;
     }
-
-        .talkify-control-center progress::-webkit-progress-bar {
-            background-color: rgba(255,255,255, 0.7);
-        }
-
-        .talkify-control-center progress::-webkit-progress-value {
-            background-color: #FF9800;
-        }
-
-        .talkify-control-center progress::-moz-progress-bar {
-            background-color: #FF9800;
-        }
-
 
     .talkify-control-center li.progress-wrapper {
         display: inline-flex;
@@ -44,11 +27,7 @@
         padding: 0;
     }
 
-    .talkify-control-center div.talkify-voice-selector {
-        display: none;
-    }
-
-    .talkify-control-center li.talkify-voice-selector select {
+    .talkify-control-center .talkify-voice-selector {
         display: none;
     }
 
@@ -66,20 +45,43 @@
         margin: 0;
         padding: 0;
         list-style-type: none;
+        display: flex;
+        height: 45px;
+        align-items: center;
+        width: 100%;
     }
 
-    .talkify-control-center li {
-        display: inline-block;
-        vertical-align: middle;
+    .talkify-control-center > ul > li {
         border-style: none;
         cursor: pointer;
-        background-color: rgba(0, 135, 205, 1);
         transition: all 0.5s;
-        padding: 6px 1px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    .talkify-control-center li.talkify-voice-selector{
+        margin-left: auto;
+        width: 200px;
+        text-align: center;
+    }
+
+    .talkify-control-center li.talkify-voice-selector > label{
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        cursor: pointer;
     }
 
         .talkify-control-center li:not(.progress-wrapper):not(.talkify-voice-selector):hover {
             filter: brightness(115%);
+        }
+
+        .talkify-control-center li.talkify-voice-selector > input[type=checkbox]:checked + .voice-selector{
+            display: block;
         }
 
 
@@ -87,7 +89,6 @@
         position: absolute;
         left: 0;
         top: 20px;
-        background-color: rgba(0, 135, 205, 1);
         padding: 5px;
         display: none;
     }
@@ -118,7 +119,6 @@
 
         .talkify-control-center input[type=range]::-webkit-slider-runnable-track {
             height: 5px;
-            background: white;
             border: none;
             border-radius: 5px;
         }
@@ -129,7 +129,6 @@
             height: 13px;
             width: 13px;
             border-radius: 50%;
-            background: #FF9800;
             margin-top: -4px;
         }
 
@@ -137,14 +136,9 @@
             outline: none;
         }
 
-            .talkify-control-center input[type=range]:focus::-webkit-slider-runnable-track {
-                background: white;
-            }
-
         .talkify-control-center input[type=range]::-moz-range-track {
             width: 75px;
             height: 3px;
-            background: white;
             border: none;
             -ms-border-radius: 3px;
             border-radius: 3px;
@@ -156,7 +150,6 @@
             width: 12px;
             -ms-border-radius: 50%;
             border-radius: 50%;
-            background: #FF9800;
         }
 
         /*hide the outline behind the border*/
@@ -178,11 +171,9 @@
 
         .talkify-control-center input[type=range]::-ms-fill-lower {
             border-radius: 10px;
-            background: white;
         }
 
         .talkify-control-center input[type=range]::-ms-fill-upper {
-            background: #777;
             border-radius: 10px;
         }
 
@@ -192,16 +183,7 @@
             width: 12px;
             -ms-border-radius: 50%;
             border-radius: 50%;
-            background: #FF9800;
             margin-top: -1px;
-        }
-
-        .talkify-control-center input[type=range]:focus::-ms-fill-lower {
-            background: white;
-        }
-
-        .talkify-control-center input[type=range]:focus::-ms-fill-upper {
-            background: #888;
         }
 
         .talkify-voice-indicators{
@@ -245,8 +227,7 @@
         width: 300px;
     }
 
-    .talkify-control-center.attached div.talkify-voice-selector {
-        padding-right: 10px;
+    .talkify-control-center.attached .talkify-voice-selector {
         display: initial;
         text-align: right;
     }
@@ -266,6 +247,66 @@
         animation-duration: 0.75s;
     }
 
+
+
+
+
+    .talkify-control-center .flag{
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+    }
+
+    .talkify-control-center .voice-selector{
+        display: none;
+        border-bottom-style: none;
+        box-sizing: border-box;
+    }
+
+    .talkify-control-center .voice-selector > li{
+        display: block;
+        padding: 5px;
+        text-align: left;
+        border-bottom: 1px solid;
+        transition: all 0.5s;
+    }
+
+    .talkify-control-center .voice-selector li input[type=checkbox]:checked + .language{
+        display: block;
+    }
+
+    .talkify-control-center .voice-selector .language {
+        display: none;
+        padding: 0;
+    }
+
+    .talkify-control-center .voice-selector .language > li {
+        margin: auto;
+        padding: 2px 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .talkify-control-center .voice-selector .language > li > div:last-of-type{
+        margin-left: auto;
+    }
+
+    .talkify-control-center .voice-selector{
+        padding: 0;;
+        margin: 0;
+        position: absolute;
+        bottom: 46px;
+        right: 0;
+        width: 200px;
+        max-height: 500px;
+        overflow-y: auto;    
+    }
+
+    /* width */
+    .talkify-control-center .voice-selector::-webkit-scrollbar {
+        width: 10px;
+    }
+
     @media screen and (max-device-width : 900px), only screen and (max-width : 900px) {
         .talkify-control-center.attached .talkify-time-element{
             display: none;
@@ -283,10 +324,6 @@
     @media screen and (max-device-width : 640px), only screen and (max-width : 640px) {
         .talkify-control-center.attached progress{
             width: 100px;
-        }
-
-        .talkify-control-center.attached div.talkify-voice-selector{
-            display: none;
         }
     }
 

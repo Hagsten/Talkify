@@ -4,8 +4,8 @@ talkify.playbar = function (parent, correlationId) {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
 
-    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper;
-    var attachElement, detatchedElement, dragArea, loader;
+    var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper, voicePicker;
+    var attachElement, detatchedElement, dragArea, loader, erroroccurredElement;
 
     function hide(element) {
         if (element.classList.contains("talkify-hidden")) {
@@ -22,13 +22,22 @@ talkify.playbar = function (parent, correlationId) {
     function play() {
         hide(loader);
         hide(playElement);
+        hide(erroroccurredElement);
         show(pauseElement);
     }
 
     function pause() {
         hide(loader);
         hide(pauseElement);
+        hide(erroroccurredElement);
         show(playElement);
+    }
+
+    function onError() {
+        hide(loader);
+        hide(pauseElement);
+        hide(playElement);
+        show(erroroccurredElement);
     }
 
     function addClass(element, c) {
@@ -51,6 +60,102 @@ talkify.playbar = function (parent, correlationId) {
         return element;
     }
 
+    var groupBy = function (xs, keyFn) {
+        return xs.reduce(function (rv, x) {
+            var key = keyFn(x);
+
+            (rv[key] = rv[key] || []).push(x);
+            return rv;
+        }, {});
+    };
+
+    function createVoicePicker(voices) {
+        var mainUl = createElement("ul", "voice-selector");
+
+        if (!voices.length) {
+            return mainUl;
+        }
+
+        var byLanguage = groupBy(voices, function (v) {
+            return v.Culture;//.split('-')[0];
+        });
+
+        for (var prop in byLanguage) {
+            if (!byLanguage.hasOwnProperty(prop)) {
+                continue;
+            }
+
+            var defaultVoice = byLanguage[prop].filter(function (x) { return x.IsStandard; })[0];
+            var foo = byLanguage[prop][0].Culture.split("-")[1].toLowerCase();
+            var mainFlag = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + foo + ".svg";
+
+            var li = createElement("li");
+
+            var flagImg = createElement("img", "flag");
+            flagImg.src = mainFlag;
+
+            var label = createElement("label", "talkify-clickable");
+            label.innerHTML = byLanguage[prop][0].Language; //TODO: Exponera från backend?
+            label.htmlFor = "chk_" + prop;
+
+            var checkbox = createElement("input", "");
+            checkbox.id = "chk_" + prop;
+            checkbox.type = "checkbox";
+            checkbox.style = "display: none";
+
+            li.appendChild(flagImg);
+            li.appendChild(label);
+            li.appendChild(checkbox);
+
+            var innerUl = createElement("ul", "language");
+
+            li.appendChild(innerUl);
+
+            for (var j = 0; j < byLanguage[prop].length; j++) {
+                var voice = byLanguage[prop][j];
+                var isDefault = !!defaultVoice && voice === defaultVoice;
+
+                var innerLi = createElement("li", "talkify-clickable");
+                innerLi.setAttribute("data-default", isDefault);
+                innerLi.setAttribute("data-voice", JSON.stringify(voice));
+                innerLi.setAttribute("data-voice-name", voice.Name);
+
+                var d = createElement("div", "");
+
+                if (voice.IsExclusive) {
+                    var i = createElement("i", "fas fa-star");
+                }
+                else if (voice.IsPremium) {
+                    var i = createElement("i", "fas fa-star");
+                } else {
+                    var i = createElement("i", "far fa-check-circle");
+                }
+
+                var span = createElement("span");
+                span.innerHTML = voice.Name;
+
+                d.appendChild(i);
+                d.appendChild(span);
+
+                var flagDiv = createElement("div");
+                var svg = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + voice.Culture.split("-")[1].toLowerCase() + ".svg";
+
+                var svgImg = createElement("img", "flag");
+                svgImg.src = svg;
+
+                flagDiv.appendChild(svgImg);
+
+                innerLi.appendChild(d);
+                innerLi.appendChild(flagDiv);
+                innerUl.appendChild(innerLi);
+            }
+
+            mainUl.appendChild(li);
+        }
+
+        return mainUl;
+    }
+
     function render() {
         var existingControl = document.getElementsByClassName("talkify-control-center")[0];
         if (existingControl) {
@@ -61,68 +166,72 @@ talkify.playbar = function (parent, correlationId) {
 
         wrapper.innerHTML =
             ' <ul> ' +
-                '<li class="drag-area"> ' +
-                    ' <i class="fa fa-grip-horizontal"></i> ' +
-                ' </li> ' +
-                ' <li> ' +
-                    ' <button class="talkify-play-button talkify-disabled" title="Play"> ' +
-                    ' <i class="fa fa-play"></i> ' +
-                    ' </button> ' +
-                    ' <button class="talkify-pause-button talkify-disabled" title="Pause"> ' +
-                        ' <i class="fa fa-pause"></i> ' +
-                    ' </button> ' +
-                    ' <i class="fa fa-circle-notch fa-spin audio-loading"></i>' +
-                ' </li> ' +
-                ' <li class="progress-wrapper"> ' +
-                    ' <progress value="0.0" max="1.0"></progress> ' +
-                    '<span class="talkify-time-element"> 00:00 / 00:00 </span>' +
-                ' </li> ' +
-                ' <li> ' +
-                    ' <button class="volume-button" title="Volume"> ' +
-                    ' <i class="fa fa-volume-up"></i> ' +
-                    ' <div class="volume-slider"> ' +
-                    ' <input type="range" value="10" min="0" max="10" title="Adjust playback volume"> ' +
-                    ' </div> ' +
-                    ' </button></li> ' +
-                '<li> ' +
-                    '<button class="rate-button" title="Rate of speech"> ' +
-                    '<i class="fa fa-tachometer-alt"></i> ' +
-                    ' <div class="rate-slider"> ' +
-                    '<input type="range" value="10" min="0" max="10" title="Adjust playback rate"> ' +
-                    '</div> ' +
-                    ' </button> ' +
-                ' </li> ' +
-                ' <li> ' +
-                    ' <button class="talkify-cc-button" title="Enable/disable text highlighting"> ' +
-                    '<i class="fa fa-closed-captioning"></i> ' +
-                    '</button> ' +
-                ' </li> ' +
-                // '<li class="controlcenter-settings">' + 
-                //     '<ul>' + 
-                //         '<li>' + 
-                //             createCheckbox("talkify-soft", "Speak softer") + 
-                //         '</li>' + 
-                //         '<li>' + 
-                //             createCheckbox("talkify-whisper", "Whisper") + 
-                //         '</li>' + 
-                //     '</ul>'
-                // '</li>'
-                ' <li> ' +
-                    ' <button class="talkify-detatched" title="Dock player to screen"> ' +
-                    ' <i class="fa fa-window-minimize"></i> ' +
-                    ' </button> ' +
-                    ' <button class="talkify-attached" title="Detach player"> ' +
-                    '<i class="fa fa-window-maximize"></i> ' +
-                    '</button> ' +
-                '</li>' +
-            '</ul> ' +
-            ' <div class="talkify-voice-selector"> ' +
+            '<li class="drag-area"> ' +
+            ' <i class="fa fa-grip-horizontal"></i> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-play-button talkify-disabled" title="Play"> ' +
+            ' <i class="fa fa-play"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-pause-button talkify-disabled" title="Pause"> ' +
+            ' <i class="fa fa-pause"></i> ' +
+            ' </button> ' +
+            ' <i class="fa fa-circle-notch fa-spin audio-loading"></i>' +
+            ' <i class="fas fa-exclamation-triangle audio-error" title="An error occurred at playback"></i>' +
+            ' </li> ' +
+            ' <li class="progress-wrapper"> ' +
+            ' <progress value="0.0" max="1.0"></progress> ' +
+            '<span class="talkify-time-element"> 00:00 / 00:00 </span>' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="volume-button" title="Volume"> ' +
+            ' <i class="fa fa-volume-up"></i> ' +
+            ' <div class="volume-slider"> ' +
+            ' <input type="range" value="10" min="0" max="10" title="Adjust playback volume"> ' +
+            ' </div> ' +
+            ' </button></li> ' +
+            '<li> ' +
+            '<button class="rate-button" title="Rate of speech"> ' +
+            '<i class="fa fa-tachometer-alt"></i> ' +
+            ' <div class="rate-slider"> ' +
+            '<input type="range" value="10" min="0" max="10" title="Adjust playback rate"> ' +
+            '</div> ' +
+            ' </button> ' +
+            ' </li> ' +
+            ' <li> ' +
+            ' <button class="talkify-cc-button" title="Enable/disable text highlighting"> ' +
+            '<i class="fa fa-closed-captioning"></i> ' +
+            '</button> ' +
+            ' </li> ' +
+            // '<li class="controlcenter-settings">' + 
+            //     '<ul>' + 
+            //         '<li>' + 
+            //             createCheckbox("talkify-soft", "Speak softer") + 
+            //         '</li>' + 
+            //         '<li>' + 
+            //             createCheckbox("talkify-whisper", "Whisper") + 
+            //         '</li>' + 
+            //     '</ul>'
+            // '</li>'
+            ' <li> ' +
+            ' <button class="talkify-detatched" title="Dock player to screen"> ' +
+            ' <i class="fa fa-window-minimize"></i> ' +
+            ' </button> ' +
+            ' <button class="talkify-attached" title="Detach player"> ' +
+            '<i class="fa fa-window-maximize"></i> ' +
+            '</button> ' +
+            '</li>' +
+            '<li class="talkify-voice-selector">' +
+            '<label for="voice-selector-toggle">' +
             ' Voice: <span></span>' +
-            '</div>';
+            '</label><input type="checkbox" id="voice-selector-toggle" style="display: none;"/>'; +
+                '</li>' +
+                '</ul>';
 
         playElement = wrapper.getElementsByClassName("talkify-play-button")[0];
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0];
         loader = wrapper.getElementsByClassName("audio-loading")[0];
+        erroroccurredElement = wrapper.getElementsByClassName("audio-error")[0];
         rateElement = wrapper.querySelector(".rate-button input[type=range]");
         volumeElement = wrapper.querySelector(".volume-button input[type=range]");
         progressElement = wrapper.getElementsByTagName("progress")[0];
@@ -130,7 +239,7 @@ talkify.playbar = function (parent, correlationId) {
         currentTimeElement = wrapper.getElementsByClassName("talkify-time-element")[0];
         attachElement = wrapper.getElementsByClassName("talkify-detatched")[0];
         detatchedElement = wrapper.getElementsByClassName("talkify-attached")[0];
-        voiceWrapperElement = wrapper.querySelector(".talkify-voice-selector select");
+        voiceWrapperElement = wrapper.querySelector(".talkify-voice-selector");
         dragArea = wrapper.getElementsByClassName("drag-area")[0];
         // settingsElement = wrapper.getElementsByClassName("controlcenter-settings");
 
@@ -140,10 +249,6 @@ talkify.playbar = function (parent, correlationId) {
 
         pause();
     }
-
-    // function createCheckbox(id, labelText){
-    //     return '<label class="checkbox-container"><label for="soft-speech">Softer speech</label><input type="checkbox" id="soft-speech"><span class="checkmark"></span></label>';
-    // }
 
     function setupBindings() {
         var controlCenter = document.getElementsByClassName("talkify-control-center")[0];
@@ -206,6 +311,7 @@ talkify.playbar = function (parent, correlationId) {
         dragArea.addEventListener("mousedown", onMouseDown);
         document.addEventListener("mouseup", onMouseUp);
 
+
         function onMouseUp(e) {
             document.removeEventListener("mousemove", onMouseMove);
         }
@@ -230,6 +336,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.loading", function () {
             hide(playElement);
             hide(pauseElement);
+            hide(erroroccurredElement);
             show(loader);
         });
 
@@ -257,6 +364,8 @@ talkify.playbar = function (parent, correlationId) {
             setVoiceName(voice);
         });
 
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.error", onError);
+
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.timeupdated", updateClock);
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.html5.timeupdated", function (value) {
             progressElement.setAttribute("value", value);
@@ -265,7 +374,76 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.loaded", function () {
             removeClass(playElement, "talkify-disabled");
         });
+
+        if (!talkify.config.ui.audioControls.voicepicker.enabled) {
+            return;
+        }
+
+        talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/voices")
+            .then(function (error, data) {
+                voicePicker = createVoicePicker(filterVoicesByConfig(data));
+
+                wrapper.getElementsByClassName("talkify-voice-selector")[0].appendChild(voicePicker);
+
+                voicePicker.querySelectorAll(".language > li").forEach(function (item) {
+                    item.addEventListener('click', function (e) {
+                        var voice = JSON.parse(e.currentTarget.dataset.voice);
+
+                        talkify.messageHub.publish(correlationId + ".controlcenter.request.setvoice", toLowerCaseKeys(voice));
+                    });
+                })
+            });
     };
+
+    function filterVoicesByConfig(voices) {
+        var filter = talkify.config.ui.audioControls.voicepicker.filter;
+
+        if (!filter) {
+            return voices;
+        }
+
+        return voices.filter(function (voice) {
+            var active = true;
+
+            if (filter.byCulture.length) {
+                active = filter.byCulture.indexOf(voice.Culture) !== -1;
+            }
+
+            if (active && filter.byLanguage.length) {
+                active = filter.byLanguage.indexOf(voice.Language) !== -1;
+            }
+
+            if (active && filter.byClass.length) {
+                if (filter.byClass.indexOf("Standard") !== -1 && voice.IsStandard) {
+                    return true;
+                }
+
+                if (filter.byClass.indexOf("Premium") !== -1 && voice.IsPremium) {
+                    return true;
+                }
+
+                if (filter.byClass.indexOf("Exclusive") !== -1 && voice.IsExclusive) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return active;
+        });
+    }
+
+    function toLowerCaseKeys(obj) {
+        var key, keys = Object.keys(obj);
+        var n = keys.length;
+        var newobj = {}
+        while (n--) {
+            key = keys[n];
+            newobj[key.charAt(0).toLowerCase() + key.slice(1)] = obj[key];
+        }
+
+        return newobj;
+    }
 
     function updateClock(timeInfo) {
         var currentTime = timeInfo.currentTime;
@@ -313,7 +491,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function setVoiceName(voice) {
-        var voiceElement = document.querySelector(".talkify-voice-selector > span");
+        var voiceElement = document.querySelector(".talkify-voice-selector span");
 
         if (!voice) {
             voiceElement.textContent = "Automatic voice detection";
@@ -321,7 +499,7 @@ talkify.playbar = function (parent, correlationId) {
         }
 
         if (isTalkifyHostedVoice(voice)) {
-            voiceElement.textContent = voice.description;
+            voiceElement.textContent = voice.name;
             return;
         }
 
@@ -347,6 +525,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.timeupdated");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.timeupdated");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".playlist.loaded");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.error");
     }
 
     initialize();

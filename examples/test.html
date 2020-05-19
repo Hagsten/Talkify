@@ -13,6 +13,7 @@
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-colors.css">
     <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
     <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-audiocontrols.css">
 </head>
@@ -40,11 +41,19 @@
         talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
         talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
 
+        talkify.config.remoteService.apiKey = '';
+    
         talkify.config.remoteService.host = 'http://localhost:6719';
 
-        talkify.config.ui.audioControls = {
-            enabled: true, //<-- Disable to get the browser built in audio controls
-            container: document.getElementById("player-and-voices")
+        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get the browser built in audio controls
+        talkify.config.ui.audioControls.container = document.getElementById("player-and-voices");
+        talkify.config.ui.audioControls.voicepicker = {
+            enabled: true,
+            filter: {
+                byClass: [],
+                byCulture: [],
+                byLanguage: []
+            }
         };
 
         $(document).ready(function () {
