@@ -1,0 +1,84 @@
+.talkify-control-center, 
+.talkify-control-center > ul > li, 
+.talkify-control-center .volume-slider, 
+.talkify-control-center .rate-slider{
+    background-color: rgba(0, 135, 205, 1);
+}
+
+.talkify-control-center .voice-selector,
+.talkify-control-center li.talkify-voice-selector,
+.talkify-control-center .drag-area {
+    background-color: #01679c;
+}
+
+.talkify-control-center .drag-area,
+.talkify-control-center li.talkify-voice-selector  {
+    color: white;
+}
+
+.talkify-control-center {
+    border-color:#0084b3;
+}
+
+    .talkify-control-center progress {
+        background-color: white;
+    }
+
+        .talkify-control-center progress::-webkit-progress-bar {
+            background-color: rgba(255,255,255, 0.7);
+        }
+
+        .talkify-control-center progress::-webkit-progress-value {
+            background-color: #FF9800;
+        }
+
+        .talkify-control-center progress::-moz-progress-bar {
+            background-color: #FF9800;
+        }
+
+.talkify-control-center .voice-selector{
+    border: 2px solid #004c73;
+}
+
+/* Sliders */
+.talkify-control-center input[type=range]::-moz-range-thumb,
+.talkify-control-center input[type=range]::-ms-thumb
+{
+    background: #FF9800;
+}
+
+.talkify-control-center input[type=range]::-ms-fill-upper {
+    background: #777;
+}
+
+.talkify-control-center input[type=range]:focus::-ms-fill-lower,
+.talkify-control-center input[type=range]::-moz-range-track,
+.talkify-control-center input[type=range]:focus::-webkit-slider-runnable-track,
+.talkify-control-center input[type=range]::-webkit-slider-runnable-track {
+    background: white;
+}
+
+.talkify-control-center input[type=range]:focus::-ms-fill-upper {
+    background: #888;
+}
+
+.talkify-control-center input[type=range]::-webkit-slider-thumb {
+    background: #FF9800;
+}
+
+/* Scrollbars */
+
+/* Track */
+.talkify-control-center .voice-selector::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+.talkify-control-center .voice-selector::-webkit-scrollbar-thumb {
+    background: #8ac832;
+}
+
+    /* Handle on hover */
+    .talkify-control-center .voice-selector::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }

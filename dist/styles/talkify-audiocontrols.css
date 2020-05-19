@@ -6,37 +6,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgba(0, 135, 205, 1);
     box-shadow: 2px 2px 5px 0px #5f5e5e;
-    border: 1px solid #0084b3;
-    width: 100%;
+    border: 1px solid #0084b3;    
 }
     .talkify-control-center .drag-area {
         padding-left: 10px;
         padding-right: 10px;
         cursor: move;
-        color: white;
-        background-color: #01334c;
     }
 
     .talkify-control-center progress {
         margin: 0 5px;
-        background-color: white;
         width: 120px;
     }
-
-        .talkify-control-center progress::-webkit-progress-bar {
-            background-color: rgba(255,255,255, 0.7);
-        }
-
-        .talkify-control-center progress::-webkit-progress-value {
-            background-color: #FF9800;
-        }
-
-        .talkify-control-center progress::-moz-progress-bar {
-            background-color: #FF9800;
-        }
-
 
     .talkify-control-center li.progress-wrapper {
         display: inline-flex;
@@ -45,11 +27,7 @@
         padding: 0;
     }
 
-    .talkify-control-center div.talkify-voice-selector {
-        display: none;
-    }
-
-    .talkify-control-center li.talkify-voice-selector select {
+    .talkify-control-center .talkify-voice-selector {
         display: none;
     }
 
@@ -76,7 +54,6 @@
     .talkify-control-center > ul > li {
         border-style: none;
         cursor: pointer;
-        background-color: rgba(0, 135, 205, 1);
         transition: all 0.5s;
         height: 100%;
         display: flex;
@@ -86,9 +63,7 @@
     .talkify-control-center li.talkify-voice-selector{
         margin-left: auto;
         width: 200px;
-        background-color: #01679c;
         text-align: center;
-        color: white;        
     }
 
     .talkify-control-center li.talkify-voice-selector > label{
@@ -97,6 +72,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-direction: column;
         cursor: pointer;
     }
 
@@ -113,7 +89,6 @@
         position: absolute;
         left: 0;
         top: 20px;
-        background-color: rgba(0, 135, 205, 1);
         padding: 5px;
         display: none;
     }
@@ -144,7 +119,6 @@
 
         .talkify-control-center input[type=range]::-webkit-slider-runnable-track {
             height: 5px;
-            background: white;
             border: none;
             border-radius: 5px;
         }
@@ -155,7 +129,6 @@
             height: 13px;
             width: 13px;
             border-radius: 50%;
-            background: #FF9800;
             margin-top: -4px;
         }
 
@@ -163,14 +136,9 @@
             outline: none;
         }
 
-            .talkify-control-center input[type=range]:focus::-webkit-slider-runnable-track {
-                background: white;
-            }
-
         .talkify-control-center input[type=range]::-moz-range-track {
             width: 75px;
             height: 3px;
-            background: white;
             border: none;
             -ms-border-radius: 3px;
             border-radius: 3px;
@@ -182,7 +150,6 @@
             width: 12px;
             -ms-border-radius: 50%;
             border-radius: 50%;
-            background: #FF9800;
         }
 
         /*hide the outline behind the border*/
@@ -204,11 +171,9 @@
 
         .talkify-control-center input[type=range]::-ms-fill-lower {
             border-radius: 10px;
-            background: white;
         }
 
         .talkify-control-center input[type=range]::-ms-fill-upper {
-            background: #777;
             border-radius: 10px;
         }
 
@@ -218,16 +183,7 @@
             width: 12px;
             -ms-border-radius: 50%;
             border-radius: 50%;
-            background: #FF9800;
             margin-top: -1px;
-        }
-
-        .talkify-control-center input[type=range]:focus::-ms-fill-lower {
-            background: white;
-        }
-
-        .talkify-control-center input[type=range]:focus::-ms-fill-upper {
-            background: #888;
         }
 
         .talkify-voice-indicators{
@@ -271,8 +227,7 @@
         width: 300px;
     }
 
-    .talkify-control-center.attached div.talkify-voice-selector {
-        padding-right: 10px;
+    .talkify-control-center.attached .talkify-voice-selector {
         display: initial;
         text-align: right;
     }
@@ -303,9 +258,7 @@
     }
 
     .talkify-control-center .voice-selector{
-        background-color: #01679c;
         display: none;
-        border: 2px solid #004c73;
         border-bottom-style: none;
         box-sizing: border-box;
     }
@@ -354,21 +307,6 @@
         width: 10px;
     }
 
-    /* Track */
-    .talkify-control-center .voice-selector::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    /* Handle */
-    .talkify-control-center .voice-selector::-webkit-scrollbar-thumb {
-        background: #8ac832;
-    }
-
-        /* Handle on hover */
-        .talkify-control-center .voice-selector::-webkit-scrollbar-thumb:hover {
-            background: #555;
-
-
     @media screen and (max-device-width : 900px), only screen and (max-width : 900px) {
         .talkify-control-center.attached .talkify-time-element{
             display: none;
@@ -388,7 +326,7 @@
             width: 100px;
         }
 
-        .talkify-control-center.attached div.talkify-voice-selector{
+        .talkify-control-center.attached .talkify-voice-selector{
             display: none;
         }
     }

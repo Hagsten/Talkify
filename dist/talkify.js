@@ -313,7 +313,7 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper, voicePicker;
-    var attachElement, detatchedElement, dragArea, loader;
+    var attachElement, detatchedElement, dragArea, loader, erroroccurredElement;
 
     function hide(element) {
         if (element.classList.contains("talkify-hidden")) {
@@ -330,13 +330,22 @@ talkify.playbar = function (parent, correlationId) {
     function play() {
         hide(loader);
         hide(playElement);
+        hide(erroroccurredElement);
         show(pauseElement);
     }
 
     function pause() {
         hide(loader);
         hide(pauseElement);
+        hide(erroroccurredElement);
         show(playElement);
+    }
+
+    function onError(){
+        hide(loader);
+        hide(pauseElement);
+        hide(playElement);
+        show(erroroccurredElement);
     }
 
     function addClass(element, c) {
@@ -477,6 +486,7 @@ talkify.playbar = function (parent, correlationId) {
             ' <i class="fa fa-pause"></i> ' +
             ' </button> ' +
             ' <i class="fa fa-circle-notch fa-spin audio-loading"></i>' +
+            ' <i class="fas fa-exclamation-triangle audio-error" title="An error occurred at playback"></i>' +
             ' </li> ' +
             ' <li class="progress-wrapper"> ' +
             ' <progress value="0.0" max="1.0"></progress> ' +
@@ -530,6 +540,7 @@ talkify.playbar = function (parent, correlationId) {
         playElement = wrapper.getElementsByClassName("talkify-play-button")[0];
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0];
         loader = wrapper.getElementsByClassName("audio-loading")[0];
+        erroroccurredElement = wrapper.getElementsByClassName("audio-error")[0];
         rateElement = wrapper.querySelector(".rate-button input[type=range]");
         volumeElement = wrapper.querySelector(".volume-button input[type=range]");
         progressElement = wrapper.getElementsByTagName("progress")[0];
@@ -537,7 +548,7 @@ talkify.playbar = function (parent, correlationId) {
         currentTimeElement = wrapper.getElementsByClassName("talkify-time-element")[0];
         attachElement = wrapper.getElementsByClassName("talkify-detatched")[0];
         detatchedElement = wrapper.getElementsByClassName("talkify-attached")[0];
-        voiceWrapperElement = wrapper.querySelector(".talkify-voice-selector select");
+        voiceWrapperElement = wrapper.querySelector(".talkify-voice-selector");
         dragArea = wrapper.getElementsByClassName("drag-area")[0];
         // settingsElement = wrapper.getElementsByClassName("controlcenter-settings");
 
@@ -634,6 +645,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.loading", function () {
             hide(playElement);
             hide(pauseElement);
+            hide(erroroccurredElement);
             show(loader);
         });
 
@@ -660,6 +672,8 @@ talkify.playbar = function (parent, correlationId) {
             featureToggle(voice);
             setVoiceName(voice);
         });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.error", onError);
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.timeupdated", updateClock);
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.html5.timeupdated", function (value) {
@@ -692,7 +706,7 @@ talkify.playbar = function (parent, correlationId) {
         var newobj = {}
         while (n--) {
             key = keys[n];
-            newobj[key.toLowerCase()] = obj[key];
+            newobj[key.charAt(0).toLowerCase() + key.slice(1)] = obj[key];
         }
 
         return newobj;
@@ -1635,6 +1649,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.unsubscribe("core-player", [this.correlationId + ".wordhighlighter.complete", this.correlationId + ".player.html5.utterancecomplete"]);
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".player.*.prepareplay");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled");
+        talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.setvoice");
     };
 
     this.forceLanguage = function (culture) {
@@ -1877,6 +1892,10 @@ talkify.TtsPlayer = function () {
 
         sources[0].src = audioUrl + "&format=mp3";
         sources[1].src = audioUrl + "&format=wav";
+
+        sources[1].onerror = function(e){
+            talkify.messageHub.publish(me.correlationId + ".player.tts.error", null);
+        }
 
         audioElement.load();
 

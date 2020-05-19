@@ -222,6 +222,10 @@ talkify.TtsPlayer = function () {
         sources[0].src = audioUrl + "&format=mp3";
         sources[1].src = audioUrl + "&format=wav";
 
+        sources[1].onerror = function(e){
+            talkify.messageHub.publish(me.correlationId + ".player.tts.error", null);
+        }
+
         audioElement.load();
 
         audioElement.onloadeddata = function () {
