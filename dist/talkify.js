@@ -401,12 +401,11 @@ talkify.playbar = function (parent, correlationId) {
                 continue;
             }
 
-            var defaultVoice = byLanguage[prop].filter(x => x.IsStandard)[0];
+            var defaultVoice = byLanguage[prop].filter(function (x) { return x.IsStandard; })[0];
             var foo = byLanguage[prop][0].Culture.split("-")[1].toLowerCase();
             var mainFlag = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + foo + ".svg";
 
             var li = createElement("li");
-
 
             var flagImg = createElement("img", "flag");
             flagImg.src = mainFlag;
@@ -702,8 +701,8 @@ talkify.playbar = function (parent, correlationId) {
 
                 wrapper.getElementsByClassName("talkify-voice-selector")[0].appendChild(voicePicker);
 
-                voicePicker.querySelectorAll(".language > li").forEach(item => {
-                    item.addEventListener('click', e => {
+                voicePicker.querySelectorAll(".language > li").forEach(function (item) {
+                    item.addEventListener('click', function (e) {
                         var voice = JSON.parse(e.currentTarget.dataset.voice);
 
                         talkify.messageHub.publish(correlationId + ".controlcenter.request.setvoice", toLowerCaseKeys(voice));
