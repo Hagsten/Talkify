@@ -129,7 +129,15 @@ talkify.config = {
     {
         audioControls: { //If enabled, replaces the built in audio controls. Especially good for the Web Speech API bits
             enabled: false,
-            container: document.body
+            container: document.body,
+            voicepicker: {
+                enabled: true,
+                filter: {
+                    byClass: [], //example: ["Standard", "Premium", "Exclusive"]
+                    byCulture: [], //example: ["en-EN", "en-AU"]
+                    byLanguage: [] //example: ["English", "Spanish"]
+                }
+            }
         }
     },
     keyboardCommands: { //Ctrl + command
