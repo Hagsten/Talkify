@@ -325,10 +325,6 @@
         .talkify-control-center.attached progress{
             width: 100px;
         }
-
-        .talkify-control-center.attached .talkify-voice-selector{
-            display: none;
-        }
     }
 
 
