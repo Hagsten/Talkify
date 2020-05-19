@@ -45,9 +45,15 @@
     
         talkify.config.remoteService.host = 'http://localhost:6719';
 
-        talkify.config.ui.audioControls = {
-            enabled: true, //<-- Disable to get the browser built in audio controls
-            container: document.getElementById("player-and-voices")
+        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get the browser built in audio controls
+        talkify.config.ui.audioControls.container = document.getElementById("player-and-voices");
+        talkify.config.ui.audioControls.voicepicker = {
+            enabled: true,
+            filter: {
+                byClass: [],
+                byCulture: [],
+                byLanguage: []
+            }
         };
 
         $(document).ready(function () {

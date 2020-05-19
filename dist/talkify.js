@@ -265,7 +265,15 @@ talkify.config = {
     {
         audioControls: {
             enabled: false,
-            container: document.body
+            container: document.body,
+            voicepicker: {
+                enabled: true,
+                filter: {
+                    byClass: [], //example: ["Standard", "Premium", "Exclusive"]
+                    byCulture: [], //example: ["en-EN", "en-AU"]
+                    byLanguage: [] //example: ["English", "Spanish"]
+                }
+            }
         }
     },
     formReader: {
@@ -341,7 +349,7 @@ talkify.playbar = function (parent, correlationId) {
         show(playElement);
     }
 
-    function onError(){
+    function onError() {
         hide(loader);
         hide(pauseElement);
         hide(playElement);
@@ -684,9 +692,13 @@ talkify.playbar = function (parent, correlationId) {
             removeClass(playElement, "talkify-disabled");
         });
 
+        if (!talkify.config.ui.audioControls.voicepicker.enabled) {
+            return;
+        }
+
         talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/voices")
             .then(function (error, data) {
-                voicePicker = createVoicePicker(data);
+                voicePicker = createVoicePicker(filterVoicesByConfig(data));
 
                 wrapper.getElementsByClassName("talkify-voice-selector")[0].appendChild(voicePicker);
 
@@ -699,6 +711,44 @@ talkify.playbar = function (parent, correlationId) {
                 })
             });
     };
+
+    function filterVoicesByConfig(voices) {
+        var filter = talkify.config.ui.audioControls.voicepicker.filter;
+
+        if (!filter) {
+            return voices;
+        }
+
+        return voices.filter(function (voice) {
+            var active = true;
+
+            if (filter.byCulture.length) {
+                active = filter.byCulture.indexOf(voice.Culture) !== -1;
+            }
+
+            if (active && filter.byLanguage.length) {
+                active = filter.byLanguage.indexOf(voice.Language) !== -1;
+            }
+
+            if (active && filter.byClass.length) {
+                if (filter.byClass.indexOf("Standard") !== -1 && voice.IsStandard) {
+                    return true;
+                }
+
+                if (filter.byClass.indexOf("Premium") !== -1 && voice.IsPremium) {
+                    return true;
+                }
+
+                if (filter.byClass.indexOf("Exclusive") !== -1 && voice.IsExclusive) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return active;
+        });
+    }
 
     function toLowerCaseKeys(obj) {
         var key, keys = Object.keys(obj);
@@ -792,6 +842,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.timeupdated");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.timeupdated");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".playlist.loaded");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.error");
     }
 
     initialize();

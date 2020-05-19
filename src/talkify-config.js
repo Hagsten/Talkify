@@ -7,7 +7,15 @@ talkify.config = {
     {
         audioControls: {
             enabled: false,
-            container: document.body
+            container: document.body,
+            voicepicker: {
+                enabled: true,
+                filter: {
+                    byClass: [], //example: ["Standard", "Premium", "Exclusive"]
+                    byCulture: [], //example: ["en-EN", "en-AU"]
+                    byLanguage: [] //example: ["English", "Spanish"]
+                }
+            }
         }
     },
     formReader: {
