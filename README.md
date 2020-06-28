@@ -25,7 +25,7 @@ Font Awesome 5+ (Used in Talkify Control Center)
 # Usage
 
 ## Working fiddle
-http://jsfiddle.net/xnufhv8L/
+http://jsfiddle.net/xLkud4gz/
 
 ## Working Form Reader fiddle
 http://jsfiddle.net/dx53bg6k/2/
