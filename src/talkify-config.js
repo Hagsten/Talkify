@@ -7,6 +7,7 @@ talkify.config = {
     {
         audioControls: {
             enabled: false,
+            controlcenter: "modern", //["classic", "modern"]
             container: document.body,
             voicepicker: {
                 enabled: true,

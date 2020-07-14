@@ -44,20 +44,8 @@ talkify.playlist = function () {
         var voiceCommands = commands[1];
 
         for (var k = 0; k < commands.length; k++) {
-            commands[k].onNext(function () {
-                var item = getNextItem();
-
-                if (item) {
-                    play(item);
-                }
-            });
-            commands[k].onPrevious(function () {
-                var item = getPreviousItem();
-
-                if (item) {
-                    play(item);
-                }
-            });
+            commands[k].onNext(playNext);
+            commands[k].onPrevious(playPrevious);
             commands[k].onPlayPause(function () {
                 if (player.paused()) {
                     player.play();
@@ -97,6 +85,37 @@ talkify.playlist = function () {
 
                 playFromBeginning();
             });
+
+            talkify.messageHub.subscribe("playlist", player.correlationId + ".controlcenter.request.textinteractiontoggled", function (enabled) {
+                if (enabled) {
+                    enableTextInteraction();
+                } else {
+                    disableTextInteraction();
+                }
+            });
+
+            talkify.messageHub.subscribe("playlist", player.correlationId + ".controlcenter.request.playnext", playNext);
+            talkify.messageHub.subscribe("playlist", player.correlationId + ".controlcenter.request.playprevious", playPrevious);
+        }
+
+        function playNext() {
+            var item = getNextItem();
+
+            if (!item) {
+                return;
+            }
+
+            playItem(item);
+        }
+
+        function playPrevious() {
+            var item = getPreviousItem();
+
+            if (!item) {
+                return;
+            }
+
+            playItem(item);
         }
 
         function reset() {
@@ -171,6 +190,11 @@ talkify.playlist = function () {
             }
 
             playlist.currentlyPlaying = item;
+
+            var previous = getPreviousItem();
+            var next = getNextItem();
+
+            talkify.messageHub.publish(player.correlationId + ".playlist.playing", { isFirst: !previous, isLast: !next });
 
             p = player.playItem(item);
         };
@@ -564,6 +588,26 @@ talkify.playlist = function () {
             element.addEventListener(eventType, listener);
         }
 
+        function enableTextInteraction() {
+            settings.useTextInteraction = true;
+
+            for (var i = 0; i < playlist.queue.length; i++) {
+                setupItemForUserInteraction(playlist.queue[i]);
+            }
+
+            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled", true);
+        }
+
+        function disableTextInteraction() {
+            settings.useTextInteraction = false;
+
+            for (var i = 0; i < playlist.queue.length; i++) {
+                removeUserInteractionForItem(playlist.queue[i]);
+            }
+
+            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled", false);
+        }
+
         initialize();
 
         return {
@@ -573,23 +617,14 @@ talkify.playlist = function () {
             replayCurrent: replayCurrent,
             insert: insertElement,
             isPlaying: isPlaying,
-            enableTextInteraction: function () {
-                settings.useTextInteraction = true;
-
-                for (var i = 0; i < playlist.queue.length; i++) {
-                    setupItemForUserInteraction(playlist.queue[i]);
-                }
-            },
-            disableTextInteraction: function () {
-                settings.useTextInteraction = false;
-
-                for (var i = 0; i < playlist.queue.length; i++) {
-                    removeUserInteractionForItem(playlist.queue[i]);
-                }
-            },
+            enableTextInteraction: enableTextInteraction,
+            disableTextInteraction: disableTextInteraction,
             setPlayer: function (p) {
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.*.ended");
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.tts.unplayable");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.textinteractiontoggled");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.playnext");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.playprevious");
 
                 player = p;
                 player.withReferenceLanguage(playlist.referenceLanguage);
@@ -614,6 +649,9 @@ talkify.playlist = function () {
 
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.*.ended");
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".player.tts.unplayable");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.textinteractiontoggled");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.playnext");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.playprevious");
             },
             startListeningToVoiceCommands: function () {
                 voiceCommands.start();
