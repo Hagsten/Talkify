@@ -165,7 +165,11 @@ talkify.TtsPlayer = function () {
         });
 
         talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { 
+            me.settings.rate = rate; 
+
+            talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", me.settings.rate);
+        });
 
         talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.wordbreak", function(ms){
             me.useWordBreak(ms);

@@ -184,7 +184,7 @@ talkify.playbar = function (parent, correlationId) {
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0] || noopElement;
         loader = wrapper.getElementsByClassName("talkify-audio-loading")[0] || noopElement;
         erroroccurredElement = wrapper.getElementsByClassName("talkify-audio-error")[0] || noopElement;
-        rateElement = wrapper.querySelector(".talkify-rate-button input[type=range]") || noopElement;
+        rateElement = wrapper.querySelectorAll(".talkify-rate-button input[type=range]") || [];
         volumeElement = wrapper.querySelector(".talkify-volume-button input[type=range]") || noopElement;
         progressElement = wrapper.getElementsByTagName("progress")[0] || noopElement;
         textHighlightingElement = wrapper.getElementsByClassName("talkify-cc-button")[0] || noopElement;
@@ -231,8 +231,10 @@ talkify.playbar = function (parent, correlationId) {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.pause");
         });
 
-        rateElement.addEventListener("change", function () {
-            talkify.messageHub.publish(correlationId + ".controlcenter.request.rate", parseInt(this.value));
+        rateElement.forEach(function(x){
+            x.addEventListener("change", function () {
+                talkify.messageHub.publish(correlationId + ".controlcenter.request.rate", parseInt(this.value));
+            })
         });
 
         volumeElement.addEventListener("change", function (e) {
@@ -380,7 +382,9 @@ talkify.playbar = function (parent, correlationId) {
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.ratechanged", function (rate) {
-            rateElement.value = rate;
+            rateElement.forEach(function(x){
+                x.value = rate;
+            });
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.voiceset", function (voice) {
@@ -624,11 +628,17 @@ talkify.playbar = function (parent, correlationId) {
 
     return {
         setMaxRate: function (value) {
-            rateElement.setAttribute("max", value);
+            rateElement.forEach(function(x){
+                x.setAttribute("max", value);
+            });
+
             return this;
         },
         setMinRate: function (value) {
-            rateElement.setAttribute("min", value);
+            rateElement.forEach(function(x){
+                x.setAttribute("min", value);
+            });
+
             return this;
         },
         dispose: dispose

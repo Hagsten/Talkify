@@ -264,7 +264,7 @@ talkify.playbar = function (parent, correlationId) {
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0] || noopElement;
         loader = wrapper.getElementsByClassName("talkify-audio-loading")[0] || noopElement;
         erroroccurredElement = wrapper.getElementsByClassName("talkify-audio-error")[0] || noopElement;
-        rateElement = wrapper.querySelector(".talkify-rate-button input[type=range]") || noopElement;
+        rateElement = wrapper.querySelectorAll(".talkify-rate-button input[type=range]") || [];
         volumeElement = wrapper.querySelector(".talkify-volume-button input[type=range]") || noopElement;
         progressElement = wrapper.getElementsByTagName("progress")[0] || noopElement;
         textHighlightingElement = wrapper.getElementsByClassName("talkify-cc-button")[0] || noopElement;
@@ -311,8 +311,10 @@ talkify.playbar = function (parent, correlationId) {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.pause");
         });
 
-        rateElement.addEventListener("change", function () {
-            talkify.messageHub.publish(correlationId + ".controlcenter.request.rate", parseInt(this.value));
+        rateElement.forEach(function(x){
+            x.addEventListener("change", function () {
+                talkify.messageHub.publish(correlationId + ".controlcenter.request.rate", parseInt(this.value));
+            })
         });
 
         volumeElement.addEventListener("change", function (e) {
@@ -460,7 +462,9 @@ talkify.playbar = function (parent, correlationId) {
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.ratechanged", function (rate) {
-            rateElement.value = rate;
+            rateElement.forEach(function(x){
+                x.value = rate;
+            });
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.voiceset", function (voice) {
@@ -704,11 +708,17 @@ talkify.playbar = function (parent, correlationId) {
 
     return {
         setMaxRate: function (value) {
-            rateElement.setAttribute("max", value);
+            rateElement.forEach(function(x){
+                x.setAttribute("max", value);
+            });
+
             return this;
         },
         setMinRate: function (value) {
-            rateElement.setAttribute("min", value);
+            rateElement.forEach(function(x){
+                x.setAttribute("min", value);
+            });
+
             return this;
         },
         dispose: dispose
@@ -776,11 +786,11 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                         </button>\
                         <div>Text interaction</div>\
                     </li>\
-                    <li class="talkify-detached">\
-                        <button class="modern-talkify-control-center-accent talkify-rate-button" title="Adjust playback rate">\
+                    <li class="talkify-detached talkify-rate-button">\
+                        <button class="modern-talkify-control-center-accent" title="Adjust playback rate">\
                             <i class="fas fa-tachometer-alt"></i>\
                         </button>\
-                        <div class="detached-rate-slider">\
+                        <div>\
                             <input type="range" value="5" min="0" max="10" title="Adjust playback rate">\
                         </div>\
                     </li>\
@@ -833,9 +843,8 @@ talkify.controlcenters.modern = function (parent, correlationId) {
         <li class="talkify-attached">\
             <div class="talkify-voice-selector ">\
                 <label for="voice-selector-toggle">\
-                <img class="talkify-selected-voice-flag talkify-flag"\
-                    src="">\
-                    <span>David</span>\
+                <img class="talkify-selected-voice-flag talkify-flag talkify-hidden" src="">\
+                <span></span>\
                 </label><input type="checkbox" id="voice-selector-toggle" style="display: none;" />\
             </div>\
         </li>\
@@ -1360,7 +1369,10 @@ talkify.Html5Player = function () {
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.play", function () { me.audioSource.play(); });
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.pause", function () { me.pause(); });
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
-    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) { 
+        me.settings.rate = rate / 5; 
+        talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", rate);
+    });
 
     function playCurrentContext() {
         if (timeupdater) {
@@ -2168,7 +2180,11 @@ talkify.TtsPlayer = function () {
         });
 
         talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { 
+            me.settings.rate = rate; 
+
+            talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", me.settings.rate);
+        });
 
         talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.wordbreak", function(ms){
             me.useWordBreak(ms);

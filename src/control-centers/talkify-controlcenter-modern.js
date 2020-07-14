@@ -59,11 +59,11 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                         </button>\
                         <div>Text interaction</div>\
                     </li>\
-                    <li class="talkify-detached">\
-                        <button class="modern-talkify-control-center-accent talkify-rate-button" title="Adjust playback rate">\
+                    <li class="talkify-detached talkify-rate-button">\
+                        <button class="modern-talkify-control-center-accent" title="Adjust playback rate">\
                             <i class="fas fa-tachometer-alt"></i>\
                         </button>\
-                        <div class="detached-rate-slider">\
+                        <div>\
                             <input type="range" value="5" min="0" max="10" title="Adjust playback rate">\
                         </div>\
                     </li>\
@@ -116,9 +116,8 @@ talkify.controlcenters.modern = function (parent, correlationId) {
         <li class="talkify-attached">\
             <div class="talkify-voice-selector ">\
                 <label for="voice-selector-toggle">\
-                <img class="talkify-selected-voice-flag talkify-flag"\
-                    src="">\
-                    <span>David</span>\
+                <img class="talkify-selected-voice-flag talkify-flag talkify-hidden" src="">\
+                <span></span>\
                 </label><input type="checkbox" id="voice-selector-toggle" style="display: none;" />\
             </div>\
         </li>\
