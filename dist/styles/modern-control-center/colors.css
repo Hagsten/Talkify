@@ -1,0 +1,139 @@
+.talkify-disabled {
+    color: #ffffff42 !important;    
+}
+
+.talkify-disabled i {
+    filter: opacity(0.4);
+}
+
+.talkify-control-center.modern, .talkify-control-center.modern .voice-selector{
+    background-color: #424242;
+    color: #dadada;
+}
+
+.talkify-control-center.modern .voice-selector{
+    border-color: #8ac832;
+}
+
+
+.talkify-control-center.modern i,
+.talkify-control-center.modern button,
+.talkify-control-center.modern select{
+    color: #dadada;
+    transition: color 0.20s;
+}
+
+.talkify-control-center.modern i:hover,
+.talkify-control-center.modern button:hover {
+    color: white;
+}
+
+.talkify-control-center.modern option{
+    color: black;
+}
+
+.talkify-control-center.modern .muted{
+    color: #404040
+}
+
+.modern-talkify-control-center-accent {
+    background-color: #8ac832 !important;
+    color: white !important;
+}
+
+.modern-talkify-control-center-accent i{
+    color: white !important;
+}
+
+.talkify-control-center.modern .volume-slider, 
+.talkify-control-center.modern .rate-slider,
+.talkify-control-center.modern .player-settings ul {
+    background-color:#424242;
+}
+
+.talkify-control-center.modern button.talkify-play-button, .talkify-control-center.modern button.talkify-pause-button {
+    background-color: #8ac832;
+    box-shadow: 0 0 5px 0px #292929;
+    transition: background-color 0.20s;
+}
+
+.talkify-control-center.modern .talkify-audio-error{
+    background-color: #e65d0d;
+    box-shadow: 0 0 5px 0px #292929;
+    transition: background-color 0.20s;
+}
+
+.talkify-control-center.modern button.talkify-play-button:hover{
+    background-color: #96d839;    
+}
+
+.talkify-control-center.modern .talkify-play-button i {
+    color: white;
+}
+
+/* Sliders & progress */
+.talkify-control-center.modern progress {
+    background-color: #888;
+}
+
+.talkify-control-center.modern progress::-webkit-progress-value {
+    background-color: #8ac832;
+}
+
+.talkify-control-center.modern progress::-moz-progress-bar {
+    background-color: #8ac832;
+}
+
+.talkify-control-center.modern input[type=range]::-webkit-slider-runnable-track{
+    background: #dadada;
+}
+
+.talkify-control-center.modern input[type=range]::-moz-range-thumb{
+    background: #8ac832;
+}
+
+.talkify-control-center.modern input[type=range]::-ms-thumb {
+    background: #8ac832;
+}
+
+.talkify-control-center.modern input[type=range]::-ms-fill-upper {
+    background: #424242;
+}
+
+.talkify-control-center.modern input[type=range]:focus::-ms-fill-lower{
+    background: white;
+}
+
+.talkify-control-center.modern input[type=range]::-moz-range-track{
+    background: white;
+}
+
+.talkify-control-center.modern input[type=range]::-webkit-slider-runnable-track {
+    background: white;
+}
+
+.talkify-control-center.modern input[type=range]:focus::-ms-fill-upper {
+    background: #888;
+}
+
+.talkify-control-center.modern input[type=range]::-webkit-slider-thumb {
+    background: #8ac832;
+}
+
+
+/* Scrollbars */
+
+/* Track */
+.talkify-control-center.modern .voice-selector::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+.talkify-control-center.modern .voice-selector::-webkit-scrollbar-thumb {
+    background: #8ac832;
+}
+
+    /* Handle on hover */
+    .talkify-control-center.modern .voice-selector::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }

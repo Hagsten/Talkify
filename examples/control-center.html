@@ -1,156 +1,77 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.css" />
-    <style>
-        .talkify-control-center{
-                
-        }    
 
-        .talkify-control-center .volume-slider, .talkify-control-center .rate-slider{
-            position: absolute;
-            left: 0;
-            top: 20px;
-            background-color: #ccc;
-            padding: 5px;
-            display: none;
-        }
-
-        .talkify-control-center .volume-button:focus .volume-slider, 
-        .talkify-control-center .volume-button:active .volume-slider,
-        .talkify-control-center .volume-slider:hover,
-        .talkify-control-center .rate-button:focus .rate-slider, 
-        .talkify-control-center .rate-button:active .rate-slider,
-        .talkify-control-center .rate-slider:hover
-        {
-            display: block;
-        }
-
-        .talkify-control-center .volume-button, .talkify-control-center .rate-button{
-            position: relative;
-        }
-
-        .talkify-control-center input[type=range] {
-            /*removes default webkit styles*/
-            -webkit-appearance: none;
-            /*required for proper track sizing in FF*/
-            width: 75px;
-            background: transparent;
-            border: 0;
-            padding: 0;
-        }
-
-        .talkify-control-center input[type=range]::-webkit-slider-runnable-track {
-            height: 3px;
-            background: white;
-            border: none;
-            border-radius: 3px;
-        }
-
-        .talkify-control-center input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            border: none;
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #FF9800;
-            margin-top: -5px;
-        }
-
-        .talkify-control-center input[type=range]:focus {
-            outline: none;
-        }
-
-            .talkify-control-center input[type=range]:focus::-webkit-slider-runnable-track {
-                background: white;
-            }
-
-        .talkify-control-center input[type=range]::-moz-range-track {
-            width: 75px;
-            height: 3px;
-            background: white;
-            border: none;
-            -ms-border-radius: 3px;
-            border-radius: 3px;
-        }
-
-        .talkify-control-center input[type=range]::-moz-range-thumb {
-            border: none;
-            height: 12px;
-            width: 12px;
-            -ms-border-radius: 50%;
-            border-radius: 50%;
-            background: #FF9800;
-        }
-
-        /*hide the outline behind the border*/
-        .talkify-control-center input[type=range]:-moz-focusring {
-            outline: 1px solid white;
-            -ms-outline-offset: -1px;
-            outline-offset: -1px;
-        }
-
-        .talkify-control-center input[type=range]::-ms-track {
-            width: 75px;
-            height: 3px;
-            /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
-            background: transparent;
-            /*leave room for the larger thumb to overflow with a transparent border */
-            border-color: transparent;
-            border-width: 6px 0;
-        }
-
-        .talkify-control-center input[type=range]::-ms-fill-lower {
-            border-radius: 10px;
-            background: white;
-        }
-
-        .talkify-control-center input[type=range]::-ms-fill-upper {
-            background: #777;
-            border-radius: 10px;
-        }
-
-        .talkify-control-center input[type=range]::-ms-thumb {
-            border: none;
-            height: 12px;
-            width: 12px;
-            -ms-border-radius: 50%;
-            border-radius: 50%;
-            background: #FF9800;
-            margin-top: -1px;
-        }
-
-        .talkify-control-center input[type=range]:focus::-ms-fill-lower {
-            background: white;
-        }
-
-        .talkify-control-center input[type=range]:focus::-ms-fill-upper {
-            background: #888;
-        }
-        </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-playlist.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles//modern-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles//modern-control-center/colors.css">
 </head>
 
 <body>
-    <div class="talkify-control-center">
-        <button>
-            <i class="fa fa-play"></i>
-        </button>
-        <button>
-            <i class="fa fa-cc"></i>
-        </button>
-        <button class="volume-button">
-            <i class="fa fa-volume-up"></i>
-            <div class="volume-slider">
-                <input type="range" value="10" min="0" max="10" title="Adjust playback volume">
-            </div>
-        </button>
-        <button class="rate-button">
-            <i class="fa fa-tachometer"></i>
-            <div class="rate-slider">
-                <input type="range" value="10" min="0" max="10" title="Adjust playback rate">
-            </div>
-        </button>
-    </div>
+    <section id="root">
+        <div>
+            <p>Hello, this is a control center test.</p>
+            <p>Play around with the settings.</p>
+            <p>It is very fun!</p>
+        </div>
+    </section>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="../dist/talkify.js"></script>
+
+    <script>
+        talkify.config.debug = true;
+        talkify.config.useSsml = true;
+        talkify.config.remoteService.active = true;
+        talkify.config.keyboardCommands.enabled = true;
+        talkify.config.voiceCommands.enabled = true;
+
+        talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
+        talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
+
+        talkify.config.remoteService.apiKey = '';
+    
+        talkify.config.remoteService.host = 'http://localhost:6719';
+
+        talkify.config.ui.audioControls.controlcenter = "modern";
+        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get the browser built in audio controls
+        talkify.config.ui.audioControls.container = document.getElementById("player-and-voices");
+        talkify.config.ui.audioControls.voicepicker = {
+            enabled: true,
+            filter: {
+                byClass: [],
+                byCulture: [],
+                byLanguage: []
+            }
+        };
+
+        $(document).ready(function () {
+            var player = new talkify.TtsPlayer()
+                .enableTextHighlighting().usePhonation("soft").usePitch(-2);
+
+            // player.setRate(-5);
+            player.forceVoice({ name: 'Zira', description: "Zira" });
+
+            // player.playText("yo");
+            var playlist = new talkify.playlist()
+                .begin()
+                .usingPlayer(player)
+                .withRootSelector('#root')
+                .withTextInteraction()
+                .subscribeTo({
+                    onVoiceCommandListeningStarted: function () { console.log("Started :)") },
+                    onVoiceCommandListeningEnded: function () { console.log("Ended... :)") }
+                })
+                .build()
+                .play();
+        });
+
+    </script>
 </body>
 
 </html>

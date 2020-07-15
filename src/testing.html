@@ -1,0 +1,157 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+<link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/colors.css">
+<link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+<link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/main.css">
+
+<div class="talkify-control-center attached talkify-control-center-secondary">
+    <progress value="0.33" max="1.0"></progress>
+    <ul class="player-controls">
+        <li>
+            <button data-type="drag" class="talkify-detatched" title="Drag player">
+                <i class="fa fa-grip-horizontal"></i>
+            </button>
+            <button class="talkify-attached" title="Detach player">
+                <i class="fa fa-window-maximize"></i>
+            </button>
+            <div class="player-settings">
+                <label for="player-settings-toggle" title="More settings">
+                    <i class="fas fa-ellipsis-h"></i>
+                </label>
+                <input type="checkbox" id="player-settings-toggle" style="display: none;" />
+
+                <ul class="talkify-control-center-secondary">
+                    <li>
+                        <button class="talkify-control-center-accent" title="Detach player">
+                            <i class="fas fa-music"></i>
+                        </button>
+                        <select>
+                            <option>Normal tone</option>
+                            <option>Softer tone</option>
+                            <option>Whisper</option>
+                        </select>
+                    </li>
+                    <li>
+                        <button class="talkify-control-center-accent" title="Word break">
+                            <i class="fas fa-arrows-alt-h"></i>
+                        </button>
+                        <div class="word-break-slider">
+                            <input type="range" value="0" min="0" max="10" title="Adjust pause between words">
+                        </div>
+                    </li>
+                    <li>
+                        <button class="talkify-control-center-accent" title="Adjust pitch">
+                            <i class="fas fa-arrows-alt-h pitch-icon"></i>
+                        </button>
+                        <div class="pitch-slider">
+                            <input type="range" value="5" min="0" max="10" title="Adjust pitch">
+                        </div>
+                    </li>
+                    <li>
+                        <button class="talkify-cc-button talkify-control-center-accent"
+                            title="Enable/disable text highlighting">
+                            <i class="fa fa-closed-captioning"></i>
+                        </button>
+                        <div>Text highlighting</div>
+                    </li>
+                    <li>
+                        <button class="talkify-step-button talkify-control-center-accent" title="Click text to play">
+                            <i class="fas fa-hand-point-up"></i>
+                        </button>
+                        <div>Text interaction</div>
+                    </li>
+                    <li class="talkify-detatched">
+                        <button class="talkify-control-center-accent" title="Adjust playback rate">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </button>
+                        <div class="detatched-rate-slider">
+                            <input type="range" value="5" min="0" max="10" title="Adjust playback rate">
+                        </div>
+                    </li>
+                    <li class="talkify-detatched">
+                        <button class="talkify-control-center-accent" title="Adjust playback volume">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <div class="detatched-volume-slider">
+                            <input type="range" value="10" min="0" max="10" title="Adjust playback volume">
+                        </div>
+                    </li>
+                    <li class="talkify-detatched">
+                        <button class="talkify-control-center-accent" title="Detach player">
+                            <i class="fa fa-window-minimize"></i>
+                        </button>
+                        <div>Dock player</div>
+                    </li>
+                    
+                </ul>
+            </div>
+
+
+
+        </li>
+        <li>
+            <button class="rate-button talkify-attached" title="Rate of speech">
+                <i class="fa fa-tachometer-alt"></i>
+                <div class="rate-slider">
+                    <input type="range" value="5" min="0" max="10" title="Adjust playback rate">
+                </div>
+            </button>
+            <button class="talkify-step-button" title="Play">
+                <i class="fa fa-step-backward"></i>
+            </button>
+            <button class="talkify-play-button" title="Play">
+                <i class="fa fa-play"></i>
+            </button>
+            <button class="talkify-step-button" title="Play">
+                <i class="fa fa-step-forward"></i>
+            </button>
+            <button class="volume-button talkify-attached" title=" Volume">
+                <i class="fa fa-volume-up"></i>
+                <div class="volume-slider">
+                    <input type="range" value="10" min="0" max="10" title="Adjust playback volume">
+                </div>
+            </button>
+
+            <!-- <button class="talkify-pause-button talkify-disabled" title="Pause">
+                    <i class="fa fa-pause"></i>
+                </button> -->
+            <!-- <i class="fa fa-circle-notch fa-spin audio-loading"></i>
+                <i class="fas fa-exclamation-triangle audio-error" title="An error occurred at playback"></i> -->
+        </li>
+        <!-- 
+            <li>
+                <button class="rate-button" title="Rate of speech">
+                    <i class="fa fa-tachometer-alt"></i>
+                    <div class="rate-slider">
+                        <input type="range" value="10" min="0" max="10" title="Adjust playback rate">
+                    </div>
+                </button>
+            </li>
+            <li>
+                <button class="talkify-cc-button" title="Enable/disable text highlighting">
+                    <i class="fa fa-closed-captioning"></i>
+                </button>
+            </li>
+            <li>
+                <button class="talkify-detatched" title="Dock player to screen">
+                    <i class="fa fa-window-minimize"></i>
+                </button>
+                <button class="talkify-attached" title="Detach player">
+                    <i class="fa fa-window-maximize"></i>
+                </button>
+            </li>
+            -->
+
+        <li class="talkify-attached">
+            <div class="talkify-voice-selector ">
+                <label for="voice-selector-toggle">
+                    <button>
+                        <img class="talkify-flag"
+                            src="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/gb.svg">
+                        <span>David</span>
+                        <!-- <i class="fas fa-microphone-alt"></i> -->
+                    </button>
+                </label><input type="checkbox" id="voice-selector-toggle" style="display: none;" />
+            </div>
+        </li>
+    </ul>
+</div>

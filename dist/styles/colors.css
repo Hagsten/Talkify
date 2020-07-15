@@ -1,0 +1,14 @@
+.talkify-sentence-highlight{
+    background-color: #8ac832 !important;
+    color: white !important;
+}
+
+.talkify-word-highlight{
+    background-color: black !important;
+    color: white !important;
+}
+
+.talkify-highlight:hover {
+    background-color: #3D0328 !important;
+    color: white !important;
+}

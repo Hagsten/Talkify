@@ -6,11 +6,24 @@
     display: none !important;
 }
 
-.talkify-disabled {
-    color: #ffffff !important;
-    color: rgba(0,0,0, 0.25) !important;
+.talkify-clickable {
+    cursor: pointer;
 }
 
-.talkify-clickable {
+.talkify-flag{
+    height: 20px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.talkify-control-center.attached .talkify-detached{
+    display: none !important;
+} 
+
+.talkify-control-center.detached .talkify-attached{
+    display: none !important;
+} 
+
+.talkify-control-center progress{
     cursor: pointer;
 }

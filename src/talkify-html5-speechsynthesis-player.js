@@ -95,7 +95,10 @@ talkify.Html5Player = function () {
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.play", function () { me.audioSource.play(); });
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.pause", function () { me.pause(); });
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
-    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate / 5; });
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) { 
+        me.settings.rate = rate / 5; 
+        talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", rate);
+    });
 
     function playCurrentContext() {
         if (timeupdater) {

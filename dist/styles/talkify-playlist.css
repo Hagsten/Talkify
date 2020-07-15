@@ -5,18 +5,3 @@
     -o-transition: background-color 0.25s;
     transition: background-color 0.25s;
 }
-
-.talkify-highlight:hover {
-    background-color: #3D0328 !important;
-    color: white !important;
-}
-
-.talkify-word-highlight {
-    color: white !important;
-    background-color: black !important;
-}
-
-.talkify-sentence-highlight {
-    color: white !important;
-    background-color: #ff6400 !important;    
-}

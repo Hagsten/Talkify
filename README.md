@@ -129,6 +129,7 @@ talkify.config = {
     {
         audioControls: { //If enabled, replaces the built in audio controls. Especially good for the Web Speech API bits
             enabled: false,
+            controlcenter: "modern", //["modern", "classic"]
             container: document.body,
             voicepicker: {
                 enabled: true,
@@ -245,6 +246,7 @@ Entry point: talkify.TtsPlayer().
 | normalTone | | | Sets the player to normal mode (opposite of whispering) |
 | usePhonation | string | normal | Supports for two phonations. "soft" and "normal". Empty string translates to "normal". Case sensitive |
 | useWordBreak | int | 0 | [0-10000] Adds a break between each word. Any value above 0 adds to the voices standard break length. |
+| usePitch | int | 0 | [-10 - +10] Adjusts the pitch of the voice. |
 
 ### Player Events
 | Event   |
@@ -310,6 +312,12 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.player.tts.texthighlight.disabled |  |
 | {contextId}.player.tts.prepareplay |  |
 | {contextId}.player.tts.disposed |  |
+| {contextId}.player.tts.error |  |
+| {contextId}.player.tts.phonationchanged |  |
+| {contextId}.player.tts.whisperchanged |  |
+| {contextId}.player.tts.wordbreakchanged |  |
+| {contextId}.player.tts.volumechanged |  |
+| {contextId}.player.tts.pitchchanged |  |
 | - | - |
 | {contextId}.player.html5.ratechanged |  |
 | {contextId}.player.html5.pause |  |
@@ -327,10 +335,20 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.controlcenter.request.pause |  |
 | {contextId}.controlcenter.request.rate |  |
 | {contextId}.controlcenter.request.volume |  |
+| {contextId}.controlcenter.request.pitch |  |
+| {contextId}.controlcenter.request.wordbreak |  |
+| {contextId}.controlcenter.request.phonation.normal |  |
+| {contextId}.controlcenter.request.phonation.soft |  |
+| {contextId}.controlcenter.request.phonation.whisper |  |
 | {contextId}.controlcenter.request.texthighlightoggled |  |
+| {contextId}.controlcenter.request.textinteractiontoggled |  |
 | - | - |
 | {contextId}.wordhighlighter.complete |  |
-
+| - | - |
+| {contextId}.playlist.playing |  |
+| {contextId}.playlist.loaded |  |
+| {contextId}.playlist.textinteraction.enabled |  |
+| {contextId}.playlist.textinteraction.disabled |  |
 
 
 # License

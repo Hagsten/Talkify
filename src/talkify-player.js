@@ -49,6 +49,11 @@ talkify.TtsPlayer = function () {
             talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.seek");
             talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.volume");
             talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.rate");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.wordbreak");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.pitch");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.normal");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.soft");
+            talkify.messageHub.unsubscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.whisper");
         }
     };
 
@@ -58,6 +63,7 @@ talkify.TtsPlayer = function () {
     this.settings.soft = false;
     this.settings.wordbreakms = 0;
     this.settings.volumeDb = 0.0;
+    this.settings.pitch = 0;
 
     function setupBindings() {
         audioElement.addEventListener("pause", onPause);
@@ -159,7 +165,34 @@ talkify.TtsPlayer = function () {
         });
 
         talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { me.settings.rate = rate; });
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { 
+            me.settings.rate = rate; 
+
+            talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", me.settings.rate);
+        });
+
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.wordbreak", function(ms){
+            me.useWordBreak(ms);
+        });
+
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.pitch", function(value){
+            me.usePitch(value);
+        });
+
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.soft", function(){
+            me.normalTone();
+            me.usePhonation("soft");
+        });
+
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.normal", function(){
+            me.normalTone();
+            me.usePhonation("normal");
+        });
+
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.whisper", function(){
+            me.usePhonation("normal");
+            me.whisper();
+        });
 
         if (me.playbar.instance) {
             me.playbar.instance
@@ -213,7 +246,8 @@ talkify.TtsPlayer = function () {
             "&whisper=" + (item.whisper || this.settings.whisper) +
             "&soft=" + (item.soft || this.settings.soft) +
             "&wordbreakms=" + (item.wordbreakms || this.settings.wordbreakms) +
-            "&volume=" + this.settings.volumeDb;
+            "&volume=" + this.settings.volumeDb +
+            "&pitch=" + this.settings.pitch;
 
         if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
@@ -287,6 +321,14 @@ talkify.TtsPlayer = function () {
         this.settings.volumeDb = volumeDb;
 
         talkify.messageHub.publish(me.correlationId + ".player.tts.volumechanged", volumeDb);
+
+        return this;
+    };
+
+    this.usePitch = function(pitch){
+        this.settings.pitch = pitch;
+
+        talkify.messageHub.publish(me.correlationId + ".player.tts.pitchchanged", pitch);
 
         return this;
     };
