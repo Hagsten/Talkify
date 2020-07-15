@@ -1,0 +1,72 @@
+<html>
+
+<head>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-playlist.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/colors.css">
+
+    <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/main.css">
+</head>
+
+<body>
+    <section id="root">
+        <div class="talkify-control-center-placeholder"></div>
+        <div class="talkify-section">
+            <p>Hello, this is a local control center test.
+            </p>
+            <p>
+                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+            </p>
+            
+        </div>
+    </section>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="../dist/talkify.js"></script>
+
+    <script>
+        talkify.config.debug = true;
+        talkify.config.useSsml = true;
+        talkify.config.remoteService.active = true;
+        talkify.config.keyboardCommands.enabled = true;
+        talkify.config.voiceCommands.enabled = true;
+
+        talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
+        talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
+
+        talkify.config.remoteService.apiKey = '';
+    
+        talkify.config.remoteService.host = 'http://localhost:6719';
+
+        talkify.config.ui.audioControls.controlcenter = "local";
+        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get the browser built in audio controls
+        talkify.config.ui.audioControls.container = document.querySelector(".talkify-control-center-placeholder");
+        talkify.config.ui.audioControls.voicepicker = {
+            enabled: false
+        };
+
+        $(document).ready(function () {
+            var player = new talkify.TtsPlayer()
+                .enableTextHighlighting();
+
+            // player.setRate(-5);
+            player.forceVoice({ name: 'Zira', description: "Zira" });
+
+            // player.playText("yo");
+            var playlist = new talkify.playlist()
+                .begin()
+                .usingPlayer(player)
+                .withRootSelector('.talkify-section')
+                .build();
+        });
+
+    </script>
+</body>
+
+</html>

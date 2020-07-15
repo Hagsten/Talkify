@@ -13,6 +13,7 @@ var talkifyPlaylist = require('./src/talkify-playlist.js');
 var talkifyControlcenterCore = require('./src/control-centers/talkify-controlcenter-core.js');
 var talkifyPlaybar = require('./src/control-centers/talkify-controlcenter-classic.js');
 var talkifyModernControlcenter = require('./src/control-centers/talkify-controlcenter-modern.js');
+var talkifyLocalControlcenter = require('./src/control-centers/talkify-controlcenter-local.js');
 var talkifyKeyCommands = require('./src/talkify-keyboard-commands.js');
 var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 var talkifyFormReader = require('./src/talkify-formreader.js');
