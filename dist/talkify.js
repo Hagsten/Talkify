@@ -80,6 +80,8 @@ talkify.controlcenters.classic = function () {
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playbar = function (parent, correlationId) {
+    var mainFlags = ["de-DE", "fr-FR","en-US", "zh-CN", "es-ES", "it-IT", "ja-JP", "ko-KR", "sv-SE", "nb-NO", "da-DK", "ru-RU", "nl-NL", "pl-PL", "tr-TR", "is-IS", "uk-UA", "sk-SK", "pt-PT", "ro-RO", "cy-GB", "bg-BG", "cs-CZ", "el-GR", "fi-FI", "he-IL", "hi-IN", "hr-HR", "hu-HU", "id-ID", "ms-MY", "sl-SI", "th-TH", "vi-VN", "ar-EG", "ar-SA", "ta-IN", "te-IN"];
+
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
     }
@@ -164,7 +166,7 @@ talkify.playbar = function (parent, correlationId) {
         }
 
         var byLanguage = groupBy(voices, function (v) {
-            return v.Culture;//.split('-')[0];
+            return v.Language;//.split('-')[0];
         });
 
         for (var prop in byLanguage) {
@@ -172,9 +174,17 @@ talkify.playbar = function (parent, correlationId) {
                 continue;
             }
 
-            var defaultVoice = byLanguage[prop].filter(function (x) { return x.IsStandard; })[0];
-            var foo = byLanguage[prop][0].Culture.split("-")[1].toLowerCase();
-            var mainFlag = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + foo + ".svg";
+            var sortedVoices = byLanguage[prop].sort(function (a, b) {
+                return a.Culture - b.Culture;
+            });
+
+            var defaultVoice = sortedVoices.filter(function (x) { return x.IsStandard; })[0];
+            
+            var foo = sortedVoices.find(function(v){
+                return mainFlags.indexOf(v.Culture) !== -1;
+            });
+
+            var mainFlag = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + foo.Culture.split("-")[1].toLowerCase() + ".svg";
 
             var li = createElement("li");
 
@@ -182,7 +192,7 @@ talkify.playbar = function (parent, correlationId) {
             flagImg.src = mainFlag;
 
             var label = createElement("label", "talkify-clickable");
-            label.innerHTML = byLanguage[prop][0].Language; //TODO: Exponera från backend?
+            label.innerHTML = sortedVoices[0].Language;
             label.htmlFor = "chk_" + prop;
 
             var checkbox = createElement("input", "");
@@ -198,8 +208,8 @@ talkify.playbar = function (parent, correlationId) {
 
             li.appendChild(innerUl);
 
-            for (var j = 0; j < byLanguage[prop].length; j++) {
-                var voice = byLanguage[prop][j];
+            for (var j = 0; j < sortedVoices.length; j++) {
+                var voice = sortedVoices[j];
                 var isDefault = !!defaultVoice && voice === defaultVoice;
 
                 var innerLi = createElement("li", "talkify-clickable");
@@ -211,11 +221,14 @@ talkify.playbar = function (parent, correlationId) {
 
                 if (voice.IsExclusive) {
                     var i = createElement("i", "fas fa-star");
+                    i.setAttribute("title", "Exclusive voice");
                 }
                 else if (voice.IsPremium) {
-                    var i = createElement("i", "fas fa-star");
+                    var i = createElement("i", "far fa-star");
+                    i.setAttribute("title", "Premium voice");
                 } else {
                     var i = createElement("i", "far fa-check-circle");
+                    i.setAttribute("title", "Standard voice");
                 }
 
                 var span = createElement("span");
@@ -227,7 +240,7 @@ talkify.playbar = function (parent, correlationId) {
                 var flagDiv = createElement("div");
                 var svg = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + voice.Culture.split("-")[1].toLowerCase() + ".svg";
 
-                var svgImg = createElement("img", "flag");
+                var svgImg = createElement("img", "talkify-flag");
                 svgImg.src = svg;
 
                 flagDiv.appendChild(svgImg);
@@ -311,7 +324,7 @@ talkify.playbar = function (parent, correlationId) {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.pause");
         });
 
-        rateElement.forEach(function(x){
+        rateElement.forEach(function (x) {
             x.addEventListener("change", function () {
                 talkify.messageHub.publish(correlationId + ".controlcenter.request.rate", parseInt(this.value));
             })
@@ -329,25 +342,25 @@ talkify.playbar = function (parent, correlationId) {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.wordbreak", parseInt(this.value));
         });
 
-        phonationDropDown.addEventListener("change", function(){
-            if(this.value === "normal"){
+        phonationDropDown.addEventListener("change", function () {
+            if (this.value === "normal") {
                 talkify.messageHub.publish(correlationId + ".controlcenter.request.phonation.normal");
-            } else if(this.value === "soft"){
+            } else if (this.value === "soft") {
                 talkify.messageHub.publish(correlationId + ".controlcenter.request.phonation.soft");
-            } else if(this.value === "whisper"){
+            } else if (this.value === "whisper") {
                 talkify.messageHub.publish(correlationId + ".controlcenter.request.phonation.whisper");
             }
         });
 
-        phonationWhisperElement.addEventListener("click", function(){
+        phonationWhisperElement.addEventListener("click", function () {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.phonation.whisper");
         });
 
-        phonationSoftElement.addEventListener("click", function(){
+        phonationSoftElement.addEventListener("click", function () {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.phonation.soft");
         });
 
-        phonationNormalElement.addEventListener("click", function(){
+        phonationNormalElement.addEventListener("click", function () {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.phonation.normal");
         });
 
@@ -369,7 +382,7 @@ talkify.playbar = function (parent, correlationId) {
             }
         });
 
-        nextItemElement.addEventListener("click", function(){
+        nextItemElement.addEventListener("click", function () {
             if (nextItemElement.classList.contains("talkify-disabled")) {
                 return;
             }
@@ -377,7 +390,7 @@ talkify.playbar = function (parent, correlationId) {
             talkify.messageHub.publish(correlationId + ".controlcenter.request.playnext");
         });
 
-        previousItemElement.addEventListener("click", function(){
+        previousItemElement.addEventListener("click", function () {
             if (previousItemElement.classList.contains("talkify-disabled")) {
                 return;
             }
@@ -462,7 +475,7 @@ talkify.playbar = function (parent, correlationId) {
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.ratechanged", function (rate) {
-            rateElement.forEach(function(x){
+            rateElement.forEach(function (x) {
                 x.value = rate;
             });
         });
@@ -499,23 +512,23 @@ talkify.playbar = function (parent, correlationId) {
             pitchElement.value = value;
         });
 
-        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.phonationchanged", function(phonation){
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.phonationchanged", function (phonation) {
             phonationDropDown.value = phonation === "soft" ? "soft" : "normal";
         });
-        
-        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.whisperchanged", function(whisper){
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.whisperchanged", function (whisper) {
             phonationDropDown.value = whisper ? "whisper" : "normal";
         });
 
-        talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.playing", function(msg){
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.playing", function (msg) {
             removeClass(nextItemElement, "talkify-disabled");
             removeClass(previousItemElement, "talkify-disabled");
 
-            if(msg.isLast){
-                addClass(nextItemElement, "talkify-disabled");    
+            if (msg.isLast) {
+                addClass(nextItemElement, "talkify-disabled");
             }
 
-            if(msg.isFirst){
+            if (msg.isFirst) {
                 addClass(previousItemElement, "talkify-disabled");
             }
         });
@@ -708,14 +721,14 @@ talkify.playbar = function (parent, correlationId) {
 
     return {
         setMaxRate: function (value) {
-            rateElement.forEach(function(x){
+            rateElement.forEach(function (x) {
                 x.setAttribute("max", value);
             });
 
             return this;
         },
         setMinRate: function (value) {
-            rateElement.forEach(function(x){
+            rateElement.forEach(function (x) {
                 x.setAttribute("min", value);
             });
 
@@ -775,13 +788,13 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                     </li>\
                     <li class="talkify-cc-button">\
                         <button class="modern-talkify-control-center-accent"\
-                            title="Enable/disable text highlighting">\
+                            title="Toggle text highlighting">\
                             <i class="fa fa-closed-captioning"></i>\
                         </button>\
                         <div>Text highlighting</div>\
                     </li>\
                     <li class="talkify-text-interaction-button">\
-                        <button class="modern-talkify-control-center-accent" title="Click text to play">\
+                        <button class="modern-talkify-control-center-accent" title="Toggle text interaction">\
                             <i class="fas fa-hand-point-up"></i>\
                         </button>\
                         <div>Text interaction</div>\

@@ -23,3 +23,7 @@
 .talkify-control-center.detached .talkify-attached{
     display: none !important;
 } 
+
+.talkify-control-center progress{
+    cursor: pointer;
+}

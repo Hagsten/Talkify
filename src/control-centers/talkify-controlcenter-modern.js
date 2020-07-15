@@ -48,13 +48,13 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                     </li>\
                     <li class="talkify-cc-button">\
                         <button class="modern-talkify-control-center-accent"\
-                            title="Enable/disable text highlighting">\
+                            title="Toggle text highlighting">\
                             <i class="fa fa-closed-captioning"></i>\
                         </button>\
                         <div>Text highlighting</div>\
                     </li>\
                     <li class="talkify-text-interaction-button">\
-                        <button class="modern-talkify-control-center-accent" title="Click text to play">\
+                        <button class="modern-talkify-control-center-accent" title="Toggle text interaction">\
                             <i class="fas fa-hand-point-up"></i>\
                         </button>\
                         <div>Text interaction</div>\
