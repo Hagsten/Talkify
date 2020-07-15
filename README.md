@@ -246,6 +246,7 @@ Entry point: talkify.TtsPlayer().
 | normalTone | | | Sets the player to normal mode (opposite of whispering) |
 | usePhonation | string | normal | Supports for two phonations. "soft" and "normal". Empty string translates to "normal". Case sensitive |
 | useWordBreak | int | 0 | [0-10000] Adds a break between each word. Any value above 0 adds to the voices standard break length. |
+| usePitch | int | 0 | [-10 - +10] Adjusts the pitch of the voice. |
 
 ### Player Events
 | Event   |
