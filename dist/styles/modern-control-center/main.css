@@ -55,6 +55,10 @@
 }
 
 .talkify-control-center.modern .player-controls li{
+    font-size: 14px;
+}
+
+.talkify-control-center.modern .player-controls li{
     list-style: none;
 
 }
@@ -87,11 +91,11 @@
     display: inline-block;
 }
 
-.talkify-control-center.modern .player-settings #player-settings-toggle + ul{
+.talkify-control-center.modern .player-settings > ul{
     display: none;
 }
 
-.talkify-control-center.modern .player-settings #player-settings-toggle:checked + ul{
+.talkify-control-center.modern  .player-settings #player-settings-toggle:checked +  ul{
     display: block;
 }
 
@@ -107,7 +111,7 @@
 
 .talkify-control-center.modern .player-settings ul {
     position: absolute;
-    bottom: 43px;
+    bottom: 53px;
 }
 
 .talkify-control-center.modern .player-settings ul li{

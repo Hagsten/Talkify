@@ -798,7 +798,7 @@ talkify.controlcenters.modern = function (parent, correlationId) {
     this.html = '<div class="talkify-control-center modern attached"> \
     <progress value="0" max="1.0"></progress>\
     <ul class="player-controls">\
-        <li>\
+        <li style="display: flex; justify-content: center;">\
             <button data-type="drag" class="talkify-detached talkify-drag-area" title="Drag player">\
                 <i class="fa fa-grip-horizontal"></i>\
             </button>\
@@ -806,11 +806,12 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                 <i class="fa fa-window-maximize"></i>\
             </button>\
             <div class="player-settings">\
-                <label for="player-settings-toggle" title="More settings">\
-                    <i class="fas fa-ellipsis-h"></i>\
-                </label>\
+                <button>\
+                    <label for="player-settings-toggle" title="More settings">\
+                        <i class="fas fa-ellipsis-h"></i>\
+                    </label>\
+                </button>\
                 <input type="checkbox" id="player-settings-toggle" style="display: none;" />\
-                \
                 <ul>\
                     <li>\
                         <button class="modern-talkify-control-center-accent" title="Playback mode">\
@@ -873,7 +874,6 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                         </button>\
                         <div>Dock player</div>\
                     </li>\
-                    \
                 </ul>\
             </div>\
         </li>\
