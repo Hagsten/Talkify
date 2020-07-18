@@ -107,6 +107,7 @@
     border: none;
     width: 150px;
     background: transparent;
+    font-size: 13px;
 }
 
 .talkify-control-center.modern .player-settings ul {
@@ -117,7 +118,11 @@
 .talkify-control-center.modern .player-settings ul li{
     display: flex;
     align-items: center;
-    
+    line-height: normal;
+}
+
+.talkify-control-center.modern .player-settings ul button{
+    border-radius: none;
 }
 
 .talkify-control-center.modern.attached .player-settings ul li > * {
