@@ -173,7 +173,9 @@ talkify.wordHighlighter = function (correlationId) {
         for (var i = 0; i < baseline.length - 1; i++) {
             currentSentence += baseline[i] + ".";
 
-            if (baseline[i + 1].startsWith(" ") || baseline[i + 1].startsWith("\n")) {
+            var isLast = i + 1 === baseline.length - 1;
+
+            if (isLast || baseline[i + 1].startsWith(" ") || baseline[i + 1].startsWith("\n")) {
                 result.push(currentSentence);
                 currentSentence = "";
             }

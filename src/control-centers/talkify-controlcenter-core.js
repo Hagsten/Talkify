@@ -8,7 +8,7 @@ talkify.playbar = function (parent, correlationId) {
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper, voicePicker;
     var attachElement, detatchedElement, dragArea, loader, erroroccurredElement, textInteractionElement, pitchElement, wordBreakElement, wordBreakElementWrapper;
-    var pitchElementWrapper, nextItemElement, previousItemElement;
+    var pitchElementWrapper, nextItemElement, previousItemElement, voiceNameElement;
     var flagElement, phonationNormalElement, phonationSoftElement, phonationWhisperElement, phonationDropDown;
     var voices = [];
 
@@ -218,6 +218,7 @@ talkify.playbar = function (parent, correlationId) {
         phonationNormalElement = wrapper.querySelector("#talkify-phonation-normal") || noopElement;
         nextItemElement = wrapper.getElementsByClassName("talkify-step-forward-button")[0] || noopElement;
         previousItemElement = wrapper.getElementsByClassName("talkify-step-backward-button")[0] || noopElement;
+        voiceNameElement = document.querySelector(".talkify-voice-selector span") || noopElement;
 
         settings.parentElement.appendChild(wrapper);
 
@@ -584,10 +585,8 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function setVoiceName(voice) {
-        var voiceElement = document.querySelector(".talkify-voice-selector span");
-
         if (!voice) {
-            voiceElement.textContent = "Automatic voice detection";
+            voiceNameElement.textContent = "Automatic voice detection";
             return;
         }
 
@@ -601,11 +600,11 @@ talkify.playbar = function (parent, correlationId) {
         }
 
         if (isTalkifyHostedVoice(voice)) {
-            voiceElement.textContent = voice.name;
+            voiceNameElement.textContent = voice.name;
             return;
         }
 
-        voiceElement.textContent = voice.name;
+        voiceNameElement.textContent = voice.name;
     }
 
     function dispose() {
