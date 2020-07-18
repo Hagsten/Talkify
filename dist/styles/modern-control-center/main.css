@@ -122,7 +122,7 @@
 }
 
 .talkify-control-center.modern .player-settings ul button{
-    border-radius: none;
+    border-radius: 0;
 }
 
 .talkify-control-center.modern.attached .player-settings ul li > * {
