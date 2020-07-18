@@ -1,0 +1,57 @@
+.talkify-control-center.local i{
+    color: #555;
+}
+
+.talkify-control-center.local .talkify-more-settings i {
+    color: white;
+}
+
+.talkify-control-center.local > div{
+    border-color: #8ac832;
+}
+
+.talkify-control-center.local .talkify-brand{
+    background-color: #8ac832;
+    color: white;
+}
+
+.talkify-control-center.local .talkify-more-settings{
+    color: white;
+    background-color: #8ac832;
+}
+
+.talkify-control-center.local input[type=range]::-webkit-slider-runnable-track{
+    background: #dadada;
+}
+
+.talkify-control-center.local input[type=range]::-moz-range-thumb{
+    background: #dadada;
+}
+
+.talkify-control-center.local input[type=range]::-ms-thumb {
+    background: #dadada;
+}
+
+.talkify-control-center.local input[type=range]::-ms-fill-upper {
+    background: #424242;
+}
+
+.talkify-control-center.local input[type=range]:focus::-ms-fill-lower{
+    background: white;
+}
+
+.talkify-control-center.local input[type=range]::-moz-range-track{
+    background: white;
+}
+
+.talkify-control-center.local input[type=range]::-webkit-slider-runnable-track {
+    background: white;
+}
+
+.talkify-control-center.local input[type=range]:focus::-ms-fill-upper {
+    background: #888;
+}
+
+.talkify-control-center.local input[type=range]::-webkit-slider-thumb {
+    background: #555;
+}

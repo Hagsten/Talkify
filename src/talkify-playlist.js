@@ -370,6 +370,12 @@ talkify.playlist = function () {
             }
 
             talkify.messageHub.publish(player.correlationId + ".playlist.loaded");
+
+            if(settings.useTextInteraction){
+                talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled");
+            }else{
+                talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled");
+            }
         }
 
         function convertToSsml(element) {
@@ -595,7 +601,7 @@ talkify.playlist = function () {
                 setupItemForUserInteraction(playlist.queue[i]);
             }
 
-            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled", true);
+            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled");
         }
 
         function disableTextInteraction() {
@@ -605,7 +611,7 @@ talkify.playlist = function () {
                 removeUserInteractionForItem(playlist.queue[i]);
             }
 
-            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled", false);
+            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled");
         }
 
         initialize();

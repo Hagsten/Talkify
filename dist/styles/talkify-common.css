@@ -27,3 +27,7 @@
 .talkify-control-center progress{
     cursor: pointer;
 }
+
+.talkify-columns{
+    flex-direction: column;
+}

@@ -745,19 +745,47 @@ talkify.controlcenters.local = function () {
     this.html =
         '<div class="talkify-control-center local">\
             <div>\
-                <button class="talkify-play-button" title="Listen to text">\
-                    <i class="fas fa-volume-up"></i>\
-                    <span>Listen</span>\
+                <div class="talkify-brand">T</i></div>\
+                <button class="talkify-step-backward-button" title="Previous">\
+                    <i class="fa fa-step-backward"></i>\
                 </button>\
+                <button class="talkify-play-button" title="Listen to text">\
+                    <i class="fas fa-play"></i>\
+                </button>\
+                <div class="talkify-audio-loading">\
+                    <i class="fas fa-dharmachakra fa-spin"></i>\
+                </div>\
                 <button class="talkify-pause-button" title="Pause">\
                     <i class="fas fa-pause"></i>\
                 </button>\
-                <div class="talkify-audio-loading">\
-                </div>\
-                <button class="talkify-cc-button"   title="Toggle text highlighting">\
+                <button class="talkify-audio-error" title="An error occurred at playback"><i class="fas fa-exclamation-triangle"></i></button>\
+                <button class="talkify-step-forward-button" title="Next">\
+                    <i class="fa fa-step-forward"></i>\
+                </button>\
+                <button class="talkify-cc-button" title="Toggle text highlighting">\
                     <i class="fa fa-closed-captioning"></i>\
                 </button>\
-                <div class="by-talkify">Talkify TTS</div>\
+                <button class="talkify-text-interaction-button" title="Toggle text interaction">\
+                    <i class="fas fa-hand-point-up"></i>\
+                </button>\
+                <button title="More settings">\
+                    <label for="talkify-local-settings"><i class="fas fa-cog"></i></label>\
+                </button>\
+            </div>\
+            <input type="checkbox" style="display:none;" id="talkify-local-settings"/>\
+            <div class="talkify-columns talkify-more-settings">\
+                <div title="Adjust playback volume">\
+                    <i class="fas fa-volume-up"></i>\
+                    <div class="volume-slider talkify-volume-button">\
+                        <input type="range" value="10" min="0" max="10">\
+                    </div>\
+                </div>\
+                <div title="Adjust playback rate">\
+                    <i class="fa fa-tachometer-alt"></i>\
+                    <div class="rate-slider talkify-rate-button">\
+                        <input type="range" value="5" min="0" max="10">\
+                    </div>\
+                </div>\
             </div>\
         </div>';
 };
@@ -2762,6 +2790,12 @@ talkify.playlist = function () {
             }
 
             talkify.messageHub.publish(player.correlationId + ".playlist.loaded");
+
+            if(settings.useTextInteraction){
+                talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled");
+            }else{
+                talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled");
+            }
         }
 
         function convertToSsml(element) {
@@ -2987,7 +3021,7 @@ talkify.playlist = function () {
                 setupItemForUserInteraction(playlist.queue[i]);
             }
 
-            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled", true);
+            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled");
         }
 
         function disableTextInteraction() {
@@ -2997,7 +3031,7 @@ talkify.playlist = function () {
                 removeUserInteractionForItem(playlist.queue[i]);
             }
 
-            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled", false);
+            talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled");
         }
 
         initialize();
@@ -3767,7 +3801,9 @@ talkify.wordHighlighter = function (correlationId) {
         for (var i = 0; i < baseline.length - 1; i++) {
             currentSentence += baseline[i] + ".";
 
-            if (baseline[i + 1].startsWith(" ") || baseline[i + 1].startsWith("\n")) {
+            var isLast = i + 1 === baseline.length - 1;
+
+            if (isLast || baseline[i + 1].startsWith(" ") || baseline[i + 1].startsWith("\n")) {
                 result.push(currentSentence);
                 currentSentence = "";
             }

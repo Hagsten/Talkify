@@ -12,13 +12,14 @@
     <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/colors.css">
 
     <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/colors.css">
 </head>
 
 <body>
     <section id="root">
         <div class="talkify-control-center-placeholder"></div>
         <div class="talkify-section">
-            <p>Hello, this is a local control center test.
+            <p>Hello, this is a local control center test. Yes, yes it is. It really is.
             </p>
             <p>
                 Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
@@ -40,7 +41,7 @@
         talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
         talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
 
-        talkify.config.remoteService.apiKey = '';
+        talkify.config.remoteService.apiKey = '612ee344-d1de-429c-a518-3578458257c5';
     
         talkify.config.remoteService.host = 'http://localhost:6719';
 
@@ -55,10 +56,8 @@
             var player = new talkify.TtsPlayer()
                 .enableTextHighlighting();
 
-            // player.setRate(-5);
             player.forceVoice({ name: 'Zira', description: "Zira" });
 
-            // player.playText("yo");
             var playlist = new talkify.playlist()
                 .begin()
                 .usingPlayer(player)
