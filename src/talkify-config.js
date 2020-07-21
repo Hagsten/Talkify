@@ -6,11 +6,11 @@ talkify.config = {
     ui:
     {
         audioControls: {
-            enabled: false,
-            controlcenter: "modern", //["classic", "modern"]
+            enabled: true,
+            controlcenter: "native", //["classic", "modern", "local", "native"]
             container: document.body,
             voicepicker: {
-                enabled: true,
+                enabled: true, //where applicable
                 filter: {
                     byClass: [], //example: ["Standard", "Premium", "Exclusive"]
                     byCulture: [], //example: ["en-EN", "en-AU"]

@@ -8,12 +8,15 @@
     <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-playlist.css">
     <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/colors.css">
     <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/main.css">
-    <link rel="stylesheet" type="text/css" href="../dist/styles//modern-control-center/main.css">
-    <link rel="stylesheet" type="text/css" href="../dist/styles//modern-control-center/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/colors.css">
 </head>
 
 <body>
     <section id="root">
+        <div id="placeholder"></div>
         <div>
             <p>Hello, this is a control center test.</p>
             <p>Play around with the settings.</p>
@@ -38,9 +41,9 @@
     
         talkify.config.remoteService.host = 'http://localhost:6719';
 
-        talkify.config.ui.audioControls.controlcenter = "modern";
-        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get the browser built in audio controls
-        talkify.config.ui.audioControls.container = document.getElementById("player-and-voices");
+        talkify.config.ui.audioControls.controlcenter = "native";
+        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get a head-less player. Build you custom UI
+        talkify.config.ui.audioControls.container = document.getElementById("placeholder");
         talkify.config.ui.audioControls.voicepicker = {
             enabled: true,
             filter: {

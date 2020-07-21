@@ -1164,11 +1164,11 @@ talkify.config = {
     ui:
     {
         audioControls: {
-            enabled: false,
-            controlcenter: "modern", //["classic", "modern"]
+            enabled: true,
+            controlcenter: "native", //["classic", "modern", "local", "native"]
             container: document.body,
             voicepicker: {
-                enabled: true,
+                enabled: true, //where applicable
                 filter: {
                     byClass: [], //example: ["Standard", "Premium", "Exclusive"]
                     byCulture: [], //example: ["en-EN", "en-AU"]
@@ -1880,7 +1880,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     this.playbar = _playbar;
     this.forcedVoice = null;
 
-    if (talkify.config.ui.audioControls.enabled) {
+    if (talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter !== "native") {
         this.playbar.instance = talkify.playbar(null, this.correlationId);
     }
 
@@ -2222,10 +2222,10 @@ talkify.TtsPlayer = function () {
         mp3Source.type = "audio/mpeg";
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
-        audioElement.controls = !talkify.config.ui.audioControls.enabled;
+        audioElement.controls = talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter === "native";
         audioElement.autoplay = false;
 
-        document.body.appendChild(audioElement);
+        (talkify.config.ui.audioControls.container || document.body).appendChild(audioElement);
 
         var clonedAudio = audioElement.cloneNode(true);
         audioElement.parentNode.replaceChild(clonedAudio, audioElement);

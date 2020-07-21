@@ -142,10 +142,10 @@ talkify.TtsPlayer = function () {
         mp3Source.type = "audio/mpeg";
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
-        audioElement.controls = !talkify.config.ui.audioControls.enabled;
+        audioElement.controls = talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter === "native";
         audioElement.autoplay = false;
 
-        document.body.appendChild(audioElement);
+        (talkify.config.ui.audioControls.container || document.body).appendChild(audioElement);
 
         var clonedAudio = audioElement.cloneNode(true);
         audioElement.parentNode.replaceChild(clonedAudio, audioElement);

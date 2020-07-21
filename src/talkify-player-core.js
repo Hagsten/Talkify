@@ -17,7 +17,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     this.playbar = _playbar;
     this.forcedVoice = null;
 
-    if (talkify.config.ui.audioControls.enabled) {
+    if (talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter !== "native") {
         this.playbar.instance = talkify.playbar(null, this.correlationId);
     }
 
