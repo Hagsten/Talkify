@@ -2342,14 +2342,14 @@ talkify.TtsPlayer = function () {
             currentPitch = pitch;
         }        
 
-        var wordbreak = (item.wordbreakms || this.settings.wordbreakms) ;
+        var wordbreak = (item.wordbreakms || this.settings.wordbreakms);
 
         if(wordbreak !== currentWordBreak){
             talkify.messageHub.publish(me.correlationId + ".player.tts.wordbreakchanged", wordbreak);
             currentWordBreak = wordbreak;
         }
 
-        var rate = (item.rate || this.settings.rate) ;
+        var rate = (item.rate || this.settings.rate);
 
         if(rate !== currentRate){
             talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", rate);
