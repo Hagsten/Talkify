@@ -149,12 +149,12 @@ talkify.config = {
     },
     ui:
     {
-        audioControls: { //If enabled, replaces the built in audio controls. Especially good for the Web Speech API bits
-            enabled: false,
-            controlcenter: "modern", //["modern", "classic"]
+        audioControls: { //disable to provide your own player or use Talkify headless.
+            enabled: true,
+            controlcenter: "modern", //["modern", "classic", "local", "native"]
             container: document.body,
             voicepicker: {
-                enabled: true,
+                enabled: true, //Applicable on modern and classic control centers
                 filter: {
                     byClass: [], //example: ["Standard", "Premium", "Exclusive"]
                     byCulture: [], //example: ["en-EN", "en-AU"]
