@@ -232,6 +232,9 @@ talkify.playlist = function () {
                 var wordbreakms = el.getAttribute("data-talkify-wordbreakms");
                 var whisper = el.getAttribute("data-talkify-whisper");
                 var phonation = el.getAttribute("data-talkify-phonation");
+                var voice = el.getAttribute("data-talkify-voice") || null;
+                var pitch = el.getAttribute("data-talkify-pitch") || null;
+                var rate = el.getAttribute("data-talkify-rate") || null;
 
                 return {
                     text: t,
@@ -243,7 +246,10 @@ talkify.playlist = function () {
                     isLoading: false,
                     wordbreakms: wordbreakms ? parseInt(wordbreakms) : null,
                     whisper: whisper ? whisper === "true" : null,
-                    soft: phonation ? phonation === "soft" : null
+                    soft: phonation ? phonation === "soft" : null,
+                    voice: voice,
+                    pitch: pitch ? parseInt(pitch) : null,
+                    rate: rate ? parseInt(rate) : null
                 };
             }
         }
@@ -371,9 +377,9 @@ talkify.playlist = function () {
 
             talkify.messageHub.publish(player.correlationId + ".playlist.loaded");
 
-            if(settings.useTextInteraction){
+            if (settings.useTextInteraction) {
                 talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.enabled");
-            }else{
+            } else {
                 talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled");
             }
         }

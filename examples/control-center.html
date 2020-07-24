@@ -18,9 +18,10 @@
     <section id="root">
         <div id="placeholder"></div>
         <div>
-            <p>Hello, this is a control center test.</p>
-            <p>Play around with the settings.</p>
-            <p>It is very fun!</p>
+            <p data-talkify-voice="David" data-talkify-wordbreakms="300">Hello, this is a control center test.</p>
+            <p data-talkify-voice="Zira" data-talkify-pitch="-5" data-talkify-rate="3">Play around with the settings.</p>
+            <p data-talkify-voice="Hazel" data-talkify-pitch="-2">It is very fun!</p>
+            <p data-talkify-wordbreakms="200">It is very fun indeed!</p>
         </div>
     </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
@@ -37,11 +38,11 @@
         talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
         talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
 
-        talkify.config.remoteService.apiKey = '';
+        talkify.config.remoteService.apiKey = '612ee344-d1de-429c-a518-3578458257c5';
     
         talkify.config.remoteService.host = 'http://localhost:6719';
 
-        talkify.config.ui.audioControls.controlcenter = "native";
+        talkify.config.ui.audioControls.controlcenter = "modern";
         talkify.config.ui.audioControls.enabled = true; //<-- Disable to get a head-less player. Build you custom UI
         talkify.config.ui.audioControls.container = document.getElementById("placeholder");
         talkify.config.ui.audioControls.voicepicker = {
@@ -55,7 +56,9 @@
 
         $(document).ready(function () {
             var player = new talkify.TtsPlayer()
-                .enableTextHighlighting().usePhonation("soft").usePitch(-2);
+                .enableTextHighlighting()
+                .usePhonation("soft")
+                .usePitch(0);
 
             // player.setRate(-5);
             player.forceVoice({ name: 'Zira', description: "Zira" });

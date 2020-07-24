@@ -63,32 +63,50 @@ player.playText('Hello world');
 
 # Features
 - High qualiy voices (https://manage.talkify.net/docs#voices)
-- Light weight (~60Kb minified)
-- Multi lingual with built in, basic, language detection* (i.e. if the text is in english, an english voice is used). Supported languages:
-  - English* 
-  - Spanish*
-  - French*
-  - Chinese*
-  - Japanese*
-  - Korean*
-  - Swedish*
-  - German*
-  - Norwegian
-  - Islandic
-  - Danish
-  - Russian
-  - Turkish
-  - Dutch
-  - Portuguese
-  - Polish
-  - Ukranian
-  - Slovak
-  - Romanian
-  - Welsh
+- Supported languages:
+    - English
+    - Chinese
+    - Swedish
+    - German
+    - Korean
+    - Japanese
+    - Spanish
+    - French
+    - Italian
+    - Norweigean
+    - Danish
+    - Arabic
+    - Russian
+    - Dutch
+    - Polish
+    - Turkish
+    - Icelandic
+    - Portuguese
+    - Romanian
+    - Welsh
+    - Ukranian
+    - Slovak
+    - Bulgarian
+    - Czech
+    - Greek
+    - Finnish
+    - Hebrew
+    - Hindi
+    - Croatian
+    - Hungarian
+    - Indonesian
+    - Malay
+    - Slovenian
+    - Tamil
+    - Telugu
+    - Thai
+    - Vietnamese
   
 - Text highligting for easy read along
+- Control pitch, pauses between words, volume, speech rate, phonation and much more 
 - Download as mp3
 - Playback of entire website or paragraph/s of your choice
+- Fully integrated UI options
 
 ## SSML
 ```javascript
@@ -106,11 +124,15 @@ When useSSML is active, Talkify will translate the following markup into SSML. T
 | em | emphasis strong |
 | br | break-strength strong |
 
-Talkify also supports declarative SSML settings. These settings can be used alone or in conjunction with the above. These settings will work no matter the configuration for "useSSML". The following attributes can be added to any element that Talkify is connected to. When these attributes is present, Talkify will translate them to corresponding SSML.
+## Declarative settings
+Talkify supports declarative settings. These settings will override general settings. The following attributes can be added to any element that Talkify is connected to. When these attributes is present, Talkify will use them as playback settings.
 
 | data-attribute | Accepted values | Example |
 |----------|:------ |:-------|
-| data-talkify-wordbreakms | 0-10000 | data-talkify-wordbreakms="100" |
+| data-talkify-wordbreakms | [0, 10000] | data-talkify-wordbreakms="100" |
+| data-talkify-pitch | [-5, 5] | data-talkify-pitch="-2" |
+| data-talkify-rate | [-10, 10] | data-talkify-rate="-2" |
+| data-talkify-voice | Any authorized voice | data-talkify-voice="David" |
 | data-talkify-phonation | "soft", "normal" or "" | data-talkify-phonation="soft" |
 | data-talkify-whisper | "true" or "false" | data-talkify-whisper="true" |
 

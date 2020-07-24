@@ -9,7 +9,7 @@
     box-shadow: 2px 2px 5px 0px #5f5e5e;
     border: 1px solid #0084b3;    
 }
-    .talkify-control-center.classic .drag-area {
+    .talkify-control-center.classic .talkify-drag-area {
         padding-left: 10px;
         padding-right: 10px;
         cursor: move;
@@ -35,6 +35,7 @@
         border-style: none;
         background-color: transparent;
         cursor: pointer;
+        padding: 10px;
     }
 
     .talkify-control-center.classic .talkify-play-button {
@@ -49,6 +50,7 @@
         height: 45px;
         align-items: center;
         width: 100%;
+        font-size: 14px;
     }
 
     .talkify-control-center.classic > ul > li {

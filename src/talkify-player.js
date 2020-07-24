@@ -7,6 +7,7 @@ talkify.TtsPlayer = function () {
 
     var me = this;
     var audioElement, timeupdater;
+    var currentVoice, currentPitch, currentWordBreak, currentRate;
 
     this.currentContext = {
         item: null,
@@ -165,31 +166,31 @@ talkify.TtsPlayer = function () {
         });
 
         talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.volume", function (volume) { audioElement.volume = volume / 10; });
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) { 
-            me.settings.rate = rate; 
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.rate", function (rate) {
+            me.settings.rate = rate;
 
             talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", me.settings.rate);
         });
 
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.wordbreak", function(ms){
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.wordbreak", function (ms) {
             me.useWordBreak(ms);
         });
 
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.pitch", function(value){
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.pitch", function (value) {
             me.usePitch(value);
         });
 
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.soft", function(){
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.soft", function () {
             me.normalTone();
             me.usePhonation("soft");
         });
 
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.normal", function(){
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.normal", function () {
             me.normalTone();
             me.usePhonation("normal");
         });
 
-        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.whisper", function(){
+        talkify.messageHub.subscribe("tts-player", me.correlationId + ".controlcenter.request.phonation.whisper", function () {
             me.usePhonation("normal");
             me.whisper();
         });
@@ -231,7 +232,33 @@ talkify.TtsPlayer = function () {
             encodeURIComponent(item.ssml.replace(/\n/g, " ")) :
             encodeURIComponent(item.text.replace(/\n/g, " "));
 
-        var voice = this.forcedVoice ? this.forcedVoice.name : "";
+        var voice = item.voice || (this.forcedVoice ? this.forcedVoice.name : "");
+
+        if (voice !== currentVoice) {
+            talkify.messageHub.publish(this.correlationId + ".player.tts.voiceset", { name: voice });
+            currentVoice = voice;
+        }                
+
+        var pitch = (item.pitch || this.settings.pitch);
+
+        if(pitch !== currentPitch){
+            talkify.messageHub.publish(me.correlationId + ".player.tts.pitchchanged", pitch);
+            currentPitch = pitch;
+        }        
+
+        var wordbreak = (item.wordbreakms || this.settings.wordbreakms);
+
+        if(wordbreak !== currentWordBreak){
+            talkify.messageHub.publish(me.correlationId + ".player.tts.wordbreakchanged", wordbreak);
+            currentWordBreak = wordbreak;
+        }
+
+        var rate = (item.rate || this.settings.rate);
+
+        if(rate !== currentRate){
+            talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", rate);
+            currentRate = rate;
+        }
 
         var requestId = talkify.generateGuid();
 
@@ -241,13 +268,13 @@ talkify.TtsPlayer = function () {
             "&text=" + textToPlay +
             "&fallbackLanguage=" + this.settings.referenceLanguage.Language +
             "&voice=" + (voice) +
-            "&rate=" + this.settings.rate +
+            "&rate=" + rate +
             "&key=" + talkify.config.remoteService.apiKey +
             "&whisper=" + (item.whisper || this.settings.whisper) +
             "&soft=" + (item.soft || this.settings.soft) +
-            "&wordbreakms=" + (item.wordbreakms || this.settings.wordbreakms) +
+            "&wordbreakms=" + wordbreak +
             "&volume=" + this.settings.volumeDb +
-            "&pitch=" + this.settings.pitch;
+            "&pitch=" + pitch;
 
         if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
@@ -256,7 +283,7 @@ talkify.TtsPlayer = function () {
         sources[0].src = audioUrl + "&format=mp3";
         sources[1].src = audioUrl + "&format=wav";
 
-        sources[1].onerror = function(e){
+        sources[1].onerror = function (e) {
             talkify.messageHub.publish(me.correlationId + ".player.tts.error", null);
         }
 
@@ -325,7 +352,7 @@ talkify.TtsPlayer = function () {
         return this;
     };
 
-    this.usePitch = function(pitch){
+    this.usePitch = function (pitch) {
         this.settings.pitch = pitch;
 
         talkify.messageHub.publish(me.correlationId + ".player.tts.pitchchanged", pitch);

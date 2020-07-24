@@ -3,6 +3,10 @@
     color: rgba(0,0,0, 0.25) !important;
 }
 
+.talkify-control-center.classic > ul, .talkify-control-center.classic > ul i {
+    color: white;
+}
+
 .talkify-control-center.classic, 
 .talkify-control-center.classic > ul > li, 
 .talkify-control-center.classic .volume-slider, 
@@ -12,11 +16,11 @@
 
 .talkify-control-center.classic .voice-selector,
 .talkify-control-center.classic li.talkify-voice-selector,
-.talkify-control-center.classic .drag-area {
+.talkify-control-center.classic .talkify-drag-area {
     background-color: #01679c;
 }
 
-.talkify-control-center.classic .drag-area,
+.talkify-control-center.classic .talkify-drag-area,
 .talkify-control-center.classic li.talkify-voice-selector  {
     color: white;
 }
