@@ -81,7 +81,7 @@ talkify.controlcenters.classic = function () {
 },{}],3:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playbar = function (parent, correlationId) {
-    var mainFlags = ["de-DE", "fr-FR", "en-US", "zh-CN", "es-ES", "it-IT", "ja-JP", "ko-KR", "sv-SE", "nb-NO", "da-DK", "ru-RU", "nl-NL", "pl-PL", "tr-TR", "is-IS", "uk-UA", "sk-SK", "pt-PT", "ro-RO", "cy-GB", "bg-BG", "cs-CZ", "el-GR", "fi-FI", "he-IL", "hi-IN", "hr-HR", "hu-HU", "id-ID", "ms-MY", "sl-SI", "th-TH", "vi-VN", "ar-EG", "ar-SA", "ta-IN", "te-IN"];
+    var mainFlags = ["de-DE", "fr-FR", "en-US", "zh-CN", "es-ES", "it-IT", "ja-JP", "ko-KR", "sv-SE", "nb-NO", "da-DK", "ru-RU", "nl-NL", "pl-PL", "tr-TR", "is-IS", "uk-UA", "sk-SK", "pt-PT", "ro-RO", "cy-GB", "bg-BG", "cs-CZ", "el-GR", "fi-FI", "he-IL", "hi-IN", "hr-HR", "hu-HU", "id-ID", "ms-MY", "sl-SI", "th-TH", "vi-VN", "ar-EG", "ar-SA", "ta-IN", "te-IN", "en-GB-WLS", "ca-ES", "gu-IN", "ml-IN", "bn-IN", "kn-IN", "fil-PH"];
 
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body
@@ -185,6 +185,10 @@ talkify.playbar = function (parent, correlationId) {
                 return mainFlags.indexOf(v.culture) !== -1;
             });
 
+            if (!foo) {
+                continue;
+            }
+
             var mainFlag = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/" + foo.culture.split("-")[1].toLowerCase() + ".svg";
 
             var li = createElement("li");
@@ -220,7 +224,11 @@ talkify.playbar = function (parent, correlationId) {
 
                 var d = createElement("div", "");
 
-                if (voice.isExclusive) {
+                if (voice.isNeural) {
+                    var i = createElement("i", "fas fa-network-wired");
+                    i.setAttribute("title", "Neural voice");
+                }
+                else if (voice.isExclusive) {
                     var i = createElement("i", "fas fa-star");
                     i.setAttribute("title", "Exclusive voice");
                 }
