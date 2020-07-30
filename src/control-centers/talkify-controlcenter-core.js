@@ -529,6 +529,10 @@ talkify.playbar = function (parent, correlationId) {
                     return true;
                 }
 
+                if (filter.byClass.indexOf("Neural") !== -1 && voice.isNeural) {
+                    return true;
+                }
+
                 return false;
             }
 

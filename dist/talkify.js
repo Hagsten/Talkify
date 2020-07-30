@@ -610,6 +610,10 @@ talkify.playbar = function (parent, correlationId) {
                     return true;
                 }
 
+                if (filter.byClass.indexOf("Neural") !== -1 && voice.isNeural) {
+                    return true;
+                }
+
                 return false;
             }
 
@@ -1214,7 +1218,7 @@ talkify.config = {
         active: true,
         host: 'https://talkify.net',
         apiKey: '',
-        speechBaseUrl: '/api/speech/v1',
+        speechBaseUrl: '/api/speech/v2',
         languageBaseUrl: '/api/language/v1'
     },
     keyboardCommands: {

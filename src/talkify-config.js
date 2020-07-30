@@ -32,7 +32,7 @@ talkify.config = {
         active: true,
         host: 'https://talkify.net',
         apiKey: '',
-        speechBaseUrl: '/api/speech/v1',
+        speechBaseUrl: '/api/speech/v2',
         languageBaseUrl: '/api/language/v1'
     },
     keyboardCommands: {
