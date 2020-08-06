@@ -15,11 +15,12 @@
 </head>
 
 <body>
-    <section id="root">
-        <div id="placeholder"></div>
+    <div id="placeholder"></div>
+    <section id="root">        
         <div>
             <p data-talkify-voice="David" data-talkify-wordbreakms="300">Hello, this is a control center test.</p>
-            <p data-talkify-voice="Zira" data-talkify-pitch="-5" data-talkify-rate="3">Play around with the settings.</p>
+            <p data-talkify-voice="Zira" data-talkify-pitch="-5" data-talkify-rate="3">Play around with the settings.
+            </p>
             <p data-talkify-voice="Hazel" data-talkify-pitch="-2">It is very fun!</p>
             <p data-talkify-wordbreakms="200">It is very fun indeed!</p>
         </div>
@@ -39,7 +40,7 @@
         talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
 
         talkify.config.remoteService.apiKey = '';
-    
+
         talkify.config.remoteService.host = 'http://localhost:6719';
 
         talkify.config.ui.audioControls.controlcenter = "modern";
@@ -55,15 +56,19 @@
         };
 
         $(document).ready(function () {
+            //playHtml5();
+
+            playTts();
+        });
+
+        function playTts(){
             var player = new talkify.TtsPlayer()
                 .enableTextHighlighting()
                 .usePhonation("soft")
                 .usePitch(0);
 
-            // player.setRate(-5);
             player.forceVoice({ name: 'Zira', description: "Zira" });
 
-            // player.playText("yo");
             var playlist = new talkify.playlist()
                 .begin()
                 .usingPlayer(player)
@@ -73,10 +78,31 @@
                     onVoiceCommandListeningStarted: function () { console.log("Started :)") },
                     onVoiceCommandListeningEnded: function () { console.log("Ended... :)") }
                 })
-                .build()
-                .play();
-        });
+                .build();
+        }
 
+        function playHtml5(){
+            window.speechSynthesis.getVoices();
+
+            setTimeout(function () {
+                voices = window.speechSynthesis.getVoices();
+
+                var player = new talkify.Html5Player()
+                    .enableTextHighlighting().usePitch(1.7).setRate(0.5)
+                    .forceVoice(voices[0]);
+
+                var playlist = new talkify.playlist()
+                    .begin()
+                    .usingPlayer(player)
+                    .withRootSelector('#root')
+                    .withTextInteraction()
+                    .subscribeTo({
+                        onVoiceCommandListeningStarted: function () { console.log("Started :)") },
+                        onVoiceCommandListeningEnded: function () { console.log("Ended... :)") }
+                    })
+                    .build();
+            }, 100);
+        }
     </script>
 </body>
 

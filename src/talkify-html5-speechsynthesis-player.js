@@ -4,6 +4,7 @@ talkify = talkify || {};
 talkify.Html5Player = function () {
     this.isStopped = false;
     this.volume = 1;
+    this.pitch = 1;
 
     this.currentContext = {
         item: null,
@@ -23,6 +24,8 @@ talkify.Html5Player = function () {
         play: function () {
             if (me.currentContext.item) {
                 playCurrentContext();
+            } else {
+                talkify.messageHub.publish(me.correlationId + ".player.html5.unplayable");
             }
         },
         pause: function () {
@@ -49,41 +52,22 @@ talkify.Html5Player = function () {
             talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.pause");
             talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.volume");
             talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.rate");
+            talkify.messageHub.unsubscribe("html5player", me.correlationId + ".controlcenter.request.pitch");
 
             if (timeupdater) {
                 clearInterval(timeupdater);
-            }    
+            }
         }
     };
 
     talkify.BasePlayer.call(this, this.audioSource, this.playbar);
 
     this.playAudio = function (item) {
-        // me.currentContext.endedCallback = onEnded;
         me.currentContext.item = item;
         me.currentContext.utterances = [];
         me.currentContext.currentUtterance = null;
-        // me.mutateControls(function (instance) {
-        //     instance.audioLoaded();
-        // });
 
-        //if (me.settings.lockedLanguage !== null) {
         playCurrentContext();
-        //}
-
-        //TODO: Need better server side help here with refLang
-        //var p = new promise.Promise();
-
-        //talkifyHttp.get("/api/Language?text=" + item.text)
-        //    .then(function (error, data) {
-        //        me.settings.referenceLanguage = data;
-
-        //        me.playCurrentContext().then(function () {
-        //            p.done();
-        //        });
-        //    });
-
-        //return p;
     };
 
     this.setVolume = function (volume) {
@@ -92,12 +76,27 @@ talkify.Html5Player = function () {
         return this;
     };
 
+    this.usePitch = function (pitch) {
+        me.pitch = pitch;
+
+        talkify.messageHub.publish(me.correlationId + ".player.html5.pitchchanged", pitch);
+
+        return this;
+    };
+
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.play", function () { me.audioSource.play(); });
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.pause", function () { me.pause(); });
     talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.volume", function (volume) { me.volume = volume / 10; });
-    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) { 
-        me.settings.rate = rate / 5; 
-        talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", rate);
+    
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.rate", function (rate) {
+        me.settings.rate = rate;
+        talkify.messageHub.publish(me.correlationId + ".player.html5.ratechanged", rate);
+    });
+
+    talkify.messageHub.subscribe("html5player", me.correlationId + ".controlcenter.request.pitch", function (pitch) {
+        me.pitch = pitch;
+
+        talkify.messageHub.publish(me.correlationId + ".player.html5.pitchchanged", me.pitch);
     });
 
     function playCurrentContext() {
@@ -119,6 +118,7 @@ talkify.Html5Player = function () {
             utterance.lang = me.settings.lockedLanguage || me.settings.referenceLanguage.Culture;
             utterance.rate = me.settings.rate;
             utterance.volume = me.volume;
+            utterance.pitch = me.pitch;
 
             me.currentContext.utterances.push(utterance);
         });
@@ -375,6 +375,18 @@ talkify.Html5Player = function () {
             talkify.messageHub.publish(me.correlationId + ".player.html5.utterancecomplete", me.currentContext.item);
         }
     };
+
+    if (me.playbar.instance) {
+        me.playbar.instance
+            .setMinRate(0)
+            .setMaxRate(2)
+            .setRateStep(0.2)
+            .setMinPitch(0)
+            .setMaxPitch(2)
+            .setPitchStep(0.2);
+    }
+
+    talkify.messageHub.publish(this.correlationId + ".player.html5.created");
 };
 
 talkify.Html5Player.prototype.constructor = talkify.Html5Player;

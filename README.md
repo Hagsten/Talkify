@@ -125,7 +125,9 @@ When useSSML is active, Talkify will translate the following markup into SSML. T
 | br | break-strength strong |
 
 ## Declarative settings
-Talkify supports declarative settings. These settings will override general settings. The following attributes can be added to any element that Talkify is connected to. When these attributes is present, Talkify will use them as playback settings.
+These settings are only supported by the TtsPlayer for now.
+
+Talkify supports declarative settings. These settings will override general settings. The following attributes can be added to any element that Talkify is connected to. When these attributes are present, Talkify will use them as playback settings.
 
 | data-attribute | Accepted values | Example |
 |----------|:------ |:-------|
@@ -156,9 +158,9 @@ talkify.config = {
             voicepicker: {
                 enabled: true, //Applicable on modern and classic control centers
                 filter: {
-                    byClass: [], //example: ["Standard", "Premium", "Exclusive"]
+                    byClass: [], //Not applicable for Html5Player,  example: ["Standard", "Premium", "Exclusive"]
                     byCulture: [], //example: ["en-EN", "en-AU"]
-                    byLanguage: [] //example: ["English", "Spanish"]
+                    byLanguage: [] //Not applicable for Html5Player, example: ["English", "Spanish"]
                 }
             }
         }
@@ -255,8 +257,9 @@ Entry point: talkify.Html5Player().
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
 | forceLanguage | string | | Force the usage of a specific language. Use standard cultures like se-SE for Swedish and so on. Talkify will select a voice that matches the culture. |
-| setRate | double | 1 | Playback rate. A value between 0.0 - 2.0 |
-| setVolume | double | 1 | Volume. A value between 0.0 - 1.0 |
+| setRate | double | 1 | [0.0, 2.0] Playback rate. |
+| setVolume | double | 1 | [0.0 - 1.0 ] |
+| usePitch | double | 1 | [0.0, 2.0] Adjusts the pitch of the voice. |
 
 ### Talkify hosted only
 Entry point: talkify.TtsPlayer().
@@ -340,6 +343,8 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.player.tts.wordbreakchanged |  |
 | {contextId}.player.tts.volumechanged |  |
 | {contextId}.player.tts.pitchchanged |  |
+| {contextId}.player.tts.created |  |
+| {contextId}.player.tts.unplayable |  |
 | - | - |
 | {contextId}.player.html5.ratechanged |  |
 | {contextId}.player.html5.pause |  |
@@ -352,6 +357,8 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.player.html5.texthighlight.enabled |  |
 | {contextId}.player.html5.texthighlight.disabled |  |
 | {contextId}.player.html5.prepareplay |  |
+| {contextId}.player.html5.created |  |
+| {contextId}.player.html5.unplayable |  |
 | - | - |
 | {contextId}.controlcenter.request.play |  |
 | {contextId}.controlcenter.request.pause |  |

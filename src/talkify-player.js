@@ -198,8 +198,14 @@ talkify.TtsPlayer = function () {
         if (me.playbar.instance) {
             me.playbar.instance
                 .setMinRate(-5)
-                .setMaxRate(5);
+                .setMaxRate(5)
+                .setRateStep(1)
+                .setMinPitch(-10)
+                .setMaxPitch(10)
+                .setPitchStep(1);
         }
+
+        talkify.messageHub.publish(this.correlationId + ".player.tts.created");
     }
 
     function getPositions(requestId) {
@@ -237,25 +243,25 @@ talkify.TtsPlayer = function () {
         if (voice !== currentVoice) {
             talkify.messageHub.publish(this.correlationId + ".player.tts.voiceset", { name: voice });
             currentVoice = voice;
-        }                
+        }
 
         var pitch = (item.pitch || this.settings.pitch);
 
-        if(pitch !== currentPitch){
+        if (pitch !== currentPitch) {
             talkify.messageHub.publish(me.correlationId + ".player.tts.pitchchanged", pitch);
             currentPitch = pitch;
-        }        
+        }
 
         var wordbreak = (item.wordbreakms || this.settings.wordbreakms);
 
-        if(wordbreak !== currentWordBreak){
+        if (wordbreak !== currentWordBreak) {
             talkify.messageHub.publish(me.correlationId + ".player.tts.wordbreakchanged", wordbreak);
             currentWordBreak = wordbreak;
         }
 
         var rate = (item.rate || this.settings.rate);
 
-        if(rate !== currentRate){
+        if (rate !== currentRate) {
             talkify.messageHub.publish(me.correlationId + ".player.tts.ratechanged", rate);
             currentRate = rate;
         }
