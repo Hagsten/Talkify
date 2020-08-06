@@ -703,7 +703,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".playlist.textinteraction.enabled");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".playlist.textinteraction.disabled");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.wordbreakchanged");
-        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.pitchchanged");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.pitchchanged");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.phonationchanged");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.whisperchanged");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".playlist.playing");
