@@ -68,8 +68,8 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                             <input type="range" value="5" min="0" max="10" title="Adjust playback rate">\
                         </div>\
                     </li>\
-                    <li class="talkify-detached">\
-                        <button class="modern-talkify-control-center-accent talkify-volume-button" title="Adjust playback volume">\
+                    <li class="talkify-detached talkify-volume-button">\
+                        <button class="modern-talkify-control-center-accent" title="Adjust playback volume">\
                             <i class="fas fa-volume-up"></i>\
                         </button>\
                         <div class="detached-volume-slider">\

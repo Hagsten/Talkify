@@ -77,7 +77,7 @@ talkify.playlist = function () {
                 playItem(item);
             });
 
-            talkify.messageHub.subscribe("playlist", player.correlationId + ".player.tts.unplayable", function () {
+            talkify.messageHub.subscribe("playlist", player.correlationId + ".player.*.unplayable", function () {
                 if (playlist.currentlyPlaying) {
                     playItem(playlist.currentlyPlaying);
                     return;
@@ -494,7 +494,7 @@ talkify.playlist = function () {
         }
 
         function playFromBeginning() {
-            if (!talkify.config.remoteService.active) {
+            if (!talkify.config.remoteService.active || !hasTalkifyPlayer()) {
                 onComplete({ Cultures: [], Language: -1 });
 
                 return;
@@ -519,6 +519,10 @@ talkify.playlist = function () {
 
                 playItem(playlist.queue[0]);
             }
+        }
+
+        function hasTalkifyPlayer(voice) {
+            return player instanceof talkify.TtsPlayer;
         }
 
         function insertElement(element) {
