@@ -125,7 +125,9 @@ When useSSML is active, Talkify will translate the following markup into SSML. T
 | br | break-strength strong |
 
 ## Declarative settings
-Talkify supports declarative settings. These settings will override general settings. The following attributes can be added to any element that Talkify is connected to. When these attributes is present, Talkify will use them as playback settings.
+These settings are only supported by the TtsPlayer for now.
+
+Talkify supports declarative settings. These settings will override general settings. The following attributes can be added to any element that Talkify is connected to. When these attributes are present, Talkify will use them as playback settings.
 
 | data-attribute | Accepted values | Example |
 |----------|:------ |:-------|
@@ -156,9 +158,9 @@ talkify.config = {
             voicepicker: {
                 enabled: true, //Applicable on modern and classic control centers
                 filter: {
-                    byClass: [], //example: ["Standard", "Premium", "Exclusive"]
+                    byClass: [], //Not applicable for Html5Player,  example: ["Standard", "Premium", "Exclusive"]
                     byCulture: [], //example: ["en-EN", "en-AU"]
-                    byLanguage: [] //example: ["English", "Spanish"]
+                    byLanguage: [] //Not applicable for Html5Player, example: ["English", "Spanish"]
                 }
             }
         }
