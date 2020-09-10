@@ -213,4 +213,8 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
         return this;
     };
+
+    this.useControlCenter = function(controlcenterName) {
+        talkify.messageHub.publish(this.correlationId + ".player.*.controlcenter", controlcenterName);
+    }
 };

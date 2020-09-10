@@ -17,3 +17,4 @@ var talkifyLocalControlcenter = require('./src/control-centers/talkify-controlce
 var talkifyKeyCommands = require('./src/talkify-keyboard-commands.js');
 var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 var talkifyFormReader = require('./src/talkify-formreader.js');
+var talkifyTestSelectionActivator = require('./src/talkify-text-selection-activator.js');
