@@ -3,7 +3,8 @@ talkify.playbar = function (parent, correlationId) {
     var mainFlags = ["de-DE", "fr-FR", "en-US", "zh-CN", "es-ES", "it-IT", "ja-JP", "ko-KR", "sv-SE", "nb-NO", "da-DK", "ru-RU", "nl-NL", "pl-PL", "tr-TR", "is-IS", "uk-UA", "sk-SK", "pt-PT", "ro-RO", "cy-GB", "bg-BG", "cs-CZ", "el-GR", "fi-FI", "he-IL", "hi-IN", "hr-HR", "hu-HU", "id-ID", "ms-MY", "sl-SI", "th-TH", "vi-VN", "ar-EG", "ar-SA", "ta-IN", "te-IN", "en-GB-WLS", "ca-ES", "gu-IN", "ml-IN", "bn-IN", "kn-IN", "fil-PH"];
 
     var settings = {
-        parentElement: parent || talkify.config.ui.audioControls.container || document.body
+        parentElement: parent || talkify.config.ui.audioControls.container || document.body,
+        controlCenterName: talkify.config.ui.audioControls.controlcenter
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper, voicePicker;
@@ -11,7 +12,6 @@ talkify.playbar = function (parent, correlationId) {
     var pitchElementWrapper, nextItemElement, previousItemElement, voiceNameElement;
     var flagElement, phonationNormalElement, phonationSoftElement, phonationWhisperElement, phonationDropDown;
     var voices = [];
-    var controlCenterName = talkify.config.ui.audioControls.controlcenter;
 
     function hide(element) {
         if (!element || element.classList.contains("talkify-hidden")) {
@@ -195,7 +195,7 @@ talkify.playbar = function (parent, correlationId) {
             existingControl.parentNode.removeChild(existingControl);
         }
 
-        var controlcenter = new talkify.controlcenters[controlCenterName]();//talkify.config.ui.audioControls.controlcenter]();
+        var controlcenter = new talkify.controlcenters[settings.controlCenterName]();//talkify.config.ui.audioControls.controlcenter]();
 
         var div = document.createElement('div');
         div.innerHTML = controlcenter.html.trim();
@@ -385,10 +385,11 @@ talkify.playbar = function (parent, correlationId) {
         render();
         setupBindings();
 
-        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.controlcenter", function(controlCenter){
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.setcontrolcenterconfig", function (config) {
             dispose();
 
-            controlCenterName = controlCenter;
+            settings.controlCenterName = config.name;
+            settings.parentElement = config.parentElement || settings.parentElement;
 
             initialize();
         });
@@ -526,7 +527,7 @@ talkify.playbar = function (parent, correlationId) {
                 }
 
                 voices = window.talkify.toLowerCaseKeys(data);
-                
+
                 if (voiceNameElement.textContent) {
                     var backendVoice = voices.find(function (v) {
                         return v.name === voiceNameElement.textContent;
@@ -540,7 +541,7 @@ talkify.playbar = function (parent, correlationId) {
 
                 if (!talkify.config.ui.audioControls.voicepicker.enabled) {
                     return;
-                }    
+                }
 
                 voicePicker = createVoicePicker(filterVoicesByConfig(voices), true);
 
@@ -552,7 +553,7 @@ talkify.playbar = function (parent, correlationId) {
 
                         talkify.messageHub.publish(correlationId + ".controlcenter.request.setvoice", window.talkify.toLowerCaseKeys(voice));
                     });
-                });                
+                });
             });
     }
 
@@ -638,7 +639,7 @@ talkify.playbar = function (parent, correlationId) {
         if (backendVoice) {
             voice = backendVoice;
         }
-        
+
         voice.canUseWordBreak ? show(wordBreakElementWrapper) : hide(wordBreakElementWrapper);
 
         voice.canWhisper ? show(phonationWhisperElement) : hide(phonationWhisperElement);
@@ -715,7 +716,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.phonationchanged");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.whisperchanged");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".playlist.playing");
-        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.ended");        
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.ended");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.created");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.created");
     }

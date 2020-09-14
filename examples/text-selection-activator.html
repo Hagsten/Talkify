@@ -12,13 +12,25 @@
     <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/colors.css">
     <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/main.css">
     <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/text-selection-activator/main.css">
 </head>
 
 <body>
     <div id="placeholder"></div>
     <section id="root">        
         <div>
-            <p>This is some text that I can select and get an inline player connected to</p>
+            <p>
+                Some text that can be selected
+            </p>
+            
+            <h3>Heading here</h3>
+            <div>
+                Yet some <strong> other</strong> text!
+            </div>
+
+            <p>
+                Yep, some more text
+            </p>
         </div>
     </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
@@ -49,8 +61,6 @@
         };
 
         $(document).ready(function () {
-            //playHtml5();
-
             talkify.selectionActivator.activate();
         });
 

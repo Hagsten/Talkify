@@ -1,0 +1,20 @@
+.talkify-activator-wrapper, .talkify-controlcenter-wrapper {
+    z-index: 9999;
+    position: absolute;    
+    
+}
+
+.talkify-activator-wrapper .talkify-popup-activator {
+    border-radius: 100%;
+    background-color: #8ac832;
+    color: white;    
+    border: 1px solid #6da022;
+    cursor: pointer;
+    padding: 6px;
+    box-shadow: 0px 0px 4px -1px black;
+}
+ 
+.talkify-controlcenter-wrapper {
+    box-shadow: 0px 0px 4px -1px black;
+    background-color: white;
+}
