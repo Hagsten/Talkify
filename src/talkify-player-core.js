@@ -37,6 +37,10 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         me.forceVoice(voice);
     });
 
+    talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.request.enhancedvisibility", function (value) {
+        talkify.messageHub.publish(me.correlationId + ".player.*.enhancedvisibilityset", value);
+    });
+
     talkify.messageHub.publish(this.correlationId + ".player.*.ratechanged", me.settings.rate);
 
     this.withReferenceLanguage = function (refLang) {
@@ -196,6 +200,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".player.*.prepareplay");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.setvoice");
+        talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.enhancedvisibility");        
     };
 
     this.forceLanguage = function (culture) {
@@ -216,5 +221,13 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     this.useControlCenter = function (controlcenterName, parentElement) {
         talkify.messageHub.publish(this.correlationId + ".player.*.setcontrolcenterconfig", { name: controlcenterName, parentElement: parentElement });
+    }
+
+    this.enableEnhancedTextVisibility = function () {
+        talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", true);
+    }
+
+    this.disableEnhancedTextVisibility = function () {
+        talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", false);
     }
 };

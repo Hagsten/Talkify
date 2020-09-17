@@ -1,0 +1,20 @@
+
+.talkify-activator-wrapper .talkify-popup-activator {
+    background-color: #8ac832;
+    color: white;    
+    border-color: #6da022;
+}
+ 
+.talkify-controlcenter-wrapper {
+    background-color: #464646;    
+    color: white;
+}
+
+.talkify-controlcenter-wrapper .talkify-control-center{
+    background-color: white;
+}
+
+.talkify-popup-activator button {
+    background: transparent;
+    color: white;
+}
