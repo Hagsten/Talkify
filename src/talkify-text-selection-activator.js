@@ -35,6 +35,7 @@ talkify.selectionActivator = function () {
         var items = [];
 
         if (nodes.length === 1) {
+            //TODO: Kolla med rightToLeft..
             return [surroundNode(nodes[0], currentContext.range.startOffset, currentContext.range.endOffset)];
         }
 
@@ -62,8 +63,6 @@ talkify.selectionActivator = function () {
 
             items.push(surroundNode(nodes[i], 0, 0))
         }
-
-        console.log(items);
 
         return items;
     }
@@ -107,7 +106,7 @@ talkify.selectionActivator = function () {
     function getNodesInBetween(element, leftToRight) {
         var nodes = [];
 
-        if(element.nodeType === 3){
+        if (element.nodeType === 3) {
             return [element];
         }
 
@@ -137,7 +136,6 @@ talkify.selectionActivator = function () {
             var group = inlineGroups.filter(function (x) { return x.indexOf(node) > -1; })[0];
 
             if (group) {
-                console.log("group found, starting node", node, "length: ", group);
                 nodes.push(group);
 
                 var indexAfterGroup = i + group.length;
@@ -149,14 +147,6 @@ talkify.selectionActivator = function () {
             if (node.nodeType === 1) {
                 nodes = nodes.concat(getNodesInBetween(node, leftToRight));
             }
-
-            // if (node.contains(currentContext.anchorNode)) {
-            //     continue;
-            // }
-
-            // if (node.contains(currentContext.focusNode)) {
-            //     continue;
-            // }
 
             if (node.nodeType === 1) {
                 continue;
@@ -199,11 +189,11 @@ talkify.selectionActivator = function () {
             var group = [];
             group.push(node);
 
-            while (i < nodes.length && 
-                    node.nextSibling && 
-                    node.nextSibling.textContent.trim() !== "" && 
-                    currentSelection.containsNode(node.nextSibling, true) &&                    
-                    (node.nextSibling.nodeType === 3 || inlineElements.indexOf((node.nextSibling.tagName || "").toLowerCase()) !== -1)) {
+            while (i < nodes.length &&
+                node.nextSibling &&
+                node.nextSibling.textContent.trim() !== "" &&
+                currentSelection.containsNode(node.nextSibling, true) &&
+                (node.nextSibling.nodeType === 3 || inlineElements.indexOf((node.nextSibling.tagName || "").toLowerCase()) !== -1)) {
                 group.push(node.nextSibling);
 
                 i++;
@@ -221,43 +211,57 @@ talkify.selectionActivator = function () {
     function surroundNode(node, startOffset, endOffset) {
         var range = document.createRange();
         var newParent = document.createElement('span');
+        newParent.classList.add("talkify-selected-text");
 
         if (Array.isArray(node)) {
+            var originalNodes = [];
             node[0].parentNode.insertBefore(newParent, node[0]);
 
             for (var i = 0; i < node.length; i++) {
                 newParent.appendChild(node[i].cloneNode(true));
 
+                originalNodes.push(node[i].cloneNode(true));
+
                 node[i].parentNode.removeChild(node[i]);
             }
 
-            return newParent;
+            return {
+                newNode: newParent,
+                originalNode: originalNodes
+            };
+        }
+
+        var original = node.cloneNode(true);
+
+        if (node.nodeType === 1) {
+            node.classList.add("talkify-selected-text");
+
+            return {
+                newNode: node,
+                originalNode: original
+            };
         }
 
         if (startOffset === 0 && endOffset === 0) {
-            if (node.nodeType === 1) {
-                return node;
-            } else {
-                range.setStart(node, 0);
-                range.setEnd(node, node.textContent.length);
-                range.surroundContents(newParent);
-            }
-
+            range.setStart(node, 0);
+            range.setEnd(node, node.textContent.length);
+            range.surroundContents(newParent);
         } else {
-            if (node.nodeType === 1) {
-                return node;
-            }
-            else {
-                range.setStart(node, startOffset);
-                range.setEnd(node, endOffset);
-                range.surroundContents(newParent);
-            }
+            // range.setStart(node, startOffset);
+            // range.setEnd(node, endOffset);
+            range.setStart(node, 0);
+            range.setEnd(node, node.textContent.length);
+            range.surroundContents(newParent);
         }
 
-        return newParent;
+        return {
+            originalNode: original,
+            newNode: newParent
+        };
     }
 
     function activate() {
+        //TODO: Perhaps prevent calling this function again?
         if (settings.exclude && NodeList.prototype.isPrototypeOf(settings.exclude)) {
             settings.exclude = Array.from(settings.exclude);
         }
@@ -289,6 +293,8 @@ talkify.selectionActivator = function () {
 
         document.addEventListener('mousemove', onMouseUpdate, false);
         document.addEventListener('mouseenter', onMouseUpdate, false);
+
+        talkify.domExtensions.recordEvents.begin();
     }
 
     function orchestrateAfterSelection() {
@@ -305,7 +311,8 @@ talkify.selectionActivator = function () {
             focusOffset: currentSelection.focusOffset,
             range: currentSelection.getRangeAt(0),
             text: currentSelection.toString().replace(/\s/g, ""),
-            active: false
+            active: false,
+            elements: []
         };
 
         var position = currentContext.anchorNode.compareDocumentPosition(currentContext.focusNode);
@@ -334,33 +341,35 @@ talkify.selectionActivator = function () {
         }, 2000);
     }
 
-    function activateControlcenter() {
-        activatorHtml.removeEventListener("click", activateControlcenter, false);
-        removeControlcenter();
-
+    function activateControlcenter() {       
         if (timeoutId) {
             clearTimeout(timeoutId);
         }
 
         currentContext.active = true;
 
+        //TODO: Remove if possible
         if (currentContext.range.commonAncestorContainer.nodeType !== 1) {
             originalElement = currentContext.range.commonAncestorContainer.parentElement.cloneNode(true);
         }
-        else {
-            originalElement = currentContext.range.commonAncestorContainer.cloneNode(true);
+
+        currentContext.elements = createItemsFromNodes(currentContext.nodes);
+
+        var elements = currentContext.elements.map(function (x) { return x.newNode; });
+
+        if (window.getSelection().empty) {  // Chrome
+            window.getSelection().empty();
+        } else if (window.getSelection().removeAllRanges) {  // Firefox
+            window.getSelection().removeAllRanges();
         }
 
-        var elements = createItemsFromNodes(currentContext.nodes);
-
-        renderControlcenter();
-        removeActivator();
-
-        if (player) {
-            player.dispose();
-        }
+        // if (player) {
+        //     player.dispose();
+        // }
 
         player = new talkify.TtsPlayer();
+
+        talkify.messageHub.subscribe("text-selection-activator", player.correlationId + ".player.*.disposed", disposeControlCenter);
 
         if (settings.highlightText) {
             player.enableTextHighlighting();
@@ -372,6 +381,8 @@ talkify.selectionActivator = function () {
             player.enableEnhancedTextVisibility();
         }
 
+        renderControlcenter();
+        removeActivator();
         player.useControlCenter("local", controlcenterHtml);
 
         if (playlist) {
@@ -387,18 +398,80 @@ talkify.selectionActivator = function () {
     }
 
     function disposeControlCenter() {
-        player.dispose();
-        playlist.dispose();
+        if (player) {
+            talkify.messageHub.unsubscribe("text-selection-activator", player.correlationId + ".player.*.disposed");
+            player.dispose();
+        }
+
+        if (playlist) {
+            playlist.dispose();
+        }
+
         removeControlcenter();
 
         if (currentContext.range.commonAncestorContainer.nodeType !== 1) {
+            //TODO: here..
             currentContext.range.commonAncestorContainer.parentElement.innerHTML = originalElement.innerHTML;
         }
         else {
-            currentContext.range.commonAncestorContainer.innerHTML = originalElement.innerHTML;
+            restoreDom();
         }
 
         currentContext = {};
+    }
+
+    function restoreDom() {
+        var elements = currentContext.elements;
+
+        for (var i = 0; i < elements.length; i++) {
+            var originalNode = elements[i].originalNode;
+            var currentNode = elements[i].newNode;
+
+            if (Array.isArray(originalNode)) {
+                restoreDomForGroupedNodes(currentNode, originalNode);
+            }
+            else {
+                currentNode.parentElement.replaceChild(originalNode, currentNode);
+            }
+
+            var candidatesForEvents = Array.isArray(originalNode) ?
+                originalNode.map(function (n) {
+                    if (n.getElementsByTagName) {
+                        return [n].concat(Array.from(n.getElementsByTagName('*')))
+                    }
+
+                    return [n];
+                }).flat() :
+                [originalNode].concat(originalNode.getElementsByTagName ? Array.from(originalNode.getElementsByTagName('*')) : [])
+
+            var events = candidatesForEvents.map(function (x) {
+                return talkify.domExtensions.recordEvents.getEvents(x);
+            }).filter(function (x) { return x !== null });
+
+            for (var j = 0; j < candidatesForEvents.length; j++) {
+                var element = candidatesForEvents[j];
+
+                var eventsToApply = events
+                    .filter(function (x) { return element.isEqualNode(x.node) })
+                    .map(function (x) { return x.events })
+                    .flat();
+
+                for (var k = 0; k < eventsToApply.length; k++) {
+                    var event = eventsToApply[k];
+
+                    element.addEventListener(event.type, event.listener, event.options);
+                }
+            }
+        }
+    }
+
+    function restoreDomForGroupedNodes(currentNode, originalNodes) {
+        for (var i = 0; i < originalNodes.length; i++) {
+            var originalNode = originalNodes[i];
+            currentNode.parentElement.insertBefore(originalNode, currentNode);
+        }
+
+        currentNode.parentElement.removeChild(currentNode);
     }
 
     function removeControlcenter() {
@@ -415,6 +488,8 @@ talkify.selectionActivator = function () {
         if (!activatorHtml) {
             return;
         }
+
+        activatorHtml.removeEventListener("click", activateControlcenter, false);
 
         activatorHtml.innerHTML = "";
 
@@ -437,8 +512,8 @@ talkify.selectionActivator = function () {
         div.innerHTML = '<div class="talkify-popup-activator">\
                             <button title="Talkify">\
                                 <i class="fas fa-play"></i>' +
-                                settings.buttonText +
-                            '</button>\
+            settings.buttonText +
+            '</button>\
                         </div>';
 
         activatorHtml = div;
@@ -452,7 +527,7 @@ talkify.selectionActivator = function () {
         }
 
         activatorHtml.style.left = x + 'px';
-        activatorHtml.style.top = (y + (preferDown ? 15 : -45)) + 'px';        
+        activatorHtml.style.top = (y + (preferDown ? 15 : -45)) + 'px';
     }
 
     function renderControlcenter() {
@@ -487,7 +562,7 @@ talkify.selectionActivator = function () {
             settings.highlightText = true;
             return this;
         },
-        withButtonText: function(text){
+        withButtonText: function (text) {
             settings.buttonText = text;
             return this;
         },
@@ -498,3 +573,49 @@ talkify.selectionActivator = function () {
         activate: activate
     }
 }();
+
+talkify.domExtensions = {
+    recordEvents: function () {
+        var events = [];
+        var initialized = false;
+
+        function addEventListenerDecorator(type, listener, options) {
+            this._addEventListener(type, listener, options);
+
+            events.push({ node: this, type: type, listener: listener, options: options });
+        }
+
+        function initialize() {
+            if (initialized) {
+                return;
+            }
+
+            Node.prototype._addEventListener = Node.prototype.addEventListener;
+            Node.prototype.addEventListener = addEventListenerDecorator;
+            initialized = true;
+        }
+
+        function getEvents(node) {
+            var result = events.filter(function (e) {
+                return e.node.isEqualNode(node);
+            });
+
+            if (!result.length) {
+                return {
+                    events: []
+                };
+            }
+
+            return {
+                node: result[0].node,
+                events: result
+            };
+        }
+
+        return {
+            getEvents: getEvents,
+            begin: initialize
+        }
+    }()
+}
+

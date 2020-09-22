@@ -17,6 +17,7 @@ talkify.wordHighlighter = function (correlationId) {
                 enhancedView = null;
             }
         });
+        
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
     });

@@ -143,7 +143,7 @@ talkify.TtsPlayer = function () {
         mp3Source.type = "audio/mpeg";
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
-        audioElement.controls = talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter === "native";
+        // audioElement.controls = talkify.config.ui.audioControls.enabled && ((me.settings.controlCenter || talkify.config.ui.audioControls.controlcenter) === "native");
         audioElement.autoplay = false;
 
         (talkify.config.ui.audioControls.container || document.body).appendChild(audioElement);
@@ -227,6 +227,7 @@ talkify.TtsPlayer = function () {
         me.currentContext.item = item;
         me.currentContext.positions = [];
 
+        audioElement.controls = talkify.config.ui.audioControls.enabled && ((me.settings.controlCenter || talkify.config.ui.audioControls.controlcenter) === "native");
         audioElement.onloadeddata = null;
         audioElement.onended = null;
 
@@ -296,7 +297,6 @@ talkify.TtsPlayer = function () {
         audioElement.load();
 
         audioElement.onloadeddata = function () {
-
             me.audioSource.pause();
 
             if (!me.settings.useTextHighlight) {

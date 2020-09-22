@@ -1,5 +1,7 @@
 ﻿talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar) {
+    talkify.messageHub.publish("*.player.*.creating");
+
     this.correlationId = talkify.generateGuid();
     this.audioSource = _audiosource;
     this.wordHighlighter = new talkify.wordHighlighter(this.correlationId);
@@ -11,15 +13,21 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         referenceLanguage: { Culture: "", Language: -1 },
         lockedLanguage: null,
         rate: 1,
-        useControls: false
+        controlCenter: null
     };
 
     this.playbar = _playbar;
     this.forcedVoice = null;
 
-    if (talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter !== "native") {
+    if (talkify.config.ui.audioControls.enabled) {
         this.playbar.instance = talkify.playbar(null, this.correlationId);
     }
+
+    //Does infact prevent the usage of 2 simultanous players (which is not supported anyway)
+    talkify.messageHub.subscribe("core-player", "*.player.*.creating", function () {      
+        console.log("Via creating...")  
+        me.dispose();
+    });
 
     talkify.messageHub.subscribe("core-player", this.correlationId + ".player.*.loaded", function (item) {
         item.isLoading = false;
@@ -42,6 +50,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     });
 
     talkify.messageHub.publish(this.correlationId + ".player.*.ratechanged", me.settings.rate);
+    talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", false);
 
     this.withReferenceLanguage = function (refLang) {
         this.settings.referenceLanguage = refLang;
@@ -184,6 +193,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.dispose = function () {
+        console.log("Disposing", this.correlationId);
         talkify.messageHub.publish(this.correlationId + ".player.tts.disposed");
         this.audioSource.stop();
 
@@ -201,6 +211,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.setvoice");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.enhancedvisibility");        
+        talkify.messageHub.unsubscribe("core-player", "*.player.*.creating");
     };
 
     this.forceLanguage = function (culture) {
@@ -220,6 +231,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.useControlCenter = function (controlcenterName, parentElement) {
+        this.settings.controlCenter = controlcenterName;
         talkify.messageHub.publish(this.correlationId + ".player.*.setcontrolcenterconfig", { name: controlcenterName, parentElement: parentElement });
     }
 

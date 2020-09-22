@@ -13,6 +13,10 @@ talkify.playbar = function (parent, correlationId) {
     var flagElement, phonationNormalElement, phonationSoftElement, phonationWhisperElement, phonationDropDown;
     var voices = [];
 
+    var noopElement = document.createElement("div");
+    playElement = pitchElementWrapper = nextItemElement = enhancedVisibilityElement = voiceNameElement = previousItemElement = phonationNormalElement = phonationSoftElement = phonationWhisperElement = phonationDropDown = flagElement = wordBreakElement = wordBreakElementWrapper = pitchElement = dragArea = textInteractionElement = voiceWrapperElement = attachElement = currentTimeElement = detatchedElement = pauseElement = loader = erroroccurredElement = progressElement = textHighlightingElement = noopElement;
+    rateElement = volumeElement = [];
+
     function hide(element) {
         if (!element || element.classList.contains("talkify-hidden")) {
             return;
@@ -202,9 +206,7 @@ talkify.playbar = function (parent, correlationId) {
 
         wrapper = div.firstChild;
 
-        settings.parentElement.appendChild(wrapper);
-
-        var noopElement = document.createElement("div");
+        settings.parentElement.appendChild(wrapper);        
 
         playElement = wrapper.getElementsByClassName("talkify-play-button")[0] || noopElement;
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0] || noopElement;
@@ -391,9 +393,6 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function initialize() {
-        render();
-        setupBindings();
-
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.setcontrolcenterconfig", function (config) {
             dispose();
 
@@ -402,6 +401,14 @@ talkify.playbar = function (parent, correlationId) {
 
             initialize();
         });
+
+        if (settings.controlCenterName === "native") {
+            return;
+        }
+
+        render();
+        setupBindings();
+
         talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.pause", correlationId + ".player.*.disposed", correlationId + ".player.html5.ended"], pause);
         talkify.messageHub.subscribe("controlcenter", [correlationId + ".player.*.play", correlationId + ".player.*.resume"], play);
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.disposed", dispose);
@@ -737,7 +744,7 @@ talkify.playbar = function (parent, correlationId) {
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.ended");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.created");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.created");
-        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.enhancedvisibilityset");        
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.enhancedvisibilityset");
     }
 
     initialize();
