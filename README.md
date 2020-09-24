@@ -5,9 +5,6 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 
 To use our backend services (our hosted voices) you will require an api-key. Visit our portal (https://manage.talkify.net) to create your own API-key, Talkify offers 1000 free requests per month. 
 
-## ReactJs
-Do you need to use Talkify in an ReactJs environment please visit https://github.com/Hagsten/TalkifyReactJs.
-
 ## Installation
 ```
 $ bower install talkify
@@ -101,12 +98,16 @@ player.playText('Hello world');
     - Telugu
     - Thai
     - Vietnamese
+    - And more!
   
 - Text highligting for easy read along
 - Control pitch, pauses between words, volume, speech rate, phonation and much more 
 - Download as mp3
 - Playback of entire website or paragraph/s of your choice
 - Fully integrated UI options
+- Read web forms aloud
+- Listen to selected text
+- Enhanced visibility features
 
 ## SSML
 ```javascript
@@ -158,7 +159,7 @@ talkify.config = {
             voicepicker: {
                 enabled: true, //Applicable on modern and classic control centers
                 filter: {
-                    byClass: [], //Not applicable for Html5Player,  example: ["Standard", "Premium", "Exclusive"]
+                    byClass: [], //Not applicable for Html5Player,  example: ["Standard", "Premium", "Exclusive", "Neural"]
                     byCulture: [], //example: ["en-EN", "en-AU"]
                     byLanguage: [] //Not applicable for Html5Player, example: ["English", "Spanish"]
                 }
@@ -272,6 +273,7 @@ Entry point: talkify.TtsPlayer().
 | usePhonation | string | normal | Supports for two phonations. "soft" and "normal". Empty string translates to "normal". Case sensitive |
 | useWordBreak | int | 0 | [0-10000] Adds a break between each word. Any value above 0 adds to the voices standard break length. |
 | usePitch | int | 0 | [-10 - +10] Adjusts the pitch of the voice. |
+| useVolumeBaseline | double | 0 | [-10 - +10] Adjusts the volume baseline |
 
 ### Player Events
 | Event   |
@@ -291,6 +293,28 @@ Example: talkify.formReader.addForm(document.getElementById("form-id"));
 |----------|:------ |:------|:-------------|
 | addForm   | form element | None |   Adds TTS functionality to the form.         |
 | removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
+
+## Text selection activator
+This feature allows the user to select/mark text using the mouse and have that text read aloud.
+
+Example: 
+
+```javascript
+    talkify.selectionActivator
+        .withTextHighlighting()
+        .withEnhancedVisibility()
+        .activate();
+```
+
+| Method   | Parameters | Default |      Description      |
+|----------|:------ |:------|:-------------|
+| activate | - | - | Call this method to actiate the feature  |
+| deactivate | - | - | Call this method to deactivate the feature   |
+| withTextHighlighting | - | - | Presets text highlighting to activated. Users can turn this off in the control center UI |
+| withEnhancedVisibility | - | - | Presets enhanced visibility to activated. Users can turn this off in the control center UI |
+| withVoice | voice object | { name: 'Zira' } |  A voice object from our backend voice API or at the very least an object wih a name property including a valid voice name  |
+| withButtonText | string | "Listen" | The text that appears on popover button  |
+| excludeElements | Array of DOM-elements | [] | For example: document.querySelectorAll("button") |
 
 ## React to events
 TLDR; Example @ http://jsfiddle.net/andreas_hagsten/x6pve0jd/8/

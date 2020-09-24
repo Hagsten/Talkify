@@ -24,7 +24,8 @@
 }
 
 .talkify-control-center.modern{
-    position: fixed;    
+    position: fixed;  
+    z-index: 100;  
 }
 
 .talkify-control-center.modern button{

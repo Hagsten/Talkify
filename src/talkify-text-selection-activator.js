@@ -1,9 +1,11 @@
 talkify = talkify || {};
 
 talkify.selectionActivator = function () {
+    var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
     var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'rp', 'rt'];
-    var timeoutId, playlist, player, originalElement, x, y, activatorHtml, controlcenterHtml, currentSelection;
+    var timeoutId, playlist, player, x, y, activatorHtml, controlcenterHtml, currentSelection;
     var orchestrateTimeout;
+    var activated = false;
     var currentContext = {};
     var settings = {
         exclude: [],
@@ -35,7 +37,6 @@ talkify.selectionActivator = function () {
         var items = [];
 
         if (nodes.length === 1) {
-            //TODO: Kolla med rightToLeft..
             return [surroundNode(nodes[0], currentContext.range.startOffset, currentContext.range.endOffset)];
         }
 
@@ -72,29 +73,7 @@ talkify.selectionActivator = function () {
             return [];
         }
 
-        var nodes = [];
-
-        var isExcluded = settings.exclude.filter(function (x) {
-            return x.contains(currentContext.anchorNode);
-        }).length > 0;
-
-        isExcluded = isExcluded || settings.exclude.indexOf(currentContext.anchorNode) !== -1 || validNodeTypes.indexOf(currentContext.anchorNode.nodeType) === -1;
-
-        // if (!isExcluded) {
-        //     nodes.push(currentContext.anchorNode);
-        // }
-
-        nodes = nodes.concat(getNodesInBetween(element, leftToRight));
-
-        var isLastExcluded = settings.exclude.filter(function (x) {
-            return x.contains(currentContext.focusNode);
-        }).length > 0;
-
-        isLastExcluded = isLastExcluded || settings.exclude.indexOf(currentContext.focusNode) !== -1 || validNodeTypes.indexOf(currentContext.focusNode.nodeType) === -1;
-
-        // if (currentContext.anchorNode !== currentContext.focusNode && !isLastExcluded) {
-        //     nodes.push(currentContext.focusNode);
-        // }
+        var nodes = getNodesInBetween(element, leftToRight);
 
         if (!leftToRight) {
             nodes.reverse();
@@ -110,8 +89,6 @@ talkify.selectionActivator = function () {
             return [element];
         }
 
-        //TODO: lefttoright?
-        //TODO: Ligger i getNodesInBetween. Hänsyn till first och last node
         var inlineGroups = getInlineGroups(element.childNodes);
 
         for (var i = 0; i < element.childNodes.length; i++) {
@@ -161,8 +138,6 @@ talkify.selectionActivator = function () {
     }
 
     function getInlineGroups(nodes) {
-        var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
-
         var groups = [];
 
         for (var i = 0; i < nodes.length; i++) {
@@ -186,8 +161,7 @@ talkify.selectionActivator = function () {
                 continue;
             }
 
-            var group = [];
-            group.push(node);
+            var group = [node];
 
             while (i < nodes.length &&
                 node.nextSibling &&
@@ -247,8 +221,6 @@ talkify.selectionActivator = function () {
             range.setEnd(node, node.textContent.length);
             range.surroundContents(newParent);
         } else {
-            // range.setStart(node, startOffset);
-            // range.setEnd(node, endOffset);
             range.setStart(node, 0);
             range.setEnd(node, node.textContent.length);
             range.surroundContents(newParent);
@@ -260,41 +232,55 @@ talkify.selectionActivator = function () {
         };
     }
 
+    function deactivate() {
+        activated = false;
+
+        document.removeEventListener('mouseup', onMouseUp, false);
+        document.removeEventListener('keyup', onMouseUp, false);
+    }
+
     function activate() {
-        //TODO: Perhaps prevent calling this function again?
+        if (activated) {
+            console.warn("Selection activator is already activated");
+            return;
+        }
+
+        activated = true;
+
         if (settings.exclude && NodeList.prototype.isPrototypeOf(settings.exclude)) {
             settings.exclude = Array.from(settings.exclude);
         }
 
-        document.onmouseup = document.onkeyup = function (e) {
-            currentSelection = window.getSelection();
-
-            if (currentSelection.type === "Range" && currentSelection.toString().trim()) {
-                if (currentContext.anchorNode === currentSelection.anchorNode && currentContext.focusNode === currentSelection.focusNode) {
-                    return;
-                }
-
-                if (activatorHtml && (activatorHtml.contains(currentSelection.focusNode) || activatorHtml.contains(currentSelection.anchorNode))) {
-                    return;
-                }
-
-                if (currentContext && currentContext.active) {
-                    console.log("we are active");
-                    return;
-                }
-
-                if (orchestrateTimeout) {
-                    clearTimeout(orchestrateTimeout);
-                }
-
-                orchestrateTimeout = setTimeout(orchestrateAfterSelection, 200);
-            }
-        };
-
+        document.addEventListener('mouseup', onMouseUp, false);
+        document.addEventListener('keyup', onMouseUp, false);
         document.addEventListener('mousemove', onMouseUpdate, false);
         document.addEventListener('mouseenter', onMouseUpdate, false);
 
         talkify.domExtensions.recordEvents.begin();
+    }
+
+    function onMouseUp(e) {
+        currentSelection = window.getSelection();
+
+        if (currentSelection.type === "Range" && currentSelection.toString().trim()) {
+            if (currentContext.anchorNode === currentSelection.anchorNode && currentContext.focusNode === currentSelection.focusNode) {
+                return;
+            }
+
+            if (activatorHtml && (activatorHtml.contains(currentSelection.focusNode) || activatorHtml.contains(currentSelection.anchorNode))) {
+                return;
+            }
+
+            if (currentContext && currentContext.active) {
+                return;
+            }
+
+            if (orchestrateTimeout) {
+                clearTimeout(orchestrateTimeout);
+            }
+
+            orchestrateTimeout = setTimeout(orchestrateAfterSelection, 200);
+        }
     }
 
     function orchestrateAfterSelection() {
@@ -310,7 +296,6 @@ talkify.selectionActivator = function () {
             anchorOffset: currentSelection.anchorOffset,
             focusOffset: currentSelection.focusOffset,
             range: currentSelection.getRangeAt(0),
-            text: currentSelection.toString().replace(/\s/g, ""),
             active: false,
             elements: []
         };
@@ -341,33 +326,27 @@ talkify.selectionActivator = function () {
         }, 2000);
     }
 
-    function activateControlcenter() {       
+    function activateControlcenter() {
         if (timeoutId) {
             clearTimeout(timeoutId);
         }
 
         currentContext.active = true;
 
-        //TODO: Remove if possible
-        if (currentContext.range.commonAncestorContainer.nodeType !== 1) {
-            originalElement = currentContext.range.commonAncestorContainer.parentElement.cloneNode(true);
-        }
-
         currentContext.elements = createItemsFromNodes(currentContext.nodes);
 
         var elements = currentContext.elements.map(function (x) { return x.newNode; });
 
-        if (window.getSelection().empty) {  // Chrome
+        if (window.getSelection().empty) {
             window.getSelection().empty();
-        } else if (window.getSelection().removeAllRanges) {  // Firefox
+        } else if (window.getSelection().removeAllRanges) {
             window.getSelection().removeAllRanges();
         }
 
-        // if (player) {
-        //     player.dispose();
-        // }
+        renderControlcenter();
+        removeActivator();
 
-        player = new talkify.TtsPlayer();
+        player = new talkify.TtsPlayer({ controlcenter: { name: "local", container: controlcenterHtml } });
 
         talkify.messageHub.subscribe("text-selection-activator", player.correlationId + ".player.*.disposed", disposeControlCenter);
 
@@ -380,10 +359,6 @@ talkify.selectionActivator = function () {
         if (settings.enhancedVisibility) {
             player.enableEnhancedTextVisibility();
         }
-
-        renderControlcenter();
-        removeActivator();
-        player.useControlCenter("local", controlcenterHtml);
 
         if (playlist) {
             playlist.dispose();
@@ -410,8 +385,11 @@ talkify.selectionActivator = function () {
         removeControlcenter();
 
         if (currentContext.range.commonAncestorContainer.nodeType !== 1) {
-            //TODO: here..
-            currentContext.range.commonAncestorContainer.parentElement.innerHTML = originalElement.innerHTML;
+            var element = currentContext.elements[0];
+
+            if (element) {
+                element.newNode.parentElement.replaceChild(element.originalNode, element.newNode);
+            }
         }
         else {
             restoreDom();
@@ -570,7 +548,8 @@ talkify.selectionActivator = function () {
             settings.exclude = domElements;
             return this;
         },
-        activate: activate
+        activate: activate,
+        deactivate: deactivate
     }
 }();
 

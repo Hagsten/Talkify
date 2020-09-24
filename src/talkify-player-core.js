@@ -1,6 +1,9 @@
 ﻿talkify = talkify || {};
-talkify.BasePlayer = function (_audiosource, _playbar) {
+talkify.BasePlayer = function (_audiosource, _playbar, options) {
     talkify.messageHub.publish("*.player.*.creating");
+
+    options = options || {};
+    options.controlcenter = options.controlcenter || {};
 
     this.correlationId = talkify.generateGuid();
     this.audioSource = _audiosource;
@@ -12,20 +15,18 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         useTextHighlight: false,
         referenceLanguage: { Culture: "", Language: -1 },
         lockedLanguage: null,
-        rate: 1,
-        controlCenter: null
+        rate: 1
     };
 
     this.playbar = _playbar;
     this.forcedVoice = null;
 
     if (talkify.config.ui.audioControls.enabled) {
-        this.playbar.instance = talkify.playbar(null, this.correlationId);
+        this.playbar.instance = talkify.playbar(options.controlcenter.container, this.correlationId, options.controlcenter.name);
     }
 
     //Does infact prevent the usage of 2 simultanous players (which is not supported anyway)
-    talkify.messageHub.subscribe("core-player", "*.player.*.creating", function () {      
-        console.log("Via creating...")  
+    talkify.messageHub.subscribe("core-player", "*.player.*.creating", function () {
         me.dispose();
     });
 
@@ -193,7 +194,6 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
     };
 
     this.dispose = function () {
-        console.log("Disposing", this.correlationId);
         talkify.messageHub.publish(this.correlationId + ".player.tts.disposed");
         this.audioSource.stop();
 
@@ -210,7 +210,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".player.*.prepareplay");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.setvoice");
-        talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.enhancedvisibility");        
+        talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.enhancedvisibility");
         talkify.messageHub.unsubscribe("core-player", "*.player.*.creating");
     };
 
@@ -229,11 +229,6 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
         return this;
     };
-
-    this.useControlCenter = function (controlcenterName, parentElement) {
-        this.settings.controlCenter = controlcenterName;
-        talkify.messageHub.publish(this.correlationId + ".player.*.setcontrolcenterconfig", { name: controlcenterName, parentElement: parentElement });
-    }
 
     this.enableEnhancedTextVisibility = function () {
         talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", true);

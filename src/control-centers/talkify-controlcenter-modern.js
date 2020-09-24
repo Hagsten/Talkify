@@ -60,6 +60,12 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                         </button>\
                         <div>Text interaction</div>\
                     </li>\
+                    <li class="talkify-enhanced-visibility-button">\
+                        <button class="modern-talkify-control-center-accent" title="Toggle enhanced visibility">\
+                            <i class="fas fa-eye"></i>\
+                        </button>\
+                        <div>Enhanced visibility</div>\
+                    </li>\
                     <li class="talkify-detached talkify-rate-button">\
                         <button class="modern-talkify-control-center-accent" title="Adjust playback rate">\
                             <i class="fas fa-tachometer-alt"></i>\

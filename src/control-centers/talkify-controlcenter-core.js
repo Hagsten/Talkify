@@ -1,10 +1,10 @@
 talkify = talkify || {};
-talkify.playbar = function (parent, correlationId) {
+talkify.playbar = function (parent, correlationId, controlcenter) {
     var mainFlags = ["de-DE", "fr-FR", "en-US", "zh-CN", "es-ES", "it-IT", "ja-JP", "ko-KR", "sv-SE", "nb-NO", "da-DK", "ru-RU", "nl-NL", "pl-PL", "tr-TR", "is-IS", "uk-UA", "sk-SK", "pt-PT", "ro-RO", "cy-GB", "bg-BG", "cs-CZ", "el-GR", "fi-FI", "he-IL", "hi-IN", "hr-HR", "hu-HU", "id-ID", "ms-MY", "sl-SI", "th-TH", "vi-VN", "ar-EG", "ar-SA", "ta-IN", "te-IN", "en-GB-WLS", "ca-ES", "gu-IN", "ml-IN", "bn-IN", "kn-IN", "fil-PH"];
 
     var settings = {
         parentElement: parent || talkify.config.ui.audioControls.container || document.body,
-        controlCenterName: talkify.config.ui.audioControls.controlcenter
+        controlCenterName: controlcenter || talkify.config.ui.audioControls.controlcenter
     }
 
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper, voicePicker;
@@ -238,6 +238,8 @@ talkify.playbar = function (parent, correlationId) {
 
         settings.parentElement.appendChild(wrapper);
 
+        talkify.messageHub.publish(correlationId + ".controlcenter.attached", wrapper.getBoundingClientRect());
+
         hide(loader);
 
         pause();
@@ -362,11 +364,15 @@ talkify.playbar = function (parent, correlationId) {
         attachElement.addEventListener("click", function () {
             addClass(controlCenter, "attached");
             removeClass(controlCenter, "detached");
+
+            talkify.messageHub.publish(correlationId + ".controlcenter.attached", controlCenter.getBoundingClientRect());
         });
 
         detatchedElement.addEventListener("click", function () {
             removeClass(controlCenter, "attached");
             addClass(controlCenter, "detached");
+
+            talkify.messageHub.publish(correlationId + ".controlcenter.detatched", controlCenter.getBoundingClientRect());
         });
 
         dragArea.addEventListener("mousedown", onMouseDown);
@@ -393,15 +399,6 @@ talkify.playbar = function (parent, correlationId) {
     }
 
     function initialize() {
-        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.*.setcontrolcenterconfig", function (config) {
-            dispose();
-
-            settings.controlCenterName = config.name;
-            settings.parentElement = config.parentElement || settings.parentElement;
-
-            initialize();
-        });
-
         if (settings.controlCenterName === "native") {
             return;
         }

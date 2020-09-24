@@ -1,3 +1,4 @@
+
 .talkify-control-center.classic {
     display: inline-block;
     position: fixed;
@@ -7,7 +8,8 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 2px 2px 5px 0px #5f5e5e;
-    border: 1px solid #0084b3;    
+    border: 1px solid #0084b3;   
+    z-index: 100; 
 }
     .talkify-control-center.classic .talkify-drag-area {
         padding-left: 10px;

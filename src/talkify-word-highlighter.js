@@ -6,6 +6,8 @@ talkify.wordHighlighter = function (correlationId) {
     var currentWordbreakMs = 0;
     var useEnhancedView = false;
     var enhancedView = null;
+    // var initialEnhancedViewPosition = null;
+    var currentControlcenterPosition = null;
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
     talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed", correlationId + ".player.tts.ended"],
@@ -17,7 +19,7 @@ talkify.wordHighlighter = function (correlationId) {
                 enhancedView = null;
             }
         });
-        
+
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.play", function (message) {
         setupWordHightlighting(message.item, message.positions);
     });
@@ -72,10 +74,40 @@ talkify.wordHighlighter = function (correlationId) {
         useEnhancedView = value;
 
         if (!value && enhancedView) {
-            document.body.removeChild(enhancedView);;
+            document.body.removeChild(enhancedView);
             enhancedView = null;
         }
     });
+
+    talkify.messageHub.subscribe("word-highlighter", correlationId + ".controlcenter.attached", function (position) {
+        currentControlcenterPosition = position;
+
+        adjustRenderPositionToControlCenter();
+    });
+
+    talkify.messageHub.subscribe("word-highlighter", correlationId + ".controlcenter.detatched", function (position) {
+        currentControlcenterPosition = position;
+
+        adjustRenderPositionToControlCenter();
+    });
+
+    function adjustRenderPositionToControlCenter() {
+        if (enhancedView && currentControlcenterPosition) {
+            var enhancedViewPosition = enhancedView.getBoundingClientRect();
+
+            var hasOverlay = enhancedViewPosition.y >= currentControlcenterPosition.y &&
+                enhancedViewPosition.y <= (currentControlcenterPosition.y + currentControlcenterPosition.height);
+
+            hasOverlay = hasOverlay || (currentControlcenterPosition.y >= enhancedViewPosition.y &&
+                currentControlcenterPosition.y <= (enhancedViewPosition.y + enhancedViewPosition.height));
+
+            if (hasOverlay) {
+                enhancedView.style.bottom = currentControlcenterPosition.height + "px";
+            } else {
+                enhancedView.style.bottom = "";
+            }
+        }
+    }
 
     function adjustPositionsToSsml(text, positions) {
         var internalPos = JSON.parse(JSON.stringify(positions));
@@ -146,6 +178,7 @@ talkify.wordHighlighter = function (correlationId) {
                     if (enhancedView) {
                         document.body.removeChild(enhancedView);;
                         enhancedView = null;
+                        initialEnhancedViewPosition = null;
                     }
                 }, 1000);
 
@@ -242,6 +275,8 @@ talkify.wordHighlighter = function (correlationId) {
         talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.play");
         talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.timeupdated");
         talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.enhancedvisibilityset");
+        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".controlcenter.attached");
+        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".controlcenter.detatched");
     }
 
     function renderEnhancedView(text, sentence, charPosition, word) {
@@ -271,6 +306,8 @@ talkify.wordHighlighter = function (correlationId) {
         enhancedView.innerHTML = html;
 
         document.body.appendChild(enhancedView);
+
+        adjustRenderPositionToControlCenter();
     }
 
     return {
