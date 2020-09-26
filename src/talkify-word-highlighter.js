@@ -6,7 +6,6 @@ talkify.wordHighlighter = function (correlationId) {
     var currentWordbreakMs = 0;
     var useEnhancedView = false;
     var enhancedView = null;
-    // var initialEnhancedViewPosition = null;
     var currentControlcenterPosition = null;
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);

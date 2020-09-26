@@ -1,11 +1,11 @@
 ﻿talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar, options) {
-    talkify.messageHub.publish("*.player.*.creating");
+    this.correlationId = talkify.generateGuid();
+    talkify.messageHub.publish(this.correlationId + ".player.*.creating");
 
     options = options || {};
     options.controlcenter = options.controlcenter || {};
 
-    this.correlationId = talkify.generateGuid();
     this.audioSource = _audiosource;
     this.wordHighlighter = new talkify.wordHighlighter(this.correlationId);
 

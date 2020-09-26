@@ -195,11 +195,12 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
 
     function render() {
         var existingControl = document.getElementsByClassName("talkify-control-center")[0];
+
         if (existingControl) {
             existingControl.parentNode.removeChild(existingControl);
         }
 
-        var controlcenter = new talkify.controlcenters[settings.controlCenterName]();//talkify.config.ui.audioControls.controlcenter]();
+        var controlcenter = new talkify.controlcenters[settings.controlCenterName]();
 
         var div = document.createElement('div');
         div.innerHTML = controlcenter.html.trim();

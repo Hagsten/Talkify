@@ -16,85 +16,10 @@
 </head>
 
 <body>
-    <div id="placeholder"></div>
-    <section id="root">
-        <div>
-            <div>
-            Då
-            <!-- ngIf: !demoIsPlaying -->
-            <p>
-                Hej
-            </p>
-            <!-- ngIf: !demoIsPlaying -->
-        </div>
-            <section class="talkify-third" style="padding: 20px 50px;">
-                <div class="row center-xs">
-                    <div class="col-xs-12 col-md-9">
-                        <div class="talkify-read-aloud">
-                            <button class="talkify-padding-m talkify-accent talkify-rounded-corners-s talkify-no-borders talkify-clickable">
-                                <i class="fas fa-volume-up"></i> Listen
-                            </button>
-                        </div>
-                        <div class="talkify-read-me">
-                            <h2>Talkify is for everyone</h2>
-                            <i class="fas fa-heart fa-3x"></i>
-                            <p>
-                                We believe that web content should be accessible to everyone. Dyslexia or visual impairment should not stand in the way consuming web content.
-                                Our products allow web content, e-books, pdfs and more to be read aloud to you.
-                            </p>
-                            <i class="fas fa-2x fa-chevron-down talkify-accent-text talkify-margin-l-b"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="row center-xs talkify-read-me">
-                    <div class="col-xs-12 col-sm-6 col-md-4">
-                        <i class="fas fa-universal-access fa-3x talkify-margin-l-t"></i>
-                        <h2>Meet WCAG requirements</h2>
-                        <p><i>Our recommendations to you</i></p>
-                        <a href="/products/appintegration" title="Talkify Web reader" style="display: inline-block;" class="talkify-rounded-corners-s talkify-accent talkify-padding-l">Check out our integration options</a>
-                        <p>Text to speech is a great deal when it comes to <strong>web content accessibility</strong>. Many countries has legal requirements that states that web content should be accessible to everyone.</p>
-                        <p>Integrating with Talkify will help you succeed meeting the WCAG.</p>
-                        <p>The Web Accessibility initiative has a great video about WCAG and TTS <a href="https://www.w3.org/WAI/perspective-videos/speech/" target="_blank">here</a>.</p>
-                    </div>
+    <div id="placeholder">
+        <span>Hello there.<strong> This is an example</strong></span> of the mark and play feature
+    </div>
 
-                    <div class="col-xs-12 col-sm-6 col-md-4">
-                        <i class="fas fa-low-vision fa-3x talkify-margin-l-t"></i>
-                        <h2>Vision impairment or dyslexia</h2>
-                        <p><i>Our recommendations to you</i></p>
-                        <a href="/webreader" title="Talkify Web reader" style="display: inline-block;" class="talkify-rounded-corners-s talkify-accent talkify-padding-l talkify-margin-l-b">Try Web reader</a>
-                        <a href="/ebook" title="Talkify E-book reader" style="display: inline-block;" class="talkify-rounded-corners-s talkify-accent talkify-padding-l">Try E-book reader</a>
-                        <p>Many people use our products as a help when reading content on the web. If you have vision impairment, dyslexia or just difficulty reading then try it our for yourself. </p>
-                    </div>
-                    <div class="col-xs-12 col-sm-6 col-md-4">
-                        <i class="fas fa-handshake fa-3x talkify-margin-l-t"></i>
-                        <h2>App owners</h2>
-                        <p><i>Our recommendations to you</i></p>
-                        <a href="/products/appintegration" title="Talkify Web reader" style="display: inline-block;" class="talkify-rounded-corners-s talkify-accent talkify-padding-l">Check out our integration options</a>
-                        <p>If you are an app owner, especially web apps, then you are in luck. We have easy to use APIs and JS-libraries at your fingertips.</p>
-                    </div>
-                    <div class="col-xs-12 col-sm-6 col-md-4">
-                        <i class="fas fa-user-graduate fa-3x talkify-margin-l-t"></i>
-                        <h2>Students</h2>
-                        <p><i>Our recommendations to you</i></p>
-                        <a href="/webreader" title="Talkify Web reader" style="display: inline-block;" class="talkify-rounded-corners-s talkify-accent talkify-padding-l">Try Web reader</a>
-                        <p>Proofread your paper or learn a second language. Our Web reader is the perfect choice for you. </p>
-                    </div>
-
-                    <div class="col-xs-12 col-sm-6 col-md-4">
-                        <i class="fas fa-school fa-3x talkify-margin-l-t"></i>
-                        <h2>Education and schools</h2>
-                        <p><i>Our recommendations to you</i></p>
-                        <a href="/webreader" title="Talkify Web reader" style="display: inline-block;" class="talkify-rounded-corners-s talkify-accent talkify-padding-l talkify-margin-l-b">Use Web reader in class</a>
-                        <a href="/products/appintegration" title="Talkify Web reader" style="display: inline-block;" class="talkify-rounded-corners-s talkify-accent talkify-padding-l">Check out our integration options</a>
-                        <p>
-                            Schools and universities already use Talkify in their language education. Just direct students to our free to use Web reader or use our integration options to tailor the experience.
-                        </p>
-                    </div>
-
-                </div>
-            </section>
-        </div>
-    </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
         integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="../dist/talkify.js"></script>
@@ -128,7 +53,7 @@
                 .withEnhancedVisibility()
                 .activate();
 
-            $('strong').click(function(){
+            $('strong').click(function () {
                 alert("Hello");
             });
         });

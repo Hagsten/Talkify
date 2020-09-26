@@ -283,11 +283,12 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
 
     function render() {
         var existingControl = document.getElementsByClassName("talkify-control-center")[0];
+
         if (existingControl) {
             existingControl.parentNode.removeChild(existingControl);
         }
 
-        var controlcenter = new talkify.controlcenters[settings.controlCenterName]();//talkify.config.ui.audioControls.controlcenter]();
+        var controlcenter = new talkify.controlcenters[settings.controlCenterName]();
 
         var div = document.createElement('div');
         div.innerHTML = controlcenter.html.trim();
@@ -2021,12 +2022,12 @@ talkify.messageHub = function () {
 },{}],13:[function(require,module,exports){
 talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar, options) {
-    talkify.messageHub.publish("*.player.*.creating");
+    this.correlationId = talkify.generateGuid();
+    talkify.messageHub.publish(this.correlationId + ".player.*.creating");
 
     options = options || {};
     options.controlcenter = options.controlcenter || {};
 
-    this.correlationId = talkify.generateGuid();
     this.audioSource = _audiosource;
     this.wordHighlighter = new talkify.wordHighlighter(this.correlationId);
 
@@ -2215,7 +2216,6 @@ talkify.BasePlayer = function (_audiosource, _playbar, options) {
     };
 
     this.dispose = function () {
-        console.log("Disposing", this.correlationId);
         talkify.messageHub.publish(this.correlationId + ".player.tts.disposed");
         this.audioSource.stop();
 
@@ -4486,7 +4486,6 @@ talkify.wordHighlighter = function (correlationId) {
     var currentWordbreakMs = 0;
     var useEnhancedView = false;
     var enhancedView = null;
-    // var initialEnhancedViewPosition = null;
     var currentControlcenterPosition = null;
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
@@ -4560,7 +4559,6 @@ talkify.wordHighlighter = function (correlationId) {
     });
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".controlcenter.attached", function (position) {
-        console.log(position);
         currentControlcenterPosition = position;
 
         adjustRenderPositionToControlCenter();
@@ -4568,7 +4566,6 @@ talkify.wordHighlighter = function (correlationId) {
 
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".controlcenter.detatched", function (position) {
         currentControlcenterPosition = position;
-        console.log(position);
 
         adjustRenderPositionToControlCenter();
     });

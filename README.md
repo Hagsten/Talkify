@@ -369,6 +369,8 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.player.tts.pitchchanged |  |
 | {contextId}.player.tts.created |  |
 | {contextId}.player.tts.unplayable |  |
+| {contextId}.player.tts.enhancedvisibilityset | |
+| {contextId}.player.tts.creating | |
 | - | - |
 | {contextId}.player.html5.ratechanged |  |
 | {contextId}.player.html5.pause |  |
@@ -383,6 +385,8 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.player.html5.prepareplay |  |
 | {contextId}.player.html5.created |  |
 | {contextId}.player.html5.unplayable |  |
+| {contextId}.player.html5.enhancedvisibilityset | |
+| {contextId}.player.html5.creating | |
 | - | - |
 | {contextId}.controlcenter.request.play |  |
 | {contextId}.controlcenter.request.pause |  |
@@ -395,6 +399,9 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.controlcenter.request.phonation.whisper |  |
 | {contextId}.controlcenter.request.texthighlightoggled |  |
 | {contextId}.controlcenter.request.textinteractiontoggled |  |
+| {contextId}.controlcenter.request.enhancedvisibility | |
+| {contextId}.controlcenter.attached | |
+| {contextId}.controlcenter.detached | |
 | - | - |
 | {contextId}.wordhighlighter.complete |  |
 | - | - |
@@ -402,7 +409,5 @@ talkify.messageHub.subscribe("[key]", "*.player.*.play", function () {}) //Play 
 | {contextId}.playlist.loaded |  |
 | {contextId}.playlist.textinteraction.enabled |  |
 | {contextId}.playlist.textinteraction.disabled |  |
-
-
 # License
 GPLv3
