@@ -1,6 +1,11 @@
 ﻿talkify = talkify || {};
-talkify.BasePlayer = function (_audiosource, _playbar) {
+talkify.BasePlayer = function (_audiosource, _playbar, options) {
     this.correlationId = talkify.generateGuid();
+    talkify.messageHub.publish(this.correlationId + ".player.*.creating");
+
+    options = options || {};
+    options.controlcenter = options.controlcenter || {};
+
     this.audioSource = _audiosource;
     this.wordHighlighter = new talkify.wordHighlighter(this.correlationId);
 
@@ -10,16 +15,20 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         useTextHighlight: false,
         referenceLanguage: { Culture: "", Language: -1 },
         lockedLanguage: null,
-        rate: 1,
-        useControls: false
+        rate: 1
     };
 
     this.playbar = _playbar;
     this.forcedVoice = null;
 
-    if (talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter !== "native") {
-        this.playbar.instance = talkify.playbar(null, this.correlationId);
+    if (talkify.config.ui.audioControls.enabled) {
+        this.playbar.instance = talkify.playbar(options.controlcenter.container, this.correlationId, options.controlcenter.name);
     }
+
+    //Does infact prevent the usage of 2 simultanous players (which is not supported anyway)
+    talkify.messageHub.subscribe("core-player", "*.player.*.creating", function () {
+        me.dispose();
+    });
 
     talkify.messageHub.subscribe("core-player", this.correlationId + ".player.*.loaded", function (item) {
         item.isLoading = false;
@@ -35,9 +44,14 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
     talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.request.setvoice", function (voice) {
         me.forceVoice(voice);
-     });
+    });
+
+    talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.request.enhancedvisibility", function (value) {
+        talkify.messageHub.publish(me.correlationId + ".player.*.enhancedvisibilityset", value);
+    });
 
     talkify.messageHub.publish(this.correlationId + ".player.*.ratechanged", me.settings.rate);
+    talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", false);
 
     this.withReferenceLanguage = function (refLang) {
         this.settings.referenceLanguage = refLang;
@@ -76,7 +90,7 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.subscribe("core-player", this.correlationId + ".player.*.loaded", subscriptions.onItemLoaded || function () { });
         talkify.messageHub.subscribe("core-player", [this.correlationId + ".wordhighlighter.complete", this.correlationId + ".player.html5.utterancecomplete"], subscriptions.onItemFinished || function () { });
         talkify.messageHub.subscribe("core-player", this.correlationId + ".player.*.prepareplay", subscriptions.onBeforeItemPlaying || function () { });
-        talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged || function () { });        
+        talkify.messageHub.subscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled", subscriptions.onTextHighligtChanged || function () { });
 
         return this;
     };
@@ -196,6 +210,8 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".player.*.prepareplay");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.texthighlightoggled");
         talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.setvoice");
+        talkify.messageHub.unsubscribe("core-player", this.correlationId + ".controlcenter.request.enhancedvisibility");
+        talkify.messageHub.unsubscribe("core-player", "*.player.*.creating");
     };
 
     this.forceLanguage = function (culture) {
@@ -213,4 +229,12 @@ talkify.BasePlayer = function (_audiosource, _playbar) {
 
         return this;
     };
+
+    this.enableEnhancedTextVisibility = function () {
+        talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", true);
+    }
+
+    this.disableEnhancedTextVisibility = function () {
+        talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", false);
+    }
 };

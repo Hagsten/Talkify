@@ -1,0 +1,37 @@
+.talkify-activator-wrapper, .talkify-controlcenter-wrapper {
+    z-index: 9999;
+    position: fixed;    
+}
+
+.talkify-activator-wrapper .talkify-popup-activator button {
+    border-style: none;
+    cursor: pointer;
+    padding: 8px;
+    box-shadow: 0px 0px 3px 0px #181818;
+    border-radius: 3px;
+}
+
+.talkify-activator-wrapper .talkify-popup-activator button i {
+    margin-right: 5px;
+}
+
+.talkify-controlcenter-wrapper {
+    box-shadow: 0px 0px 4px -1px black;
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    flex-direction: row-reverse;
+}
+
+.talkify-controlcenter-wrapper .talkify-close{
+    padding: 0 5px;
+    cursor: pointer;
+}
+
+.talkify-controlcenter-wrapper .talkify-control-center.local > div {
+    border-style: none !important;
+}
+
+.talkify-selected-text {
+    border-bottom: 1px dashed black;
+}

@@ -10,17 +10,17 @@
     cursor: pointer;
 }
 
-.talkify-flag{
+.talkify-flag {
     height: 20px;
     margin-right: 5px;
     vertical-align: middle;
 }
 
-.talkify-control-center.attached .talkify-detached{
+.talkify-control-center.attached .talkify-detached {
     display: none !important;
 } 
 
-.talkify-control-center.detached .talkify-attached{
+.talkify-control-center.detached .talkify-attached {
     display: none !important;
 } 
 
@@ -30,4 +30,23 @@
 
 .talkify-columns{
     flex-direction: column;
+}
+
+.talkify-enhanced-word-highligher{
+    padding: 20px;
+    font-size: 25px;
+
+    position: fixed;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+
+    background-color: #bbdf87;
+    text-align: center;
+    border-top: 2px solid #424242;
+}
+
+.talkify-enhanced-word-highligher p{
+    margin: 0;
 }

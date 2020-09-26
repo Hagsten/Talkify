@@ -1,6 +1,6 @@
 ﻿talkify = talkify || {};
 
-talkify.TtsPlayer = function () {
+talkify.TtsPlayer = function (options) {
     if (!talkify.config.remoteService.active) {
         throw "This player needs to communicate to a remote service. To enable this player please set flag talkify.config.remoteService.active to true.";
     }
@@ -58,7 +58,7 @@ talkify.TtsPlayer = function () {
         }
     };
 
-    talkify.BasePlayer.call(this, this.audioSource, this.playbar);
+    talkify.BasePlayer.call(this, this.audioSource, this.playbar, options);
 
     this.settings.whisper = false;
     this.settings.soft = false;
@@ -143,7 +143,6 @@ talkify.TtsPlayer = function () {
         mp3Source.type = "audio/mpeg";
         wavSource.type = "audio/wav";
         audioElement.id = "talkify-audio";
-        audioElement.controls = talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter === "native";
         audioElement.autoplay = false;
 
         (talkify.config.ui.audioControls.container || document.body).appendChild(audioElement);
@@ -227,6 +226,7 @@ talkify.TtsPlayer = function () {
         me.currentContext.item = item;
         me.currentContext.positions = [];
 
+        audioElement.controls = talkify.config.ui.audioControls.enabled && talkify.config.ui.audioControls.controlcenter === "native";
         audioElement.onloadeddata = null;
         audioElement.onended = null;
 
@@ -296,7 +296,6 @@ talkify.TtsPlayer = function () {
         audioElement.load();
 
         audioElement.onloadeddata = function () {
-
             me.audioSource.pause();
 
             if (!me.settings.useTextHighlight) {

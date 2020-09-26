@@ -28,6 +28,9 @@ talkify.controlcenters.local = function () {
                 <button class="talkify-text-interaction-button" title="Toggle text interaction">\
                     <i class="fas fa-hand-point-up"></i>\
                 </button>\
+                <button class="talkify-enhanced-visibility-button" title="Toggle enhanced visibility">\
+                    <i class="fas fa-eye"></i>\
+                </button>\
                 <button title="More settings">\
                     <label for="talkify-local-settings"><i class="fas fa-cog"></i></label>\
                 </button>\

@@ -40,6 +40,12 @@ talkify.controlcenters.classic = function () {
         <button class="talkify-cc-button" title="Enable/disable text highlighting">  \
        <i class="fa fa-closed-captioning"></i>  \
        </button>  \
+       </li>\
+       <li>\
+            <button class="talkify-enhanced-visibility-button" title="Toggle enhanced visibility">\
+                <i class="fas fa-eye"></i>\
+            </button>\
+        </li>\
         <li>  \
         <button class="talkify-detached talkify-attach-handle" title="Dock player to screen">  \
         <i class="fa fa-window-minimize"></i>  \
