@@ -263,7 +263,9 @@ Entry point: talkify.Html5Player().
 | usePitch | double | 1 | [0.0, 2.0] Adjusts the pitch of the voice. |
 
 ### Talkify hosted only
-Entry point: talkify.TtsPlayer().
+Entry point: talkify.TtsPlayer(options?).
+
+constructor parameter "options" is optional.  Example { controlcenter: { container: document.querySelector('p.selector') , name: 'modern' }}
 
 | Method   | Parameters | Default |      Description      |
 |----------|:------ |:------|:-------------|
