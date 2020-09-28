@@ -50,7 +50,7 @@ Font Awesome 5+ (Used in Talkify Control Center)
 ```
 
 ### Stylesheets
-You find our stylesheets under /styles folder. Include the stylesheets that you need (i.e. all under /modern for our "modern" UI).
+You find our stylesheets under /styles folder. Include the stylesheets that you need (i.e. all under /modern-control-center for our "modern" UI).
 
 ## Play all, top to bottom
 ```javascript		
