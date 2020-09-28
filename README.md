@@ -250,6 +250,8 @@ This is the instance built from the playliste above.
 | play | | | Play |
 | pause | | | Pause |
 | forceVoice | object | | For Talkify hosted voices, this is a JSON object with a name property. The value of name should be the name of a voice from /api/speech/v1/voices. For browser voices, this is the actual voice from window.speechSynthesis.getVoices() |
+| enableEnhancedTextVisibility | | | Enables enhanced text visibility. Subtitle-bar, with a larger font-size, is added to the bottom of the screen |
+| disableEnhancedTextVisibility | | | Disables enhanced text visibility |
 
 ### Html5Player only
 Entry point: talkify.Html5Player().
