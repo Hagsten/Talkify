@@ -39,7 +39,7 @@ Font Awesome 5+ (Used in Talkify Control Center)
 - Form Reader http://jsfiddle.net/dx53bg6k/2/ 
 - Text selection Reader http://jsfiddle.net/t5dbcL64/
 
-## Include the scripts
+## Include the scripts and stylesheets
 ### Minified version
 ```html
 <script src="talkify.min.js"></script>
@@ -48,6 +48,9 @@ Font Awesome 5+ (Used in Talkify Control Center)
 ```html
 <script src="talkify.js"></script>
 ```
+
+### Stylesheets
+You find our stylesheets under /styles folder. Include the stylesheets that you need (i.e. all under /modern for our "modern" UI).
 
 ## Play all, top to bottom
 ```javascript		
