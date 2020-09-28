@@ -38,6 +38,7 @@ Font Awesome 5+ (Used in Talkify Control Center)
 - Web Reader http://jsfiddle.net/5atrbjc6/
 - Form Reader http://jsfiddle.net/dx53bg6k/2/ 
 - Text selection Reader http://jsfiddle.net/t5dbcL64/
+- Enhanced text visibility http://jsfiddle.net/pwbqkzxj/2/
 
 ## Include the scripts and stylesheets
 ### Minified version
@@ -215,7 +216,10 @@ talkify.config = {
 ```
 
 # API
+[WebReader demo](http://jsfiddle.net/5atrbjc6/)
+
 Talkify lives in its own namespace - talkify. Hence, everything below is scoped to that namespace (i.e. talkify.playlist, etc).
+
 ## Playlist fluent builder
 Playlist builder is Talkifys way to instantiate your playlist. It comes with a fluent API.	
 
@@ -266,7 +270,7 @@ This is the instance built from the playliste above.
 | play | | | Play |
 | pause | | | Pause |
 | forceVoice | object | | For Talkify hosted voices, this is a JSON object with a name property. The value of name should be the name of a voice from /api/speech/v1/voices. For browser voices, this is the actual voice from window.speechSynthesis.getVoices() |
-| enableEnhancedTextVisibility | | | Enables enhanced text visibility. Subtitle-bar, with a larger font-size, is added to the bottom of the screen |
+| enableEnhancedTextVisibility | | | Enables enhanced text visibility. Subtitle-bar, with a larger font-size, is added to the bottom of the screen. [Demo](http://jsfiddle.net/pwbqkzxj/2/) |
 | disableEnhancedTextVisibility | | | Disables enhanced text visibility |
 
 ### Html5Player only
@@ -306,6 +310,8 @@ constructor parameter "options" is optional.  Example { controlcenter: { contain
 | onTextHighligtChanged |
 
 ## FormReader
+[Demo](http://jsfiddle.net/dx53bg6k/2/ )
+
 Example: talkify.formReader.addForm(document.getElementById("form-id"));
 
 | Method   | Parameters | Default |      Description      |
@@ -314,6 +320,8 @@ Example: talkify.formReader.addForm(document.getElementById("form-id"));
 | removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
 
 ## Text selection reader
+[Demo](http://jsfiddle.net/t5dbcL64/)
+
 This feature allows the user to select/mark text using the mouse and have that text read aloud.
 
 Example: 
