@@ -5,6 +5,19 @@ Give a voice to your website in a matter of minutes. Talkify library provides yo
 
 To use our backend services (our hosted voices) you will require an api-key. Visit our portal (https://manage.talkify.net) to create your own API-key, Talkify offers 1000 free requests per month. 
 
+* [Install](#installation)
+* [Dependencies](#dependencies)
+* [Usage](#usage)
+* [Features](#features)
+* [SSML](#ssml)
+* [Configuration](#configuration)
+* [API](#api)
+    * [Playlist](#playlist-fluent-builder)
+    * [Players](#player-valid-for-all-players)
+    * [Form reader](#formreader)
+    * [Text selection reader](#text-selection-reader)
+* [Events](#pubsub-events)
+
 ## Installation
 ```
 $ bower install talkify
@@ -297,7 +310,7 @@ Example: talkify.formReader.addForm(document.getElementById("form-id"));
 | addForm   | form element | None |   Adds TTS functionality to the form.         |
 | removeForm   | form element | None |  Unbinds all TTS functionality from the form         |
 
-## Text selection activator
+## Text selection reader
 This feature allows the user to select/mark text using the mouse and have that text read aloud.
 
 Example: 
