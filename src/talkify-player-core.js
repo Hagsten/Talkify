@@ -232,9 +232,13 @@ talkify.BasePlayer = function (_audiosource, _playbar, options) {
 
     this.enableEnhancedTextVisibility = function () {
         talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", true);
+
+        return this;
     }
 
     this.disableEnhancedTextVisibility = function () {
         talkify.messageHub.publish(this.correlationId + ".player.*.enhancedvisibilityset", false);
+
+        return this;
     }
 };
