@@ -5,227 +5,226 @@
     width: 100%;
 }
 
-.talkify-control-center.modern.detached{
+.talkify-control-center.modern.detached {
     top: 85vh;
     left: 50px;
     width: 275px;
 }
 
-.talkify-control-center.modern.detached .player-settings ul {
-    font-size:13px;
+    .talkify-control-center.modern.detached .player-settings ul {
+        font-size: 13px;
+    }
+
+        .talkify-control-center.modern.detached .player-settings ul i {
+            font-size: 13px;
+        }
+
+    .talkify-control-center.modern.detached span {
+        font-size: 13px;
+    }
+
+.talkify-control-center.modern {
+    position: fixed;
+    z-index: 100;
 }
 
-.talkify-control-center.modern.detached .player-settings ul i {
-    font-size: 13px;
-}
+    .talkify-control-center.modern button {
+        cursor: pointer;
+        padding: 10px;
+        outline: none;
+    }
 
-.talkify-control-center.modern.detached span{
-    font-size: 13px;
-}
+    .talkify-control-center.modern ul {
+        padding: 0;
+        margin: 0;
+    }
 
-.talkify-control-center.modern{
-    position: fixed;  
-    z-index: 100;  
-}
+    .talkify-control-center.modern label {
+        cursor: pointer;
+    }
 
-.talkify-control-center.modern button{
-    cursor: pointer;
-    padding: 10px;
-    outline: none;
-}
+    .talkify-control-center.modern ul.player-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-.talkify-control-center.modern ul{
-    padding: 0;
-    margin: 0;
-}
+    .talkify-control-center.modern .talkify-playback-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-.talkify-control-center.modern label {
-    cursor: pointer;
-}
+    .talkify-control-center.modern .player-controls li {
+        font-size: 14px;
+    }
 
-.talkify-control-center.modern  ul.player-controls{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+    .talkify-control-center.modern .player-controls li {
+        list-style: none;
+    }
 
-.talkify-control-center.modern .talkify-playback-controls{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+    .talkify-control-center.modern .player-controls > li {
+        text-align: center;
+        padding: 10px;
+    }
 
-.talkify-control-center.modern .player-controls li{
-    font-size: 14px;
-}
+    .talkify-control-center.modern .player-controls > li {
+        width: 50%;
+    }
 
-.talkify-control-center.modern .player-controls li{
-    list-style: none;
+        .talkify-control-center.modern .player-controls > li:first-child,
+        .talkify-control-center.modern .player-controls > li:last-child {
+            width: 25%;
+        }
 
-}
+    .talkify-control-center.modern.detached .player-controls > li {
+        width: 70%;
+    }
 
-.talkify-control-center.modern .player-controls > li {
-    text-align: center;
-    padding: 10px;
-}
-
-.talkify-control-center.modern .player-controls > li {
-    width: 50%;
-}
-
-.talkify-control-center.modern .player-controls > li:first-child,
-.talkify-control-center.modern .player-controls > li:last-child  {
-    width: 25%;
-}
-
-.talkify-control-center.modern.detached .player-controls > li {
-    width: 70%;
-}
-
-.talkify-control-center.modern.detached .player-controls > li:first-child  {
-    width: 30%;
-}
+        .talkify-control-center.modern.detached .player-controls > li:first-child {
+            width: 30%;
+        }
 
 
-.talkify-control-center.modern .player-settings {
-    position: relative;
-    display: inline-block;
-}
+    .talkify-control-center.modern .player-settings {
+        position: relative;
+        display: inline-block;
+    }
 
-.talkify-control-center.modern .player-settings > ul{
-    display: none;
-}
+        .talkify-control-center.modern .player-settings > ul {
+            display: none;
+        }
 
-.talkify-control-center.modern  .player-settings #player-settings-toggle:checked +  ul{
-    display: block;
-}
+        .talkify-control-center.modern .player-settings #player-settings-toggle:checked + ul {
+            display: block;
+        }
 
-.talkify-control-center.modern .player-settings input[type=range]{
-    width: 130px;
-}
+        .talkify-control-center.modern .player-settings input[type=range] {
+            width: 130px;
+        }
 
-.talkify-control-center.modern .player-settings select{
-    border: none;
-    width: 150px;
-    background: transparent;
-    font-size: 13px;
-}
+        .talkify-control-center.modern .player-settings select {
+            border: none;
+            width: 150px;
+            background: transparent;
+            font-size: 13px;
+        }
 
-.talkify-control-center.modern .player-settings ul {
-    position: absolute;
-    bottom: 53px;
-}
+        .talkify-control-center.modern .player-settings ul {
+            position: absolute;
+            bottom: 53px;
+        }
 
-.talkify-control-center.modern .player-settings ul li{
-    display: flex;
-    align-items: center;
-    line-height: normal;
-}
+            .talkify-control-center.modern .player-settings ul li {
+                display: flex;
+                align-items: center;
+                line-height: normal;
+            }
 
-.talkify-control-center.modern .player-settings ul button{
-    border-radius: 0;
-}
+            .talkify-control-center.modern .player-settings ul button {
+                border-radius: 0;
+            }
 
-.talkify-control-center.modern.attached .player-settings ul li > * {
-    padding: 10px;
-}
+    .talkify-control-center.modern.attached .player-settings ul li > * {
+        padding: 10px;
+    }
 
-.talkify-control-center.modern.detached .player-settings ul li > * {
-    padding: 7px;
-}
+    .talkify-control-center.modern.detached .player-settings ul li > * {
+        padding: 7px;
+    }
 
-.talkify-control-center.modern.attached .player-settings ul button {
-    width: 42px;
-    height: 42px;
-}
+    .talkify-control-center.modern.attached .player-settings ul button {
+        width: 42px;
+        height: 42px;
+    }
 
-.talkify-control-center.modern.detached .player-settings ul button {
-    width: 32px;
-    height: 32px;
-}
+    .talkify-control-center.modern.detached .player-settings ul button {
+        width: 32px;
+        height: 32px;
+    }
 
-.talkify-control-center.modern .player-settings .pitch-icon{
-    transform: rotate(-45deg);
-}
+    .talkify-control-center.modern .player-settings .pitch-icon {
+        transform: rotate(-45deg);
+    }
 
-.talkify-control-center.modern progress {    
-    width: 100%;
-    height: 5px;
-    border: none;
-    display: block;
-}
-  
-    .talkify-control-center.modern button{
+    .talkify-control-center.modern progress {
+        width: 100%;
+        height: 5px;
+        border: none;
+        display: block;
+    }
+
+    .talkify-control-center.modern button {
         text-align: center;
         border: none;
         font-size: 16px;
         background-color: transparent;
     }
 
-    .talkify-control-center.modern .talkify-audio-loading{
+    .talkify-control-center.modern .talkify-audio-loading {
         position: relative;
     }
 
-    .talkify-control-center.modern .talkify-audio-loading::after, .talkify-control-center.modern .talkify-audio-loading::before{
-        content: '';
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        border: 2px solid;
-        position: absolute;
-        left: 0;
-        top: 0;
-        transform: scale(0);        
-    }
+        .talkify-control-center.modern .talkify-audio-loading::after, .talkify-control-center.modern .talkify-audio-loading::before {
+            content: '';
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: scale(0);
+        }
 
-    .talkify-control-center.modern .talkify-audio-loading::after{
-        animation-name: loading-pulse;
-        animation-duration: 1s;
-        animation-iteration-count: infinite;
-        animation-delay: 0.25s;
-    }
+        .talkify-control-center.modern .talkify-audio-loading::after {
+            animation-name: loading-pulse;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            animation-delay: 0.25s;
+        }
 
-    .talkify-control-center.modern .talkify-audio-loading::before{
-        animation-name: loading-pulse;
-        animation-duration: 1s;
-        animation-iteration-count: infinite;
-    }
+        .talkify-control-center.modern .talkify-audio-loading::before {
+            animation-name: loading-pulse;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+        }
 
-    .talkify-control-center.modern button.talkify-play-button, 
-    .talkify-control-center.modern .talkify-audio-error, 
-    .talkify-control-center.modern .talkify-audio-loading, 
+    .talkify-control-center.modern button.talkify-play-button,
+    .talkify-control-center.modern .talkify-audio-error,
+    .talkify-control-center.modern .talkify-audio-loading,
     .talkify-control-center.modern .talkify-pause-button {
         border-radius: 100%;
         height: 40px;
-        width: 40px;        
+        width: 40px;
         font-size: 18px;
-        margin: 0 10px;        
+        margin: 0 10px;
     }
 
-    .talkify-control-center.modern li{
+    .talkify-control-center.modern li {
         vertical-align: middle;
     }
 
-    .talkify-control-center.modern .talkify-voice-selector{
+    .talkify-control-center.modern .talkify-voice-selector {
         margin-left: auto;
         position: relative;
     }
 
-    .talkify-control-center.modern .talkify-voice-selector > label{
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
+        .talkify-control-center.modern .talkify-voice-selector > label {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
 
     .talkify-control-center.modern .player-settings li:hover {
         filter: brightness(90%);
         cursor: pointer;
     }
 
-    .talkify-control-center.modern .talkify-voice-selector input[type=checkbox]:checked + .voice-selector{
+    .talkify-control-center.modern .talkify-voice-selector input[type=checkbox]:checked + .voice-selector {
         display: block;
     }
 
@@ -238,19 +237,19 @@
         padding: 5px;
     }
 
-    .talkify-control-center.modern.attached .talkify-voice-selector span{
+    .talkify-control-center.modern.attached .talkify-voice-selector span {
         margin-right: 5px;
         vertical-align: middle;
     }
-    
-    .talkify-control-center.modern .voice-selector > li{
+
+    .talkify-control-center.modern .voice-selector > li {
         display: block;
         padding: 5px;
         text-align: left;
         transition: all 0.5s;
     }
 
-    .talkify-control-center.modern .voice-selector li input[type=checkbox]:checked + .language{
+    .talkify-control-center.modern .voice-selector li input[type=checkbox]:checked + .language {
         display: block;
     }
 
@@ -259,27 +258,27 @@
         padding: 0;
     }
 
-    .talkify-control-center.modern .voice-selector .language > li {
-        margin: auto;
-        padding: 2px 5px;
-        display: flex;
-        align-items: center;
-    }
+        .talkify-control-center.modern .voice-selector .language > li {
+            margin: auto;
+            padding: 2px 5px;
+            display: flex;
+            align-items: center;
+        }
 
-    .talkify-control-center.modern .voice-selector .language > li > div:last-of-type{
-        margin-left: auto;
-    }
+            .talkify-control-center.modern .voice-selector .language > li > div:last-of-type {
+                margin-left: auto;
+            }
 
     .talkify-control-center.modern .voice-selector {
-        padding: 0;;
+        padding: 0;
+        ;
         margin: 0;
         position: absolute;
         bottom: 45px;
         right: 0;
         width: 200px;
         max-height: 500px;
-        overflow-y: auto;    
-
+        overflow-y: auto;
         display: none;
         box-sizing: border-box;
         border-width: 2px;
@@ -287,10 +286,10 @@
         border-bottom-style: none;
     }
 
-    /* width */
-    .talkify-control-center.modern .voice-selector::-webkit-scrollbar {
-        width: 10px;
-    }
+        /* width */
+        .talkify-control-center.modern .voice-selector::-webkit-scrollbar {
+            width: 10px;
+        }
 
 
     /* Sliders */
@@ -301,118 +300,136 @@
         padding: 5px;
         display: none;
     }
-        .talkify-control-center.modern .talkify-volume-button:focus .volume-slider,
-        .talkify-control-center.modern .talkify-volume-button:active .volume-slider,
-        .talkify-control-center.modern .talkify-volume-slider:hover,
-        .talkify-control-center.modern .talkify-rate-button:focus .rate-slider,
-        .talkify-control-center.modern .talkify-rate-button:active .rate-slider,
-        .talkify-control-center.modern .talkify-rate-slider:hover {
-            display: block;
-            left: 18px;
-            transform: rotate(-90deg);
-            transform-origin: left;
-        }
 
-        .talkify-control-center.modern .talkify-volume-button, .talkify-control-center.modern .talkify-rate-button {
-            position: relative;
-        }
-    
-        .talkify-control-center.modern input[type=range] {
-            /*removes default webkit styles*/
-            -webkit-appearance: none;
-            /*required for proper track sizing in FF*/
-            width: 100px;
-            background: transparent;
-            border: 0;
-            padding: 0;
-            outline: none;
-        }
-    
-        .talkify-control-center.modern .volume-slider, 
-        .talkify-control-center.modern .rate-slider {
-            padding: 10px;
-        }
+    .talkify-control-center.modern .talkify-volume-button:focus .volume-slider,
+    .talkify-control-center.modern .talkify-volume-button:active .volume-slider,
+    .talkify-control-center.modern .talkify-volume-slider:hover,
+    .talkify-control-center.modern .talkify-rate-button:focus .rate-slider,
+    .talkify-control-center.modern .talkify-rate-button:active .rate-slider,
+    .talkify-control-center.modern .talkify-rate-slider:hover {
+        display: block;
+        left: 18px;
+        transform: rotate(-90deg);
+        transform-origin: left;
+    }
 
-            .talkify-control-center.modern input[type=range]::-webkit-slider-runnable-track {
-                height: 10px;
-                border: none;
-            }
+    .talkify-control-center.modern .talkify-volume-button, .talkify-control-center.modern .talkify-rate-button {
+        position: relative;
+    }
 
-            .talkify-control-center.modern.detached input[type=range]::-webkit-slider-runnable-track {
-                height: 5px;
-            }
-    
-            .talkify-control-center.modern input[type=range]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                border: none;
-                height: 20px;
-                width: 10px;
-                margin-top: -5px;
-            }
+    .talkify-control-center.modern input[type=range] {
+        /*removes default webkit styles*/
+        -webkit-appearance: none;
+        /*required for proper track sizing in FF*/
+        width: 100px;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        outline: none;
+    }
 
-            .talkify-control-center.modern.detached input[type=range]::-webkit-slider-thumb {
-                margin-top: -2.5px;
-            }
+    .talkify-control-center.modern .volume-slider,
+    .talkify-control-center.modern .rate-slider {
+        padding: 10px;
+    }
 
-            .talkify-control-center.modern.detached input[type=range]::-webkit-slider-thumb {
-                height: 10px;
-            }
-    
-            .talkify-control-center.modern input[type=range]:focus {
-                outline: none;
-            }
-    
-            .talkify-control-center.modern input[type=range]::-moz-range-track {
-                width: 100%;
-                height: 5px;
-                border: none;
-            }
-    
-            .talkify-control-center.modern input[type=range]::-moz-range-thumb {
-                border: none;
-                height: 12px;
-                width: 12px;
-            }
-    
-            /*hide the outline behind the border*/
-            .talkify-control-center.modern input[type=range]:-moz-focusring {
-                outline: 1px solid white;
-                -ms-outline-offset: -1px;
-                outline-offset: -1px;
-            }
-    
-            .talkify-control-center.modern input[type=range]::-ms-track {
-                width: 75px;
-                height: 3px;
-                /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
-                background: transparent;
-                /*leave room for the larger thumb to overflow with a transparent border */
-                border-color: transparent;
-                border-width: 6px 0;
-            }
-    
-            .talkify-control-center.modern input[type=range]::-ms-fill-lower {
-                border-radius: 10px;
-            }
-    
-            .talkify-control-center.modern input[type=range]::-ms-fill-upper {
-                border-radius: 10px;
-            }
-    
-            .talkify-control-center.modern input[type=range]::-ms-thumb {
-                border: none;
-                height: 12px;
-                width: 12px;
-                -ms-border-radius: 50%;
-                border-radius: 50%;
-                margin-top: -1px;
-            }
-    
+    .talkify-control-center.modern input[type=range]::-webkit-slider-runnable-track {
+        height: 10px;
+        border: none;
+    }
 
-    /* end sliders */
+    .talkify-control-center.modern.detached input[type=range]::-webkit-slider-runnable-track {
+        height: 5px;
+    }
 
+    .talkify-control-center.modern input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        border: none;
+        height: 20px;
+        width: 10px;
+        margin-top: -5px;
+    }
 
-    @keyframes loading-pulse {
-        from {transform: scale(0); opacity: 1;}
-        to {transform: scale(1); opacity: 0;}
-      }
+    .talkify-control-center.modern.detached input[type=range]::-webkit-slider-thumb {
+        margin-top: -2.5px;
+    }
+
+    .talkify-control-center.modern.detached input[type=range]::-webkit-slider-thumb {
+        height: 10px;
+    }
+
+    .talkify-control-center.modern input[type=range]:focus {
+        outline: none;
+    }
+
+    .talkify-control-center.modern input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 5px;
+        border: none;
+    }
+
+    .talkify-control-center.modern input[type=range]::-moz-range-thumb {
+        border: none;
+        height: 12px;
+        width: 12px;
+    }
+
+    /*hide the outline behind the border*/
+    .talkify-control-center.modern input[type=range]:-moz-focusring {
+        outline: 1px solid white;
+        -ms-outline-offset: -1px;
+        outline-offset: -1px;
+    }
+
+    .talkify-control-center.modern input[type=range]::-ms-track {
+        width: 75px;
+        height: 3px;
+        /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
+        background: transparent;
+        /*leave room for the larger thumb to overflow with a transparent border */
+        border-color: transparent;
+        border-width: 6px 0;
+    }
+
+    .talkify-control-center.modern input[type=range]::-ms-fill-lower {
+        border-radius: 10px;
+    }
+
+    .talkify-control-center.modern input[type=range]::-ms-fill-upper {
+        border-radius: 10px;
+    }
+
+    .talkify-control-center.modern input[type=range]::-ms-thumb {
+        border: none;
+        height: 12px;
+        width: 12px;
+        -ms-border-radius: 50%;
+        border-radius: 50%;
+        margin-top: -1px;
+    }
+
+/* end sliders */
+@keyframes loading-pulse {
+    from {
+        transform: scale(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+@media screen and (max-device-width : 640px), only screen and (max-width : 640px) {
+    .talkify-download-button.desktop, .talkify-download-loading.desktop, .talkify-download-error.desktop {
+        display: none !important;
+    }
+}
+
+@media (min-width: 641px) {
+
+    .talkify-download-button.mobile {
+        display: none !important;
+    }
+}

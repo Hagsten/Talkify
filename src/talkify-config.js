@@ -9,6 +9,7 @@ talkify.config = {
             enabled: true,
             controlcenter: "native", //["classic", "modern", "local", "native"]
             container: document.body,
+            downloadEnabled: true,
             voicepicker: {
                 enabled: true, //where applicable
                 filter: {

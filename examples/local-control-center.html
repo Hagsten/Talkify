@@ -21,10 +21,7 @@
         <div class="talkify-section">
             <p>Hello, this is a local control center test. Yes, yes it is. It really is.
             </p>
-            <p>
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-            </p>
-            
+        
         </div>
     </section>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
@@ -33,16 +30,16 @@
 
     <script>
         talkify.config.debug = true;
-        talkify.config.useSsml = true;
+        talkify.config.useSsml = false;
         talkify.config.remoteService.active = true;
         talkify.config.keyboardCommands.enabled = true;
         talkify.config.voiceCommands.enabled = true;
 
-        talkify.config.remoteService.speechBaseUrl = '/api/speech/v1';
-        talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
+        talkify.config.remoteService.speechBaseUrl = '/api/speech/v2';
+        talkify.config.remoteService.languageBaseUrl = '/api/language/v2';
 
         talkify.config.remoteService.apiKey = '';
-    
+
         talkify.config.remoteService.host = 'http://localhost:6719';
 
         talkify.config.ui.audioControls.controlcenter = "local";
