@@ -266,6 +266,10 @@ talkify.TtsPlayer = function (options) {
                     })
                 );
 
+                setTimeout(function(){
+                    document.body.removeChild(link);
+                }, 1000);
+
                 talkify.messageHub.publish(me.correlationId + ".player.tts.download.completed", null);
             }
         };
