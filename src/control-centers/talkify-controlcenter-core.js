@@ -818,6 +818,9 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.created");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.html5.created");
         talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.*.enhancedvisibilityset");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.download.error");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.download.started");
+        talkify.messageHub.unsubscribe("controlcenter", correlationId + ".player.tts.download.completed");
     }
 
     initialize();
