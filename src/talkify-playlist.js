@@ -105,11 +105,17 @@ talkify.playlist = function () {
             }
 
             if(player.downloadAudio){
+                var separators = ['\.', '\?', '!', '。'];
+
                 var text = playlist.queue.map(function (x) {
-                    return x.text;
+                    if(separators.indexOf(x.text.trim().substr(-1)) !== -1) {
+                        return x.text;
+                    }
+                    
+                    return x.text + ".";
                 });
 
-                player.downloadAudio(text.join());
+                player.downloadAudio(text.join(" "));
             }
         }
 
@@ -656,6 +662,7 @@ talkify.playlist = function () {
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.textinteractiontoggled");
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.playnext");
                 talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.playprevious");
+                talkify.messageHub.unsubscribe("playlist", player.correlationId + ".controlcenter.request.download");
 
                 player = p;
                 player.withReferenceLanguage(playlist.referenceLanguage);

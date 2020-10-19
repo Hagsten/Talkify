@@ -285,6 +285,12 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
         hide(downloadErrorElement);
         addClass(downloadElement, "talkify-disabled");
 
+        if (!talkify.config.ui.audioControls.downloadEnabled) {
+            hide(downloadElement);
+
+            downloadElement = downloadErrorElement = downloadLoadingElement = noopElement;
+        }
+
         pause();
     }
 
@@ -421,11 +427,13 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
         dragArea.addEventListener("mousedown", onMouseDown);
         document.addEventListener("mouseup", onMouseUp);
 
-        downloadElement.forEach(function (x) {
-            x.addEventListener("click", function () {
-                talkify.messageHub.publish(correlationId + ".controlcenter.request.download");
+        if (talkify.config.ui.audioControls.downloadEnabled) {
+            downloadElement.forEach(function (x) {
+                x.addEventListener("click", function () {
+                    talkify.messageHub.publish(correlationId + ".controlcenter.request.download");
+                });
             });
-        });
+        }
 
         function onMouseUp(e) {
             document.removeEventListener("mousemove", onMouseMove);

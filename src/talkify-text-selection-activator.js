@@ -12,7 +12,8 @@ talkify.selectionActivator = function () {
         enhancedVisibility: false,
         voice: { name: 'Zira' },
         highlightText: false,
-        buttonText: "Listen"
+        buttonText: "Listen",
+        rate: 0
     };
 
     var validNodeTypes = [1, 3];
@@ -355,6 +356,7 @@ talkify.selectionActivator = function () {
         }
 
         player.forceVoice(settings.voice);
+        player.setRate(settings.rate);
 
         if (settings.enhancedVisibility) {
             player.enableEnhancedTextVisibility();
@@ -543,6 +545,9 @@ talkify.selectionActivator = function () {
         withButtonText: function (text) {
             settings.buttonText = text;
             return this;
+        },
+        withRate: function(rate){
+            settings.rate = rate;
         },
         excludeElements: function (domElements) {
             settings.exclude = domElements;
