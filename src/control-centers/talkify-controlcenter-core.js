@@ -10,7 +10,7 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
     var playElement, pauseElement, rateElement, volumeElement, progressElement, voiceElement, currentTimeElement, textHighlightingElement, wrapper, voicePicker;
     var attachElement, detatchedElement, dragArea, loader, erroroccurredElement, textInteractionElement, pitchElement, wordBreakElement, wordBreakElementWrapper;
     var pitchElementWrapper, nextItemElement, previousItemElement, voiceNameElement, enhancedVisibilityElement;
-    var flagElement, phonationNormalElement, phonationSoftElement, phonationWhisperElement, phonationDropDown;
+    var flagElement, phonationNormalElement, phonationSoftElement, phonationWhisperElement, phonationDropDown, downloadElement, downloadLoadingElement, downloadErrorElement;
     var voices = [];
 
     var noopElement = document.createElement("div");
@@ -18,11 +18,23 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
     rateElement = volumeElement = [];
 
     function hide(element) {
-        if (!element || element.classList.contains("talkify-hidden")) {
+        if (!element) {
             return;
         }
 
-        element.className += " talkify-hidden";
+        var arr = Array.isArray(element) ?
+            element :
+            NodeList.prototype.isPrototypeOf(element) ?
+                Array.from(element) :
+                [element];
+
+        arr.forEach(function (x) {
+            if (x.classList.contains("talkify-hidden")) {
+                return;
+            }
+
+            x.className += " talkify-hidden";
+        });
     }
 
     function show(element) {
@@ -30,7 +42,15 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
             return;
         }
 
-        element.className = element.className.replace("talkify-hidden", "");
+        var arr = Array.isArray(element) ?
+            element :
+            NodeList.prototype.isPrototypeOf(element) ?
+                Array.from(element) :
+                [element];
+
+        arr.forEach(function (x) {
+            x.className = x.className.replace("talkify-hidden", "");
+        });
     }
 
     function play() {
@@ -55,15 +75,31 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
     }
 
     function addClass(element, c) {
-        if (element.classList.contains(c)) {
-            return;
-        }
+        var arr = Array.isArray(element) ?
+            element :
+            NodeList.prototype.isPrototypeOf(element) ?
+                Array.from(element) :
+                [element];
 
-        element.className += (" " + c);
+        arr.forEach(function (x) {
+            if (x.classList.contains(c)) {
+                return;
+            }
+
+            x.className += (" " + c);
+        });
     }
 
     function removeClass(element, c) {
-        element.className = element.className.replace(c, "");
+        var arr = Array.isArray(element) ?
+            element :
+            NodeList.prototype.isPrototypeOf(element) ?
+                Array.from(element) :
+                [element];
+
+        arr.forEach(function (x) {
+            x.className = x.className.replace(c, "");
+        });
     }
 
     function createElement(type, classes) {
@@ -207,7 +243,7 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
 
         wrapper = div.firstChild;
 
-        settings.parentElement.appendChild(wrapper);        
+        settings.parentElement.appendChild(wrapper);
 
         playElement = wrapper.getElementsByClassName("talkify-play-button")[0] || noopElement;
         pauseElement = wrapper.getElementsByClassName("talkify-pause-button")[0] || noopElement;
@@ -236,12 +272,18 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
         previousItemElement = wrapper.getElementsByClassName("talkify-step-backward-button")[0] || noopElement;
         voiceNameElement = document.querySelector(".talkify-voice-selector span") || noopElement;
         enhancedVisibilityElement = document.querySelector(".talkify-enhanced-visibility-button") || noopElement;
+        downloadElement = document.querySelectorAll('.talkify-download-button') || [];
+        downloadLoadingElement = document.querySelectorAll('.talkify-download-loading') || [];
+        downloadErrorElement = document.querySelectorAll('.talkify-download-error') || [];
 
         settings.parentElement.appendChild(wrapper);
 
         talkify.messageHub.publish(correlationId + ".controlcenter.attached", wrapper.getBoundingClientRect());
 
         hide(loader);
+        hide(downloadLoadingElement);
+        hide(downloadErrorElement);
+        addClass(downloadElement, "talkify-disabled");
 
         pause();
     }
@@ -379,6 +421,11 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
         dragArea.addEventListener("mousedown", onMouseDown);
         document.addEventListener("mouseup", onMouseUp);
 
+        downloadElement.forEach(function (x) {
+            x.addEventListener("click", function () {
+                talkify.messageHub.publish(correlationId + ".controlcenter.request.download");
+            });
+        });
 
         function onMouseUp(e) {
             document.removeEventListener("mousemove", onMouseMove);
@@ -452,6 +499,7 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.loaded", function () {
             removeClass(playElement, "talkify-disabled");
+            removeClass(downloadElement, "talkify-disabled");
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.textinteraction.enabled", function () {
@@ -460,6 +508,23 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".playlist.textinteraction.disabled", function () {
             addClass(textInteractionElement, "talkify-disabled");
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.download.started", function () {
+            hide(downloadElement);
+            show(downloadLoadingElement);
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.download.completed", function () {
+            show(downloadElement);
+            hide(downloadLoadingElement);
+        });
+
+        talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.download.error", function (obj) {
+            hide(downloadLoadingElement);
+            show(downloadErrorElement);
+
+            downloadErrorElement.title = obj.statusText;
         });
 
         talkify.messageHub.subscribe("controlcenter", correlationId + ".player.tts.wordbreakchanged", function (ms) {
@@ -511,6 +576,8 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
                 addClass(previousItemElement, "talkify-disabled");
             }
         });
+
+
     };
 
     function getLocalVoices() {

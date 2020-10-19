@@ -96,6 +96,21 @@ talkify.playlist = function () {
 
             talkify.messageHub.subscribe("playlist", player.correlationId + ".controlcenter.request.playnext", playNext);
             talkify.messageHub.subscribe("playlist", player.correlationId + ".controlcenter.request.playprevious", playPrevious);
+            talkify.messageHub.subscribe("playlist", player.correlationId + ".controlcenter.request.download", downloadAudio);
+        }
+
+        function downloadAudio() {
+            if (!player) {
+                return;
+            }
+
+            if(player.downloadAudio){
+                var text = playlist.queue.map(function (x) {
+                    return x.text;
+                });
+
+                player.downloadAudio(text.join());
+            }
         }
 
         function playNext() {

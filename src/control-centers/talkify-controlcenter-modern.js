@@ -82,6 +82,12 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                             <input type="range" value="10" min="0" max="10" title="Adjust playback volume">\
                         </div>\
                     </li>\
+                    <li class="talkify-download-button mobile">\
+                        <button title="Download" class="modern-talkify-control-center-accent">\
+                            <i class="fas fa-download"></i>\
+                        </button>\
+                        <div>Download</div>\
+                    </li>\
                     <li class="talkify-detached talkify-attach-handle">\
                         <button class="modern-talkify-control-center-accent" title="Attach player">\
                             <i class="fa fa-window-minimize"></i>\
@@ -118,7 +124,15 @@ talkify.controlcenters.modern = function (parent, correlationId) {
                     <input type="range" value="10" min="0" max="10" title="Adjust playback volume">\
                 </div>\
             </button>\
-            \
+            <button class="talkify-download-button desktop" title="Download">\
+                    <i class="fas fa-download"></i>\
+            </button>\
+            <div class="talkify-download-loading desktop">\
+                <i class="fas fa-dharmachakra fa-spin"></i>\
+            </div>\
+            <div class="talkify-download-error desktop">\
+                <i class="fas fa-exclamation-triangle"></i>\
+            </div>\
         <li class="talkify-attached">\
             <div class="talkify-voice-selector ">\
                 <label for="voice-selector-toggle">\

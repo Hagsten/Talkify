@@ -31,6 +31,15 @@ talkify.controlcenters.local = function () {
                 <button class="talkify-enhanced-visibility-button" title="Toggle enhanced visibility">\
                     <i class="fas fa-eye"></i>\
                 </button>\
+                <button class="talkify-download-button" title="Download">\
+                    <i class="fas fa-download"></i>\
+                </button>\
+                <div class="talkify-download-loading">\
+                    <i class="fas fa-dharmachakra fa-spin"></i>\
+                </div>\
+                <div class="talkify-download-error">\
+                    <i class="fas fa-exclamation-triangle"></i>\
+                </div>\
                 <button title="More settings">\
                     <label for="talkify-local-settings"><i class="fas fa-cog"></i></label>\
                 </button>\

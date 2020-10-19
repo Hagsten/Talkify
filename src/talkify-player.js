@@ -220,6 +220,63 @@ talkify.TtsPlayer = function (options) {
 
     initialize.apply(this);
 
+    this.downloadAudio = function (text) {
+        var textType = "text";
+        var voice = (me.forcedVoice ? me.forcedVoice.name : "");
+        var pitch = me.settings.pitch;
+        var wordbreak = me.settings.wordbreakms;
+        var rate = me.settings.rate;
+        var textToPlay = textType === "ssml" ?
+            encodeURIComponent(text.replace(/\n/g, " ")) :
+            encodeURIComponent(text.replace(/\n/g, " "));
+
+        var obj = {
+            text: text,
+            rate: rate,
+            volume: me.settings.volumeDb,
+            voice: voice,
+            whisper: me.settings.whisper,
+            wordBreakMs: wordbreak,
+            soft: me.settings.soft,
+            pitch: pitch
+        };
+
+        var xhr = new XMLHttpRequest();
+        var url = talkify.config.remoteService.host + talkify.config.remoteService.speechBaseUrl + "?key=" + talkify.config.remoteService.apiKey;
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status >= 400 && xhr.status <= 599) {   
+                talkify.messageHub.publish(me.correlationId + ".player.tts.download.error", xhr);
+            }
+            
+            if (xhr.readyState === 4 && xhr.status === 200) {                
+                var link = document.createElement('a');
+
+                link.href = URL.createObjectURL(xhr.response);
+                link.download = "talkify";
+
+                document.body.appendChild(link);
+
+                link.dispatchEvent(
+                    new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    })
+                );
+
+                talkify.messageHub.publish(me.correlationId + ".player.tts.download.completed", null);
+            }
+        };
+        var data = JSON.stringify(obj);
+        xhr.responseType = 'blob';
+
+        talkify.messageHub.publish(me.correlationId + ".player.tts.download.started", null);
+
+        xhr.send(data);
+    }
+
     this.playAudio = function (item) {
         talkify.messageHub.publish(me.correlationId + ".player.tts.loading", item);
 
