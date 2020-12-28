@@ -3,7 +3,7 @@ talkify.playlist = function () {
     var defaults = {
         useGui: false,
         useTextInteraction: false,
-        domElements: [],
+        domElements: null,
         exclusions: [],
         rootSelector: "body",
         events: {
@@ -263,27 +263,13 @@ talkify.playlist = function () {
 
                 var response = [];
 
-                if (prefix) {
-                    response.push({
-                        text: prefix,
-                        ssml: prefix,
-                        preview: prefix.substr(0, 40),
-                        element: null,
-                        originalElement: null,
-                        isPlaying: false,
-                        isLoading: false,
-                        wordbreakms: wordbreakms ? parseInt(wordbreakms) : null,
-                        whisper: whisper ? whisper === "true" : null,
-                        soft: phonation ? phonation === "soft" : null,
-                        voice: voice,
-                        pitch: pitch ? parseInt(pitch) : null,
-                        rate: rate ? parseInt(rate) : null
-                    });
-                }
+                var text = prefix ? prefix + ": " + t : t;
+                var ssml = prefix ? prefix + ": " + s : s;
 
                 response.push({
-                    text: t,
-                    ssml: s,
+                    text: text,
+                    ssml: ssml,
+                    prefix: prefix,
                     preview: t.substr(0, 40),
                     element: el,
                     originalElement: clone,
@@ -382,13 +368,12 @@ talkify.playlist = function () {
             removeEventListeners("click", item.element);
         }
 
-        //TODO: Egen komponent
         function extractTables() {
-            if (!settings.tables) {
+            if (!settings.tableConfig) {
                 return [];
             }
 
-            talkify.tableReader.markTables(settings.tables);
+            talkify.tableReader.markTables(settings.tableConfig);
 
             return Array.from(document.querySelectorAll('.talkify-tts-table'));
         }
@@ -396,11 +381,9 @@ talkify.playlist = function () {
         function initialize() {
             reset();
 
-            if (!settings.domElements || settings.domElements.length === 0) {
+            if (!settings.domElements) {
                 settings.domElements = textextractor.extract(settings.rootSelector, settings.exclusions);
             }
-
-            //settings.domElements = settings.domElements.concat(extractTables());
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text, ssml;
@@ -604,6 +587,17 @@ talkify.playlist = function () {
 
         function insertChunckOfElements(elements) {
             if (!elements || elements.length === 0) {
+                return;
+            }
+
+            if (!playlist.queue.length) {
+                playlist.queue = elements.map(function (x) {
+                    var text = x.innerText.trim();
+                    var ssml = convertToSsml(x);
+
+                    return createItems(text, ssml, x);
+                }).flat();
+
                 return;
             }
 
@@ -830,8 +824,8 @@ talkify.playlist = function () {
 
                     return this;
                 },
-                withTables: function (tables) {
-                    s.tables = tables;
+                withTables: function (tableConfig) {
+                    s.tableConfig = tableConfig;
 
                     return this;
                 },

@@ -7,42 +7,71 @@ talkify = talkify || {};
 //2. Repeat header of each cell
 
 talkify.tableReader = function () {
-    function addTables(tables) {
-        var tablesToRead = [];
+    function addTables(config) {
+        var mapped = config.map(function (cfg) {
+            var tablesToRead = [];
 
-        if ((typeof tables) === "string") {
-            tablesToRead = document.querySelectorAll(tables);
-        } else {
-            tablesToRead = tables;
-        }
+            if ((typeof cfg.table) === "string") {
+                tablesToRead = document.querySelectorAll(cfg.table);
+            } else {
+                tablesToRead = cfg.table;
+            }
 
-        tablesToRead = Array.prototype.slice.call(tablesToRead);
+            cfg.tables = Array.prototype.slice.call(tablesToRead);
 
-        markTables(tablesToRead);
+            return cfg;
+        });
+
+        markTables(mapped);
     }
 
-    function markTables(tablesToRead) {
-        for (var j = 0; j < tablesToRead.length; j++) {
-            var table = tablesToRead[j];
+    function getElements(obj) {
+        if (!obj) {
+            return null;
+        }
 
-            table.classList.add("talkify-tts-table");
+        if ((typeof obj) === "string") {
+            return Array.from(document.querySelectorAll(obj));
+        } else {
+            return obj;
+        }
+    }
 
-            var headerCells = table.querySelectorAll('th');
-            var bodyCells = table.querySelectorAll('td');
+    function markTables(configurations) {
+        for (var j = 0; j < configurations.length; j++) {
+            var config = configurations[j];
 
-            var cols = bodyCells.length / headerCells.length;
-            var currentHeader = 0;
+            for (var k = 0; k < config.tables.length; k++) {
+                var table = config.tables[k];
 
-            for (var i = 0; i < bodyCells.length; i++) {
-                if (i % cols === 0) {
-                    currentHeader = 0;
+                table.classList.add("talkify-tts-table");
+
+                var headerCells = getElements(config.headerCells) || table.querySelectorAll('th');
+                var bodyCells = getElements(config.bodyCells) || table.querySelectorAll('td');
+
+                var cols = headerCells.length;
+                var currentHeader = 0;
+
+                for (var i = 0; i < bodyCells.length; i++) {
+                    if (i % cols === 0) {
+                        currentHeader = 0;
+                    }
+
+                    if(!bodyCells[i].innerText.trim()){
+                        currentHeader++;
+                        continue;
+                    }
+
+                    var headerCell = headerCells[currentHeader];
+
+                    if (headerCell.innerText.trim()) {
+                        bodyCells[i].setAttribute("data-talkify-prefix", headerCell.innerText);
+                    }
+
+                    bodyCells[i].classList.add("talkify-tts-tablecell");
+
+                    currentHeader++;
                 }
-
-                var headerCell = headerCells[currentHeader];
-                bodyCells[i].setAttribute("data-talkify-prefix", headerCell.innerText);
-                bodyCells[i].classList.add("talkify-tts-tablecell");
-
-                currentHeader++;
             }
         }
     }
@@ -51,4 +80,3 @@ talkify.tableReader = function () {
         markTables: addTables
     }
 }();
-//http://demo.readspeaker.com/?p=hl.tabl&l=en-us

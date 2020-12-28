@@ -1,7 +1,8 @@
 <html>
 
 <head>
-
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flexboxgrid@6.3.1/dist/flexboxgrid.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
     <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
     <link rel="stylesheet" type="text/css" href="../dist/styles/colors.css">
@@ -15,61 +16,58 @@
 </head>
 
 <body>
+    <button>
+        Start demo
+    </button>
 
-    <table border="1" class="speak-me">
+    <h3>Custom table</h3>
+    <div class="custom-table">
+        <div class="row header-row">
+            <div class="col-xs-3">Name </div>
+            <div class="col-xs-3">Country</div>
+            <div class="col-xs-3">City</div>
+            <div class="col-xs-3">Occupation</div>
+        </div>
+        <div class="row body-row">
+            <div class="col-xs-3">Thomas</div>
+            <div class="col-xs-3">United States</div>
+            <div class="col-xs-3">New York</div>
+            <div class="col-xs-3">Engineer</div>
+        </div>
+        <div class="row body-row">
+            <div class="col-xs-3">Elsa</div>
+            <div class="col-xs-3">Sweden</div>
+            <div class="col-xs-3">Stockholm</div>
+            <div class="col-xs-3">Programmer</div>
+        </div>
+    </div>
+
+    <h3>HTML standard table</h3>
+    <table border="1">
         <tbody>
             <tr>
-                <th>Product</th>
-
-                <th>Price</th>
-                <th>Available</th>
+                <th>Name </th>
+                <th>Country</th>
+                <th>City</th>
+                <th>Occupation</th>
             </tr>
             <tr>
-                <td>Lemons</td>
-                <td>$10 per item</td>
-                <td>Yes</td>
-
+                <td>Thomas</td>
+                <td>United states</td>
+                <td>New York</td>
+                <td>Engineer</td>
             </tr>
             <tr>
-                <td>Oranges</td>
-                <td>$7</td>
-                <td>Yes</td>
+                <td>Lisa</td>
+                <td>Great Britain</td>
+                <td>London</td>
+                <td>Recruiter</td>
             </tr>
             <tr>
-                <td>Tangerines</td>
-                <td>$12</td>
-                <td>No</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <p>
-        Hey
-    </p>
-
-    <table border="1" class="speak-me">
-        <tbody>
-            <tr>
-                <th>Product</th>
-
-                <th>Price</th>
-                <th>Available</th>
-            </tr>
-            <tr>
-                <td>Lemons</td>
-                <td>$10 per item</td>
-                <td>Yes</td>
-
-            </tr>
-            <tr>
-                <td>Oranges</td>
-                <td>$7</td>
-                <td>Yes</td>
-            </tr>
-            <tr>
-                <td>Tangerines</td>
-                <td>$12</td>
-                <td>No</td>
+                <td>Elsa</td>
+                <td>Sweden</td>
+                <td>Stockholm</td>
+                <td>Programmer</td>
             </tr>
         </tbody>
     </table>
@@ -93,7 +91,7 @@
         talkify.config.remoteService.host = 'http://localhost:6719';
 
         talkify.config.ui.audioControls.controlcenter = "modern";
-        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get a head-less player. Build you custom UI
+        talkify.config.ui.audioControls.enabled = false; //<-- Disable to get a head-less player. Build you custom UI
         talkify.config.ui.audioControls.container = document.getElementById("placeholder");
         talkify.config.ui.audioControls.voicepicker = {
             enabled: true,
@@ -105,16 +103,25 @@
         };
 
         $(document).ready(function () {
-            var player = new talkify.TtsPlayer();
-            player.enableTextHighlighting();
+            $('button').click(function () {
+                var player = new talkify.TtsPlayer();
+                player.forceVoice({name: 'Zira'});
+                player.enableTextHighlighting();
 
-            var playlist = new talkify.playlist()
-                .begin()
-                .usingPlayer(player)
-                .withTables("table")
-                .build();
+                var playlist = new talkify.playlist()
+                    .begin()
+                    .usingPlayer(player)
+                    .withElements([])
+                    .withTables(
+                        [{ table: ".custom-table", headerCells: ".header-row > div", bodyCells: ".body-row > div" },
+                        { table: "table" }])
+                    .build();
 
-            playlist.play();
+                playlist.play();
+
+                $(this).remove();
+            });
+
         });
     </script>
 </body>

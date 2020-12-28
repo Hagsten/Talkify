@@ -69,6 +69,34 @@ talkify.wordHighlighter = function (correlationId) {
         highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
     });
 
+    function adjustPositionsForPrefix(item) {
+        if (!item.prefix) {
+            return;
+        }
+
+        var itemPrefix = item.prefix.replace(/\s/g,'').replace(/[.,?!。，]/g, '');;
+        var prefix = "";
+
+        var lastPrefixIndex = 0;
+        var prefixEndsAtPosition = 0;
+
+        for (var i = 0; i < currentPositions.length; i++) {
+            prefix += currentPositions[i].Word;
+
+            if (prefix === itemPrefix) {
+                lastPrefixIndex = i;
+                prefixEndsAtPosition = currentPositions[i].CharPosition + currentPositions[i].Word.length + 2; //": "
+                break;
+            }
+        }
+
+        currentPositions.splice(0, lastPrefixIndex + 1);
+
+        for (var i = 0; i < currentPositions.length; i++) {
+            currentPositions[i].CharPosition -= prefixEndsAtPosition;
+        }
+    }
+
     talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.enhancedvisibilityset", function (value) {
         useEnhancedView = value;
 
@@ -170,6 +198,8 @@ talkify.wordHighlighter = function (correlationId) {
         } else {
             currentPositions = positions;
         }
+
+        adjustPositionsForPrefix(item);
 
         var i = startFrom || 0;
 
