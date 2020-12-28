@@ -104,14 +104,14 @@ talkify.playlist = function () {
                 return;
             }
 
-            if(player.downloadAudio){
+            if (player.downloadAudio) {
                 var separators = ['\.', '\?', '!', '。'];
 
                 var text = playlist.queue.map(function (x) {
-                    if(separators.indexOf(x.text.trim().substr(-1)) !== -1) {
+                    if (separators.indexOf(x.text.trim().substr(-1)) !== -1) {
                         return x.text;
                     }
-                    
+
                     return x.text + ".";
                 });
 
@@ -163,7 +163,10 @@ talkify.playlist = function () {
                 //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
-                item.element.classList.remove("playing");
+
+                if (item.element) {
+                    item.element.classList.remove("playing");
+                }
             }
         };
 
@@ -206,7 +209,7 @@ talkify.playlist = function () {
 
             resetPlaybackStates();
 
-            if (playlist.currentlyPlaying) {
+            if (playlist.currentlyPlaying && playlist.currentlyPlaying.element !== null) {
                 playlist.currentlyPlaying.element.innerHTML = playlist.currentlyPlaying.originalElement.innerHTML;
             }
 
@@ -236,13 +239,13 @@ talkify.playlist = function () {
 
                     element.appendChild(p);
 
-                    items.push(template(chuncks[i], null, p));
+                    items = items.concat(template(chuncks[i], null, p));
                 }
 
                 return items;
             }
 
-            items.push(template(text, ssml, element));
+            items = items.concat(template(text, ssml, element));
 
             return items;
 
@@ -256,8 +259,29 @@ talkify.playlist = function () {
                 var voice = el.getAttribute("data-talkify-voice") || null;
                 var pitch = el.getAttribute("data-talkify-pitch") || null;
                 var rate = el.getAttribute("data-talkify-rate") || null;
+                var prefix = el.getAttribute("data-talkify-prefix") || null;
 
-                return {
+                var response = [];
+
+                if (prefix) {
+                    response.push({
+                        text: prefix,
+                        ssml: prefix,
+                        preview: prefix.substr(0, 40),
+                        element: null,
+                        originalElement: null,
+                        isPlaying: false,
+                        isLoading: false,
+                        wordbreakms: wordbreakms ? parseInt(wordbreakms) : null,
+                        whisper: whisper ? whisper === "true" : null,
+                        soft: phonation ? phonation === "soft" : null,
+                        voice: voice,
+                        pitch: pitch ? parseInt(pitch) : null,
+                        rate: rate ? parseInt(rate) : null
+                    });
+                }
+
+                response.push({
                     text: t,
                     ssml: s,
                     preview: t.substr(0, 40),
@@ -271,7 +295,9 @@ talkify.playlist = function () {
                     voice: voice,
                     pitch: pitch ? parseInt(pitch) : null,
                     rate: rate ? parseInt(rate) : null
-                };
+                });
+
+                return response;
             }
         }
 
@@ -330,6 +356,10 @@ talkify.playlist = function () {
         }
 
         function setupItemForUserInteraction(item) {
+            if (!item.element) {
+                return;
+            }
+
             item.element.style.cursor = "pointer";
             item.element.classList.add("talkify-highlight");
 
@@ -342,10 +372,25 @@ talkify.playlist = function () {
         }
 
         function removeUserInteractionForItem(item) {
+            if (!item.element) {
+                return;
+            }
+
             item.element.style.cursor = "inherit";
             item.element.classList.remove("talkify-highlight");
 
             removeEventListeners("click", item.element);
+        }
+
+        //TODO: Egen komponent
+        function extractTables() {
+            if (!settings.tables) {
+                return [];
+            }
+
+            talkify.tableReader.markTables(settings.tables);
+
+            return Array.from(document.querySelectorAll('.talkify-tts-table'));
         }
 
         function initialize() {
@@ -354,6 +399,8 @@ talkify.playlist = function () {
             if (!settings.domElements || settings.domElements.length === 0) {
                 settings.domElements = textextractor.extract(settings.rootSelector, settings.exclusions);
             }
+
+            //settings.domElements = settings.domElements.concat(extractTables());
 
             for (var i = 0; i < settings.domElements.length; i++) {
                 var text, ssml;
@@ -378,6 +425,14 @@ talkify.playlist = function () {
                 if (text.length > playlist.refrenceText.length) {
                     playlist.refrenceText = text;
                 }
+            }
+
+            var tables = extractTables();
+
+            for (var t = 0; t < tables.length; t++) {
+                var cells = Array.from(tables[t].querySelectorAll(".talkify-tts-tablecell"));
+
+                insertChunckOfElements(cells);
             }
 
             if (settings.useTextInteraction) {
@@ -546,7 +601,47 @@ talkify.playlist = function () {
             return player instanceof talkify.TtsPlayer;
         }
 
+
+        function insertChunckOfElements(elements) {
+            if (!elements || elements.length === 0) {
+                return;
+            }
+
+            var baseline = elements[0];
+            var documentPositionFollowing = 4;
+
+            for (var j = 0; j < playlist.queue.length; j++) {
+                var item = playlist.queue[j];
+
+                if (!item.element) {
+                    continue;
+                }
+
+                var isSelectionAfterQueueItem = baseline.compareDocumentPosition(item.element) == documentPositionFollowing;
+                var shouldAddToBottom = j === playlist.queue.length - 1;
+
+                if (isSelectionAfterQueueItem || shouldAddToBottom) {
+                    var queueItems = elements.map(function (x) {
+                        var text = x.innerText.trim();
+                        var ssml = convertToSsml(x);
+
+                        return createItems(text, ssml, x);
+                    }).flat();
+
+                    var insertAtIndex = isSelectionAfterQueueItem ? j : j + 1;
+
+                    insertAt(insertAtIndex, queueItems);
+
+                    return;
+                }
+            }
+        }
+
         function insertElement(element) {
+            if (!element) {
+                return [];
+            }
+
             var items = [];
 
             var text = element.innerText;
@@ -563,6 +658,10 @@ talkify.playlist = function () {
 
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
+
+                if (!item.element) {
+                    continue;
+                }
 
                 var isSelectionAfterQueueItem = element.compareDocumentPosition(item.element) == documentPositionFollowing;
 
@@ -585,7 +684,7 @@ talkify.playlist = function () {
 
                     items = items.concat(qItems);
 
-                    break;;
+                    break;
                 }
             }
 
@@ -728,6 +827,11 @@ talkify.playlist = function () {
                 },
                 withElements: function (elements) {
                     s.domElements = elements;
+
+                    return this;
+                },
+                withTables: function (tables) {
+                    s.tables = tables;
 
                     return this;
                 },

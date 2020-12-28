@@ -37,7 +37,7 @@ talkify.wordHighlighter = function (correlationId) {
         var currentPos = 0;
 
         if (time < currentPositions[0].Position) {
-            if (currentPosition === 0) {
+            if (currentPosition === -1) {
                 return;
             }
 
@@ -120,8 +120,13 @@ talkify.wordHighlighter = function (correlationId) {
 
         return internalPos;
     }
+
     function highlight(item, word, charPosition) {
         resetCurrentItem();
+
+        if (!item.element) {
+            return;
+        }
 
         currentItem = item;
         var text = item.element.innerText.trim();
@@ -146,10 +151,15 @@ talkify.wordHighlighter = function (correlationId) {
         resetCurrentItem();
 
         currentPositions = [];
+        currentPosition = -1;
     }
 
     function setupWordHightlighting(item, positions, startFrom) {
         cancel();
+
+        if (!item.element) {
+            return;
+        }
 
         if (!positions.length) {
             return;
@@ -189,7 +199,7 @@ talkify.wordHighlighter = function (correlationId) {
     }
 
     function resetCurrentItem() {
-        if (currentItem) {
+        if (currentItem && currentItem.element !== null) {
             currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
         }
     }

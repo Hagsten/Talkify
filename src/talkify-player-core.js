@@ -108,8 +108,11 @@ talkify.BasePlayer = function (_audiosource, _playbar, options) {
 
         item.isLoading = true;
         item.isPlaying = true;
-        item.element.classList.add("playing");
 
+        if (item.element) {
+            item.element.classList.add("playing");
+        }
+        
         this.playAudio(item);
     };
 

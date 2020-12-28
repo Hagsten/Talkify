@@ -1,0 +1,120 @@
+<html>
+
+<head>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-playlist.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/classic-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/modern-control-center/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/main.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/local-control-center/colors.css">
+</head>
+
+<body>
+
+    <table border="1" class="speak-me">
+        <tbody>
+            <tr>
+                <th>Product</th>
+
+                <th>Price</th>
+                <th>Available</th>
+            </tr>
+            <tr>
+                <td>Lemons</td>
+                <td>$10 per item</td>
+                <td>Yes</td>
+
+            </tr>
+            <tr>
+                <td>Oranges</td>
+                <td>$7</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>Tangerines</td>
+                <td>$12</td>
+                <td>No</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>
+        Hey
+    </p>
+
+    <table border="1" class="speak-me">
+        <tbody>
+            <tr>
+                <th>Product</th>
+
+                <th>Price</th>
+                <th>Available</th>
+            </tr>
+            <tr>
+                <td>Lemons</td>
+                <td>$10 per item</td>
+                <td>Yes</td>
+
+            </tr>
+            <tr>
+                <td>Oranges</td>
+                <td>$7</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>Tangerines</td>
+                <td>$12</td>
+                <td>No</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="../dist/talkify.js"></script>
+
+    <script>
+        talkify.config.debug = true;
+        talkify.config.useSsml = true;
+        talkify.config.remoteService.active = true;
+        talkify.config.keyboardCommands.enabled = true;
+        talkify.config.voiceCommands.enabled = true;
+
+        talkify.config.remoteService.speechBaseUrl = '/api/speech/v2';
+        talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
+
+        talkify.config.remoteService.apiKey = '3f10eae8-6808-4c21-be9f-27556bc2e450';
+
+        talkify.config.remoteService.host = 'http://localhost:6719';
+
+        talkify.config.ui.audioControls.controlcenter = "modern";
+        talkify.config.ui.audioControls.enabled = true; //<-- Disable to get a head-less player. Build you custom UI
+        talkify.config.ui.audioControls.container = document.getElementById("placeholder");
+        talkify.config.ui.audioControls.voicepicker = {
+            enabled: true,
+            filter: {
+                byClass: [],
+                byCulture: [],
+                byLanguage: []
+            }
+        };
+
+        $(document).ready(function () {
+            var player = new talkify.TtsPlayer();
+            player.enableTextHighlighting();
+
+            var playlist = new talkify.playlist()
+                .begin()
+                .usingPlayer(player)
+                .withTables("table")
+                .build();
+
+            playlist.play();
+        });
+    </script>
+</body>
