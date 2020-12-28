@@ -152,10 +152,6 @@ talkify.wordHighlighter = function (correlationId) {
     function highlight(item, word, charPosition) {
         resetCurrentItem();
 
-        if (!item.element) {
-            return;
-        }
-
         currentItem = item;
         var text = item.element.innerText.trim();
 
@@ -184,10 +180,6 @@ talkify.wordHighlighter = function (correlationId) {
 
     function setupWordHightlighting(item, positions, startFrom) {
         cancel();
-
-        if (!item.element) {
-            return;
-        }
 
         if (!positions.length) {
             return;

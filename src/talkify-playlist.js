@@ -342,10 +342,6 @@ talkify.playlist = function () {
         }
 
         function setupItemForUserInteraction(item) {
-            if (!item.element) {
-                return;
-            }
-
             item.element.style.cursor = "pointer";
             item.element.classList.add("talkify-highlight");
 
@@ -358,10 +354,6 @@ talkify.playlist = function () {
         }
 
         function removeUserInteractionForItem(item) {
-            if (!item.element) {
-                return;
-            }
-
             item.element.style.cursor = "inherit";
             item.element.classList.remove("talkify-highlight");
 
@@ -607,10 +599,6 @@ talkify.playlist = function () {
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
 
-                if (!item.element) {
-                    continue;
-                }
-
                 var isSelectionAfterQueueItem = baseline.compareDocumentPosition(item.element) == documentPositionFollowing;
                 var shouldAddToBottom = j === playlist.queue.length - 1;
 
@@ -652,10 +640,6 @@ talkify.playlist = function () {
 
             for (var j = 0; j < playlist.queue.length; j++) {
                 var item = playlist.queue[j];
-
-                if (!item.element) {
-                    continue;
-                }
 
                 var isSelectionAfterQueueItem = element.compareDocumentPosition(item.element) == documentPositionFollowing;
 
