@@ -1,11 +1,5 @@
 talkify = talkify || {};
 
-//Idé att playlist kan ge stafettpinnen till en annan komponent och sen återta. T.ex om en tabell ligger med i flödet så kan playlisten skippa de elementen..
-//Bör också kunna läsa tabell med knapptryck.
-
-//1. Simple left to right
-//2. Repeat header of each cell
-
 talkify.tableReader = function () {
     function addTables(config) {
         var mapped = config.map(function (cfg) {
