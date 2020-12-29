@@ -231,9 +231,17 @@ Entry point: talkify.playlist()
 | usingPlayer | TtsPlayer/Html5Player  | |   Specify which player to be used. |   Yes |
 | withTextInteraction | | | Enables you to click on paragraphs (and other text) to play |    No |
 | withElements | DOM elements | | Specifies with elements to play. If omitted, Talkify will crawl the page and select for you |    No |
+| withTables | Table configuration, array of objects* | | Reads tables in a more intuitive way. The relevant header is repeated before each cell |
 | withRootSelector | string | 'body' | Sets the scope from where Talkify will start to crawl the page for text to play |    No |
 | subscribeTo | Json object | | Event subscriptions |    No |
 | build | | | Finalizes and creates the playlist instance |    Yes |
+
+*withTables parameter is an array of objects with the following properties: 
+- table (DOM-query selector or actual DOM-elements)
+- headerCells (Optional. DOM-query selector or actual DOM-elements. Defaults to "th")
+- bodyCells (Optional. DOM-query selector or actual DOM-elements. Defaults to "td")
+
+withTables works with any standard HTML-table and other non-standard tabular content (for example bootstrap grid system). For non standard tabular content, please use the optional parameters to tell Talkify which elements are header cells and which are body cells.
 
 ## Playlist
 This is the instance built from the playliste above.
@@ -250,14 +258,6 @@ This is the instance built from the playliste above.
 | enableTextInteraction | | | Enables click to play on HTML elements |
 | disableTextInteraction | | | Disables click to play on HTML elements |
 | dispose | | | Clean up |
-| withTables | Table configuration, array of objects* | | Reads tables in a more intuitive way. The relevant header is repeated before each cell |
-
-*withTables parameter is an array of objects with the following properties: 
-- table (DOM-query selector or actual DOM-elements)
-- headerCells (Optional. DOM-query selector or actual DOM-elements. Defaults to "th")
-- bodyCells (Optional. DOM-query selector or actual DOM-elements. Defaults to "td")
-
-withTables works with any standard HTML-table and other non-standard tabular content (for example bootstrap grid system). For non standard tabular content, please use the optional parameters to tell Talkify which elements are header cells and which are body cells.
 
 ### Playlist Events
 | Event   |
