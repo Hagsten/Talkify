@@ -3237,18 +3237,26 @@ talkify.playlist = function () {
             removeEventListeners("click", item.element);
         }
 
+        function markTables() {
+            if (!settings.tableConfig) {
+                return;
+            }
+
+            talkify.tableReader.markTables(settings.tableConfig);
+        }
+
         function extractTables() {
             if (!settings.tableConfig) {
                 return [];
             }
-
-            talkify.tableReader.markTables(settings.tableConfig);
 
             return Array.from(document.querySelectorAll('.talkify-tts-table'));
         }
 
         function initialize() {
             reset();
+
+            markTables();
 
             if (!settings.domElements) {
                 settings.domElements = textextractor.extract(settings.rootSelector, settings.exclusions);
@@ -3279,7 +3287,7 @@ talkify.playlist = function () {
                 }
             }
 
-            var tables = extractTables();
+            var tables = extractTables();            
 
             for (var t = 0; t < tables.length; t++) {
                 var cells = Array.from(tables[t].querySelectorAll(".talkify-tts-tablecell"));
