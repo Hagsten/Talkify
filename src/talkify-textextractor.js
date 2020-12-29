@@ -4,6 +4,7 @@ talkify.textextractor = function () {
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
     var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt']; //removed br...revert?
+    var forbiddenClasses = ['talkify-tts-table']
     var userExcludedElements = [];
 
     function getVisible(elements) {
@@ -61,10 +62,10 @@ talkify.textextractor = function () {
     }
 
     function isValidForGrouping(node) {
-        if(node.nodeName === "BR"){
+        if (node.nodeName === "BR") {
             return true;
         }
-        
+
         var isTextNode = node.nodeType === 3;
         var textLength = getStrippedText(node.textContent).length;
 
@@ -121,6 +122,10 @@ talkify.textextractor = function () {
 
         for (var i = 0; i < nodes.length; i++) {
             var node = nodes[i];
+
+            if (isForbiddenByClass(node)) {
+                continue;
+            }    
 
             if (elementIsParagraphOrHeader(node)) {
                 validElements.push(node);
@@ -249,8 +254,16 @@ talkify.textextractor = function () {
         return forbiddenElementsString.concat(userExcludedElements);
     }
 
-    function isForbidden(node) {
+    function isForbidden(node) { 
         return getForbiddenElements().indexOf(getSafeTagName(node).toLowerCase()) !== -1;
+    }
+
+    function isForbiddenByClass(node){
+        if(!node.classList){
+            return false;
+        }
+
+        return !!forbiddenClasses.find(function(x){ return node.closest("." + x) });
     }
 
     return {

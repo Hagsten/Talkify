@@ -1,0 +1,110 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flexboxgrid@6.3.1/dist/flexboxgrid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-playlist.css">
+</head>
+
+<body>
+    <button>
+        Start demo
+    </button>
+
+    <h3>Custom table</h3>
+    <div class="custom-table">
+        <div class="row header-row">
+            <div class="col-xs-3">Name </div>
+            <div class="col-xs-3">Country</div>
+            <div class="col-xs-3">City</div>
+            <div class="col-xs-3">Occupation</div>
+        </div>
+        <div class="row body-row">
+            <div class="col-xs-3">Thomas</div>
+            <div class="col-xs-3">United States</div>
+            <div class="col-xs-3">New York</div>
+            <div class="col-xs-3">Engineer</div>
+        </div>
+        <div class="row body-row">
+            <div class="col-xs-3">Elsa</div>
+            <div class="col-xs-3">Sweden</div>
+            <div class="col-xs-3">Stockholm</div>
+            <div class="col-xs-3">Programmer</div>
+        </div>
+    </div>
+
+    <h3>HTML standard table</h3>
+    <table border="1">
+        <tbody>
+            <tr>
+                <th>Name </th>
+                <th>Country</th>
+                <th>City</th>
+                <th>Occupation</th>
+            </tr>
+            <tr>
+                <td>Thomas</td>
+                <td>United states</td>
+                <td>New York</td>
+                <td>Engineer</td>
+            </tr>
+            <tr>
+                <td>Lisa</td>
+                <td>Great Britain</td>
+                <td>London</td>
+                <td>Recruiter</td>
+            </tr>
+            <tr>
+                <td>Elsa</td>
+                <td>Sweden</td>
+                <td>Stockholm</td>
+                <td>Programmer</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="../dist/talkify.js"></script>
+
+    <script>
+        talkify.config.debug = true;
+        talkify.config.useSsml = false;
+        talkify.config.remoteService.active = true;
+        talkify.config.keyboardCommands.enabled = true;
+
+        talkify.config.remoteService.speechBaseUrl = '/api/speech/v2';
+        talkify.config.remoteService.languageBaseUrl = '/api/language/v1';
+
+        talkify.config.remoteService.apiKey = '3f10eae8-6808-4c21-be9f-27556bc2e450';
+
+        talkify.config.remoteService.host = 'http://localhost:6719';
+
+        talkify.config.ui.audioControls.enabled = false; //<-- Disable to get a head-less player. Build you custom UI    
+
+        $(document).ready(function () {
+            $('button').click(function () {
+                var player = new talkify.TtsPlayer();
+                player.forceVoice({name: 'Zira'});
+                player.enableTextHighlighting();
+
+                var playlist = new talkify.playlist()
+                    .begin()
+                    .usingPlayer(player)
+                    .withElements([])
+                    .withTables(
+                        [{ table: ".custom-table", headerCells: ".header-row > div", bodyCells: ".body-row > div" },
+                        { table: "table" }])
+                    .build();
+
+                playlist.play();
+
+                $(this).remove();
+            });
+
+        });
+    </script>
+</body>

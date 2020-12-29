@@ -250,6 +250,14 @@ This is the instance built from the playliste above.
 | enableTextInteraction | | | Enables click to play on HTML elements |
 | disableTextInteraction | | | Disables click to play on HTML elements |
 | dispose | | | Clean up |
+| withTables | Table configuration, array of objects* | | Reads tables in a more intuitive way. The relevant header is repeated before each cell |
+
+*withTables parameter is an array of objects with the following properties: 
+- table (DOM-query selector or actual DOM-elements)
+- headerCells (Optional. DOM-query selector or actual DOM-elements. Defaults to "th")
+- bodyCells (Optional. DOM-query selector or actual DOM-elements. Defaults to "td")
+
+withTables works with any standard HTML-table and other non-standard tabular content (for example bootstrap grid system). For non standard tabular content, please use the optional parameters to tell Talkify which elements are header cells and which are body cells.
 
 ### Playlist Events
 | Event   |
