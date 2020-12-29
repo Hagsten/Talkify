@@ -4800,7 +4800,7 @@ talkify.textextractor = function () {
             return false;
         }
 
-        return forbiddenClasses.find(function(x){ return node.closest("." + x) }) !== null;
+        return !!forbiddenClasses.find(function(x){ return node.closest("." + x) });
     }
 
     return {
