@@ -343,7 +343,7 @@ talkify.TtsPlayer = function (options) {
             "&volume=" + this.settings.volumeDb +
             "&pitch=" + pitch;
 
-        if (me.settings.useTextHighlight && item.element !== null) {
+        if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
         }
 

@@ -163,10 +163,7 @@ talkify.playlist = function () {
                 //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
-
-                if (item.element) {
-                    item.element.classList.remove("playing");
-                }
+                item.element.classList.remove("playing");
             }
         };
 
@@ -209,7 +206,7 @@ talkify.playlist = function () {
 
             resetPlaybackStates();
 
-            if (playlist.currentlyPlaying && playlist.currentlyPlaying.element !== null) {
+            if (playlist.currentlyPlaying) {
                 playlist.currentlyPlaying.element.innerHTML = playlist.currentlyPlaying.originalElement.innerHTML;
             }
 

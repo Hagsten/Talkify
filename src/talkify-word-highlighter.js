@@ -221,7 +221,7 @@ talkify.wordHighlighter = function (correlationId) {
     }
 
     function resetCurrentItem() {
-        if (currentItem && currentItem.element !== null) {
+        if (currentItem) {
             currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
         }
     }

@@ -1379,12 +1379,6 @@ talkify.controlcenters.modern = function (parent, correlationId) {
 },{}],7:[function(require,module,exports){
 talkify = talkify || {};
 
-//Idé att playlist kan ge stafettpinnen till en annan komponent och sen återta. T.ex om en tabell ligger med i flödet så kan playlisten skippa de elementen..
-//Bör också kunna läsa tabell med knapptryck.
-
-//1. Simple left to right
-//2. Repeat header of each cell
-
 talkify.tableReader = function () {
     function addTables(config) {
         var mapped = config.map(function (cfg) {
@@ -2316,10 +2310,7 @@ talkify.BasePlayer = function (_audiosource, _playbar, options) {
 
         item.isLoading = true;
         item.isPlaying = true;
-
-        if (item.element) {
-            item.element.classList.add("playing");
-        }
+        item.element.classList.add("playing");
         
         this.playAudio(item);
     };
@@ -2799,7 +2790,7 @@ talkify.TtsPlayer = function (options) {
             "&volume=" + this.settings.volumeDb +
             "&pitch=" + pitch;
 
-        if (me.settings.useTextHighlight && item.element !== null) {
+        if (me.settings.useTextHighlight) {
             audioUrl += "&marksid=" + requestId;
         }
 
@@ -3052,10 +3043,7 @@ talkify.playlist = function () {
                 //TODO: Call player.resetItem?
                 item.isPlaying = false;
                 item.isLoading = false;
-
-                if (item.element) {
-                    item.element.classList.remove("playing");
-                }
+                item.element.classList.remove("playing");
             }
         };
 
@@ -3098,7 +3086,7 @@ talkify.playlist = function () {
 
             resetPlaybackStates();
 
-            if (playlist.currentlyPlaying && playlist.currentlyPlaying.element !== null) {
+            if (playlist.currentlyPlaying) {
                 playlist.currentlyPlaying.element.innerHTML = playlist.currentlyPlaying.originalElement.innerHTML;
             }
 
@@ -5076,7 +5064,7 @@ talkify.wordHighlighter = function (correlationId) {
     }
 
     function resetCurrentItem() {
-        if (currentItem && currentItem.element !== null) {
+        if (currentItem) {
             currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
         }
     }
