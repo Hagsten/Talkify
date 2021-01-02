@@ -231,7 +231,8 @@ Entry point: talkify.playlist()
 | usingPlayer | TtsPlayer/Html5Player  | |   Specify which player to be used. |   Yes |
 | withTextInteraction | | | Enables you to click on paragraphs (and other text) to play |    No |
 | withElements | DOM elements | | Specifies with elements to play. If omitted, Talkify will crawl the page and select for you |    No |
-| withTables | Table configuration, array of objects* | | Reads tables in a more intuitive way. The relevant header is repeated before each cell |
+| excludeElements | Array of DOM-elements | [] | For example: document.querySelectorAll("button") | No |
+| withTables | Table configuration, array of objects* | | Reads tables in a more intuitive way. The relevant header is repeated before each cell | No |
 | withRootSelector | string | 'body' | Sets the scope from where Talkify will start to crawl the page for text to play |    No |
 | subscribeTo | Json object | | Event subscriptions |    No |
 | build | | | Finalizes and creates the playlist instance |    Yes |
