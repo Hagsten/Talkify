@@ -55,5 +55,8 @@ talkify.config = {
             next: ["play next", "next"],
             previous: ["play previous", "previous", "back", "go back"]
         }
+    },
+    autoScroll: {
+        offsetpx: 100
     }
 }

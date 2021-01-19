@@ -62,6 +62,8 @@
         });
 
         function playTts(){
+            talkify.autoScroll.activate();
+
             var player = new talkify.TtsPlayer()
                 .enableTextHighlighting()
                 .usePhonation("soft")

@@ -19,3 +19,4 @@ var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 var talkifyFormReader = require('./src/talkify-formreader.js');
 var talkifyTableReader = require('./src/table-reader/talkify-tablereader.js');
 var talkifyTestSelectionActivator = require('./src/talkify-text-selection-activator.js');
+var talkifyAutoScroll = require('./src/talkify-autoscroll.js');

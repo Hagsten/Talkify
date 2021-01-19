@@ -20,8 +20,9 @@ var talkifyVoiceCommands = require('./src/talkify-speech-recognition.js');
 var talkifyFormReader = require('./src/talkify-formreader.js');
 var talkifyTableReader = require('./src/table-reader/talkify-tablereader.js');
 var talkifyTestSelectionActivator = require('./src/talkify-text-selection-activator.js');
+var talkifyAutoScroll = require('./src/talkify-autoscroll.js');
 
-},{"./src/control-centers/talkify-controlcenter-classic.js":2,"./src/control-centers/talkify-controlcenter-core.js":3,"./src/control-centers/talkify-controlcenter-local.js":4,"./src/control-centers/talkify-controlcenter-modern.js":5,"./src/promise.js":6,"./src/table-reader/talkify-tablereader.js":7,"./src/talkify-ajax.js":8,"./src/talkify-config.js":9,"./src/talkify-formreader.js":10,"./src/talkify-html5-speechsynthesis-player.js":11,"./src/talkify-keyboard-commands.js":12,"./src/talkify-messagehub.js":13,"./src/talkify-player-core.js":14,"./src/talkify-player.js":15,"./src/talkify-playlist.js":16,"./src/talkify-speech-recognition.js":17,"./src/talkify-text-selection-activator.js":18,"./src/talkify-textextractor.js":19,"./src/talkify-utils.js":20,"./src/talkify-word-highlighter.js":21,"./src/talkify.js":22}],2:[function(require,module,exports){
+},{"./src/control-centers/talkify-controlcenter-classic.js":2,"./src/control-centers/talkify-controlcenter-core.js":3,"./src/control-centers/talkify-controlcenter-local.js":4,"./src/control-centers/talkify-controlcenter-modern.js":5,"./src/promise.js":6,"./src/table-reader/talkify-tablereader.js":7,"./src/talkify-ajax.js":8,"./src/talkify-autoscroll.js":9,"./src/talkify-config.js":10,"./src/talkify-formreader.js":11,"./src/talkify-html5-speechsynthesis-player.js":12,"./src/talkify-keyboard-commands.js":13,"./src/talkify-messagehub.js":14,"./src/talkify-player-core.js":15,"./src/talkify-player.js":16,"./src/talkify-playlist.js":17,"./src/talkify-speech-recognition.js":18,"./src/talkify-text-selection-activator.js":19,"./src/talkify-textextractor.js":20,"./src/talkify-utils.js":21,"./src/talkify-word-highlighter.js":22,"./src/talkify.js":23}],2:[function(require,module,exports){
 talkify = talkify || {};
 talkify.controlcenters = talkify.controlcenters || {};
 
@@ -1483,6 +1484,25 @@ talkify.http = (function ajax() {
 })();
 },{}],9:[function(require,module,exports){
 talkify = talkify || {};
+
+talkify.autoScroll = function () {
+    function activate() {
+        talkify.messageHub.unsubscribe("autoscroll", "*.player.*.loaded");
+
+        talkify.messageHub.subscribe("autoscroll", "*.player.*.loaded", function (item) {
+            var y = item.element.getBoundingClientRect().top + window.pageYOffset + talkify.config.autoScroll.offsetpx;
+
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        });
+    }
+
+    return {
+        activate: activate
+    }
+}();
+
+},{}],10:[function(require,module,exports){
+talkify = talkify || {};
 talkify.config = {
     debug: false,
     useSsml: false,
@@ -1539,9 +1559,12 @@ talkify.config = {
             next: ["play next", "next"],
             previous: ["play previous", "previous", "back", "go back"]
         }
+    },
+    autoScroll: {
+        offsetpx: 100
     }
 }
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.formReader = function () {
@@ -1663,7 +1686,7 @@ talkify.formReader = function () {
         }
     };
 }();
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 //TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
 talkify = talkify || {};
 
@@ -2056,7 +2079,7 @@ talkify.Html5Player = function () {
 };
 
 talkify.Html5Player.prototype.constructor = talkify.Html5Player;
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.KeyboardCommands = function (keyboadCommands) {
@@ -2107,7 +2130,7 @@ talkify.KeyboardCommands = function (keyboadCommands) {
         }
     }
 };
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 talkify = talkify || {};
 talkify.messageHub = function () {
     var subscribers = {};
@@ -2199,7 +2222,7 @@ talkify.messageHub = function () {
         unsubscribe: unsubscribe
     }
 }();
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar, options) {
     this.correlationId = talkify.generateGuid();
@@ -2444,7 +2467,7 @@ talkify.BasePlayer = function (_audiosource, _playbar, options) {
         return this;
     }
 };
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.TtsPlayer = function (options) {
@@ -2877,7 +2900,7 @@ talkify.TtsPlayer = function (options) {
 };
 
 talkify.TtsPlayer.prototype.constructor = talkify.TtsPlayer;
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playlist = function () {
     var defaults = {
@@ -3731,7 +3754,7 @@ talkify.playlist = function () {
 
     };
 };
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.SpeechCommands = function (speechCommandConfig) {
@@ -3927,7 +3950,7 @@ talkify.SpeechCommands = function (speechCommandConfig) {
         dispose: function () {}
     }
 };
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.selectionActivator = function () {
@@ -4534,7 +4557,7 @@ talkify.domExtensions = {
 }
 
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 talkify = talkify || {};
 talkify.textextractor = function () {
     var validElements = [];
@@ -4807,7 +4830,7 @@ talkify.textextractor = function () {
         extract: extract
     };
 };
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.generateGuid = function() {
@@ -4848,7 +4871,7 @@ talkify.toLowerCaseKeys = function(o) {
     return newO;
   }
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 talkify = talkify || {};
 talkify.wordHighlighter = function (correlationId) {
     var currentItem = null;
@@ -5198,6 +5221,6 @@ talkify.wordHighlighter = function (correlationId) {
         dispose: dispose
     };
 };
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 talkify = {};
 },{}]},{},[1]);
