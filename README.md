@@ -212,6 +212,9 @@ talkify.config = {
         selectedText: "You have selected {label}.",
         notSelectedText: "{label} is not selected."
     },
+    autoScroll: {
+        offsetpx: 100 //number of pixels offset from window top
+    }
 }
 ```
 
@@ -219,6 +222,14 @@ talkify.config = {
 [WebReader demo](http://jsfiddle.net/5atrbjc6/)
 
 Talkify lives in its own namespace - talkify. Hence, everything below is scoped to that namespace (i.e. talkify.playlist, etc).
+
+## Auto scroll
+Talkify provides an opt in auto scroll to the item to be played. 
+
+Activate the feature by calling talkify.autoScroll.activate()
+
+| Method   | 
+| activate |
 
 ## Playlist fluent builder
 Playlist builder is Talkifys way to instantiate your playlist. It comes with a fluent API.	
