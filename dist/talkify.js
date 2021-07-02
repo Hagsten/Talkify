@@ -1,5 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-window.promise = require('./src/promise.js');
 var talkify = require('./src/talkify.js');
 var talkifyConfig = require('./src/talkify-config.js');
 var talkifyUtils = require('./src/talkify-utils.js');
@@ -21,8 +20,7 @@ var talkifyFormReader = require('./src/talkify-formreader.js');
 var talkifyTableReader = require('./src/table-reader/talkify-tablereader.js');
 var talkifyTestSelectionActivator = require('./src/talkify-text-selection-activator.js');
 var talkifyAutoScroll = require('./src/talkify-autoscroll.js');
-
-},{"./src/control-centers/talkify-controlcenter-classic.js":2,"./src/control-centers/talkify-controlcenter-core.js":3,"./src/control-centers/talkify-controlcenter-local.js":4,"./src/control-centers/talkify-controlcenter-modern.js":5,"./src/promise.js":6,"./src/table-reader/talkify-tablereader.js":7,"./src/talkify-ajax.js":8,"./src/talkify-autoscroll.js":9,"./src/talkify-config.js":10,"./src/talkify-formreader.js":11,"./src/talkify-html5-speechsynthesis-player.js":12,"./src/talkify-keyboard-commands.js":13,"./src/talkify-messagehub.js":14,"./src/talkify-player-core.js":15,"./src/talkify-player.js":16,"./src/talkify-playlist.js":17,"./src/talkify-speech-recognition.js":18,"./src/talkify-text-selection-activator.js":19,"./src/talkify-textextractor.js":20,"./src/talkify-utils.js":21,"./src/talkify-word-highlighter.js":22,"./src/talkify.js":23}],2:[function(require,module,exports){
+},{"./src/control-centers/talkify-controlcenter-classic.js":2,"./src/control-centers/talkify-controlcenter-core.js":3,"./src/control-centers/talkify-controlcenter-local.js":4,"./src/control-centers/talkify-controlcenter-modern.js":5,"./src/table-reader/talkify-tablereader.js":6,"./src/talkify-ajax.js":7,"./src/talkify-autoscroll.js":8,"./src/talkify-config.js":9,"./src/talkify-formreader.js":10,"./src/talkify-html5-speechsynthesis-player.js":11,"./src/talkify-keyboard-commands.js":12,"./src/talkify-messagehub.js":13,"./src/talkify-player-core.js":14,"./src/talkify-player.js":15,"./src/talkify-playlist.js":16,"./src/talkify-speech-recognition.js":17,"./src/talkify-text-selection-activator.js":18,"./src/talkify-textextractor.js":19,"./src/talkify-utils.js":20,"./src/talkify-word-highlighter.js":21,"./src/talkify.js":22}],2:[function(require,module,exports){
 talkify = talkify || {};
 talkify.controlcenters = talkify.controlcenters || {};
 
@@ -709,11 +707,7 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
 
     function getRemoteVoices() {
         talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/voices")
-            .then(function (error, data) {
-                if (error !== false) {
-                    return;
-                }
-
+            .then(function (data) {
                 voices = window.talkify.toLowerCaseKeys(data);
 
                 if (voiceNameElement.textContent) {
@@ -1167,217 +1161,6 @@ talkify.controlcenters.modern = function (parent, correlationId) {
 </div>';
 }
 },{}],6:[function(require,module,exports){
-/*
- *  Copyright 2012-2013 (c) Pierre Duquesne <stackp@online.fr>
- *  Licensed under the New BSD License.
- *  https://github.com/stackp/promisejs
- */
-
-(function (exports) {
-
-    function Promise() {
-        this._callbacks = [];
-    }
-
-    Promise.prototype.then = function (func, context) {
-        var p;
-        if (this._isdone) {
-            p = func.apply(context, this.result);
-        } else {
-            p = new Promise();
-            this._callbacks.push(function () {
-                var res = func.apply(context, arguments);
-                if (res && typeof res.then === 'function')
-                    res.then(p.done, p);
-            });
-        }
-        return p;
-    };
-
-    Promise.prototype.done = function () {
-        this.result = arguments;
-        this._isdone = true;
-        for (var i = 0; i < this._callbacks.length; i++) {
-            this._callbacks[i].apply(null, arguments);
-        }
-        this._callbacks = [];
-    };
-
-    function join(promises) {
-        var p = new Promise();
-        var results = [];
-
-        if (!promises || !promises.length) {
-            p.done(results);
-            return p;
-        }
-
-        var numdone = 0;
-        var total = promises.length;
-
-        function notifier(i) {
-            return function () {
-                numdone += 1;
-                results[i] = Array.prototype.slice.call(arguments);
-                if (numdone === total) {
-                    p.done(results);
-                }
-            };
-        }
-
-        for (var i = 0; i < total; i++) {
-            promises[i].then(notifier(i));
-        }
-
-        return p;
-    }
-
-    function chain(funcs, args) {
-        var p = new Promise();
-        if (funcs.length === 0) {
-            p.done.apply(p, args);
-        } else {
-            funcs[0].apply(null, args).then(function () {
-                funcs.splice(0, 1);
-                chain(funcs, arguments).then(function () {
-                    p.done.apply(p, arguments);
-                });
-            });
-        }
-        return p;
-    }
-
-    /*
-     * AJAX requests
-     */
-
-    function _encode(data) {
-        var result = "";
-        if (typeof data === "string") {
-            result = data;
-        } else {
-            var e = encodeURIComponent;
-            for (var k in data) {
-                if (data.hasOwnProperty(k)) {
-                    result += '&' + e(k) + '=' + e(data[k]);
-                }
-            }
-        }
-        return result;
-    }
-
-    function new_xhr() {
-        var xhr;
-        if (window.XMLHttpRequest) {
-            xhr = new XMLHttpRequest();
-        } else if (window.ActiveXObject) {
-            try {
-                xhr = new ActiveXObject("Msxml2.XMLHTTP");
-            } catch (e) {
-                xhr = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-        }
-        return xhr;
-    }
-
-
-    function ajax(method, url, data, headers) {
-        var p = new Promise();
-        var xhr, payload;
-        data = data || {};
-        headers = headers || {};
-
-        try {
-            xhr = new_xhr();
-        } catch (e) {
-            p.done(promise.ENOXHR, "");
-            return p;
-        }
-
-        payload = _encode(data);
-        if (method === 'GET' && payload) {
-            url += '?' + payload;
-            payload = null;
-        }
-
-        xhr.open(method, url);
-        xhr.setRequestHeader('Content-type',
-                             'application/x-www-form-urlencoded');
-        for (var h in headers) {
-            if (headers.hasOwnProperty(h)) {
-                xhr.setRequestHeader(h, headers[h]);
-            }
-        }
-
-        function onTimeout() {
-            xhr.abort();
-            p.done(promise.ETIMEOUT, "", xhr);
-        }
-
-        var timeout = promise.ajaxTimeout;
-        if (timeout) {
-            var tid = setTimeout(onTimeout, timeout);
-        }
-
-        xhr.onreadystatechange = function () {
-            if (timeout) {
-                clearTimeout(tid);
-            }
-            if (xhr.readyState === 4) {
-                var err = (!xhr.status ||
-                           (xhr.status < 200 || xhr.status >= 300) &&
-                           xhr.status !== 304);
-                p.done(err, xhr.responseText, xhr);
-            }
-        };
-
-        xhr.send(payload);
-        return p;
-    }
-
-    function _ajaxer(method) {
-        return function (url, data, headers) {
-            return ajax(method, url, data, headers);
-        };
-    }
-
-    var promise = {
-        Promise: Promise,
-        join: join,
-        chain: chain,
-        ajax: ajax,
-        get: _ajaxer('GET'),
-        post: _ajaxer('POST'),
-        put: _ajaxer('PUT'),
-        del: _ajaxer('DELETE'),
-
-        /* Error codes */
-        ENOXHR: 1,
-        ETIMEOUT: 2,
-
-        /**
-         * Configuration parameter: time in milliseconds after which a
-         * pending AJAX request is considered unresponsive and is
-         * aborted. Useful to deal with bad connectivity (e.g. on a
-         * mobile network). A 0 value disables AJAX timeouts.
-         *
-         * Aborted requests resolve the promise with a ETIMEOUT error
-         * code.
-         */
-        ajaxTimeout: 0
-    };
-
-    if (typeof define === 'function' && define.amd) {
-        /* AMD support */
-        define(function () {
-            return promise;
-        });
-    } else {
-        exports.promise = promise;
-    }
-
-})(this);
-},{}],7:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.tableReader = function () {
@@ -1454,35 +1237,23 @@ talkify.tableReader = function () {
         markTables: addTables
     }
 }();
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 talkify = talkify || {};
 talkify.http = (function ajax() {
-
-    var get = function(url) {
-        var call = new promise.promise.Promise();
-
+    var get = function (url) {
         var keypart = (url.indexOf('?') !== -1 ? "&key=" : "?key=") + talkify.config.remoteService.apiKey;
 
-        promise.promise
-            .get(window.talkify.config.remoteService.host + url + keypart)
-            .then(function(error, data) {
-                try {
-                    var jsonObj = JSON.parse(data);
-                    call.done(error, jsonObj);
-                } catch (e) {
-                    call.done(e, data);
-                }
-
+        return fetch(window.talkify.config.remoteService.host + url + keypart)
+            .then(function (res) {
+                return res.json();
             });
-
-        return call;
     };
 
     return {
         get: get
     };
 })();
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.autoScroll = function () {
@@ -1501,7 +1272,7 @@ talkify.autoScroll = function () {
     }
 }();
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 talkify = talkify || {};
 talkify.config = {
     debug: false,
@@ -1564,7 +1335,7 @@ talkify.config = {
         offsetpx: 100
     }
 }
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.formReader = function () {
@@ -1686,7 +1457,7 @@ talkify.formReader = function () {
         }
     };
 }();
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 //TODO: Verify all events. Especially for this player. Trigger play, pause, stop and add console outputs and see what happens
 talkify = talkify || {};
 
@@ -2024,30 +1795,24 @@ talkify.Html5Player = function () {
         return voice;
     };
 
-    function getVoice() {
-        var p = new promise.promise.Promise();
-
+    function getVoice() {    
         if (me.forcedVoice) {
-            p.done(me.forcedVoice);
-
-            return p;
+            return Promise.resolve(me.forcedVoice);
         }
 
         if (window.speechSynthesis.getVoices().length) {
             var voices = window.speechSynthesis.getVoices();
 
-            p.done(selectVoiceToPlay(voices));
-
-            return p;
+            return Promise.resolve(selectVoiceToPlay(voices));
         }
 
-        window.speechSynthesis.onvoiceschanged = function () {
-            var voices = window.speechSynthesis.getVoices();
-
-            p.done(selectVoiceToPlay(voices));
-        };
-
-        return p;
+        return new Promise(function(resolve){
+            window.speechSynthesis.onvoiceschanged = function () {
+                var voices = window.speechSynthesis.getVoices();
+    
+                resolve(selectVoiceToPlay(voices));
+            };
+        });
     };
 
     function stop() {
@@ -2079,7 +1844,7 @@ talkify.Html5Player = function () {
 };
 
 talkify.Html5Player.prototype.constructor = talkify.Html5Player;
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.KeyboardCommands = function (keyboadCommands) {
@@ -2130,7 +1895,7 @@ talkify.KeyboardCommands = function (keyboadCommands) {
         }
     }
 };
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 talkify = talkify || {};
 talkify.messageHub = function () {
     var subscribers = {};
@@ -2222,7 +1987,7 @@ talkify.messageHub = function () {
         unsubscribe: unsubscribe
     }
 }();
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar, options) {
     this.correlationId = talkify.generateGuid();
@@ -2467,7 +2232,7 @@ talkify.BasePlayer = function (_audiosource, _playbar, options) {
         return this;
     }
 };
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.TtsPlayer = function (options) {
@@ -2678,14 +2443,7 @@ talkify.TtsPlayer = function (options) {
     }
 
     function getPositions(requestId) {
-        var p = new promise.promise.Promise();
-
-        talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/marks?id=" + requestId)
-            .then(function (error, positions) {
-                p.done(null, positions);
-            });
-
-        return p;
+        return talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/marks?id=" + requestId);
     };
 
     initialize.apply(this);
@@ -2716,11 +2474,11 @@ talkify.TtsPlayer = function (options) {
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status >= 400 && xhr.status <= 599) {   
+            if (xhr.readyState === 4 && xhr.status >= 400 && xhr.status <= 599) {
                 talkify.messageHub.publish(me.correlationId + ".player.tts.download.error", xhr);
             }
-            
-            if (xhr.readyState === 4 && xhr.status === 200) {                
+
+            if (xhr.readyState === 4 && xhr.status === 200) {
                 var link = document.createElement('a');
 
                 link.href = URL.createObjectURL(xhr.response);
@@ -2736,7 +2494,7 @@ talkify.TtsPlayer = function (options) {
                     })
                 );
 
-                setTimeout(function(){
+                setTimeout(function () {
                     document.body.removeChild(link);
                 }, 1000);
 
@@ -2835,7 +2593,7 @@ talkify.TtsPlayer = function (options) {
                 return;
             }
 
-            getPositions(requestId).then(function (error, positions) {
+            getPositions(requestId).then(function (positions) {
                 me.currentContext.positions = positions || [];
 
                 talkify.messageHub.publish(me.correlationId + ".player.tts.loaded", me.currentContext.item);
@@ -2900,7 +2658,7 @@ talkify.TtsPlayer = function (options) {
 };
 
 talkify.TtsPlayer.prototype.constructor = talkify.TtsPlayer;
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 talkify = talkify || {};
 talkify.playlist = function () {
     var defaults = {
@@ -3462,14 +3220,11 @@ talkify.playlist = function () {
             var text = playlist.refrenceText.length <= 1000 ? playlist.refrenceText : playlist.refrenceText.substr(0, 1000);
 
             talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + text)
-                .then(function (error, data) {
-                    if (error) {
-                        onComplete({ Cultures: [], Language: -1 });
-
-                        return;
-                    }
-
+                .then(function (data) {
                     onComplete(data);
+                })
+                .catch(function(){
+                    onComplete({ Cultures: [], Language: -1 });
                 });
 
             function onComplete(refLang) {
@@ -3754,7 +3509,7 @@ talkify.playlist = function () {
 
     };
 };
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.SpeechCommands = function (speechCommandConfig) {
@@ -3950,7 +3705,7 @@ talkify.SpeechCommands = function (speechCommandConfig) {
         dispose: function () {}
     }
 };
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.selectionActivator = function () {
@@ -4557,7 +4312,7 @@ talkify.domExtensions = {
 }
 
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 talkify = talkify || {};
 talkify.textextractor = function () {
     var validElements = [];
@@ -4830,7 +4585,7 @@ talkify.textextractor = function () {
         extract: extract
     };
 };
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 talkify = talkify || {};
 
 talkify.generateGuid = function() {
@@ -4871,7 +4626,7 @@ talkify.toLowerCaseKeys = function(o) {
     return newO;
   }
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 talkify = talkify || {};
 talkify.wordHighlighter = function (correlationId) {
     var currentItem = null;
@@ -5221,6 +4976,6 @@ talkify.wordHighlighter = function (correlationId) {
         dispose: dispose
     };
 };
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 talkify = {};
 },{}]},{},[1]);

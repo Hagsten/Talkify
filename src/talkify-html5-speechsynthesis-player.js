@@ -335,30 +335,24 @@ talkify.Html5Player = function () {
         return voice;
     };
 
-    function getVoice() {
-        var p = new promise.promise.Promise();
-
+    function getVoice() {    
         if (me.forcedVoice) {
-            p.done(me.forcedVoice);
-
-            return p;
+            return Promise.resolve(me.forcedVoice);
         }
 
         if (window.speechSynthesis.getVoices().length) {
             var voices = window.speechSynthesis.getVoices();
 
-            p.done(selectVoiceToPlay(voices));
-
-            return p;
+            return Promise.resolve(selectVoiceToPlay(voices));
         }
 
-        window.speechSynthesis.onvoiceschanged = function () {
-            var voices = window.speechSynthesis.getVoices();
-
-            p.done(selectVoiceToPlay(voices));
-        };
-
-        return p;
+        return new Promise(function(resolve){
+            window.speechSynthesis.onvoiceschanged = function () {
+                var voices = window.speechSynthesis.getVoices();
+    
+                resolve(selectVoiceToPlay(voices));
+            };
+        });
     };
 
     function stop() {

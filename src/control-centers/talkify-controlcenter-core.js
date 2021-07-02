@@ -619,11 +619,7 @@ talkify.playbar = function (parent, correlationId, controlcenter) {
 
     function getRemoteVoices() {
         talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/voices")
-            .then(function (error, data) {
-                if (error !== false) {
-                    return;
-                }
-
+            .then(function (data) {
                 voices = window.talkify.toLowerCaseKeys(data);
 
                 if (voiceNameElement.textContent) {

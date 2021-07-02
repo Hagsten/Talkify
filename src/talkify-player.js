@@ -208,14 +208,7 @@ talkify.TtsPlayer = function (options) {
     }
 
     function getPositions(requestId) {
-        var p = new promise.promise.Promise();
-
-        talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/marks?id=" + requestId)
-            .then(function (error, positions) {
-                p.done(null, positions);
-            });
-
-        return p;
+        return talkify.http.get(talkify.config.remoteService.speechBaseUrl + "/marks?id=" + requestId);
     };
 
     initialize.apply(this);
@@ -246,11 +239,11 @@ talkify.TtsPlayer = function (options) {
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status >= 400 && xhr.status <= 599) {   
+            if (xhr.readyState === 4 && xhr.status >= 400 && xhr.status <= 599) {
                 talkify.messageHub.publish(me.correlationId + ".player.tts.download.error", xhr);
             }
-            
-            if (xhr.readyState === 4 && xhr.status === 200) {                
+
+            if (xhr.readyState === 4 && xhr.status === 200) {
                 var link = document.createElement('a');
 
                 link.href = URL.createObjectURL(xhr.response);
@@ -266,7 +259,7 @@ talkify.TtsPlayer = function (options) {
                     })
                 );
 
-                setTimeout(function(){
+                setTimeout(function () {
                     document.body.removeChild(link);
                 }, 1000);
 
@@ -365,7 +358,7 @@ talkify.TtsPlayer = function (options) {
                 return;
             }
 
-            getPositions(requestId).then(function (error, positions) {
+            getPositions(requestId).then(function (positions) {
                 me.currentContext.positions = positions || [];
 
                 talkify.messageHub.publish(me.correlationId + ".player.tts.loaded", me.currentContext.item);
