@@ -559,14 +559,11 @@ talkify.playlist = function () {
             var text = playlist.refrenceText.length <= 1000 ? playlist.refrenceText : playlist.refrenceText.substr(0, 1000);
 
             talkify.http.get(talkify.config.remoteService.languageBaseUrl + "/detect?text=" + text)
-                .then(function (error, data) {
-                    if (error) {
-                        onComplete({ Cultures: [], Language: -1 });
-
-                        return;
-                    }
-
+                .then(function (data) {
                     onComplete(data);
+                })
+                .catch(function(){
+                    onComplete({ Cultures: [], Language: -1 });
                 });
 
             function onComplete(refLang) {
