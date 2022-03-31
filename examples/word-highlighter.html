@@ -1,0 +1,51 @@
+<html>
+
+<head>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-common.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/colors.css">
+    <link rel="stylesheet" type="text/css" href="../dist/styles/talkify-playlist.css">
+</head>
+
+<body>
+    <section id="root">
+        <div class="talkify-control-center-placeholder"></div>
+        <div class="talkify-section">
+            <p>Hello, hi. How are you? I'm good! Okay, its 1.23 degrees outside.
+                WOw! 1.23 is the number :). Answer is 1.
+                
+                Lets try an email adreess. Email is test@test.com. That seems to work. 
+                
+                Hello. Testing email adresses. Email is test@test.com</p>        
+        </div>
+    </section>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="../dist/talkify.js"></script>
+
+    <script>
+        talkify.config.debug = true;
+        talkify.config.useSsml = false;
+
+        talkify.config.remoteService.apiKey = '';
+        talkify.config.ui.audioControls.enabled = false;
+
+        $(document).ready(function () {
+            var player = new talkify.TtsPlayer()
+                .enableTextHighlighting();
+
+            player.forceVoice({ name: 'Zira', description: "Zira" });
+
+            var playlist = new talkify.playlist()
+                .begin()
+                .usingPlayer(player)
+                .withRootSelector('.talkify-section')
+                .withTextInteraction()
+                .build();
+        });
+
+    </script>
+</body>
+
+</html>
