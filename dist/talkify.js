@@ -4886,19 +4886,15 @@ talkify.wordHighlighter = function (correlationId) {
     function findCurrentSentence(item, charPosition) {
         var text = item.element.innerText.trim();
         var separators = ['\.', '\?', '!', '。'];
-        var baseline = text.split(new RegExp('[' + separators.join('') + ']', 'g'));
+        var baseline = text.split(new RegExp('[' + separators.join('') + '](?!\\S)', 'g'));
         var result = [];
 
         var currentSentence = "";
 
-        if (baseline.length === 1) {
-            result.push(baseline[0]);
-        }
-
-        for (var i = 0; i < baseline.length - 1; i++) {
+        for (var i = 0; i < baseline.length; i++) {
             currentSentence += baseline[i] + ".";
 
-            var isLast = i + 1 === baseline.length - 1;
+            var isLast = i + 1 === baseline.length;
 
             if (isLast || baseline[i + 1].startsWith(" ") || baseline[i + 1].startsWith("\n")) {
                 result.push(currentSentence);
