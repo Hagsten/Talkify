@@ -146,14 +146,16 @@ These settings are only supported by the TtsPlayer for now.
 
 Talkify supports declarative settings. These settings will override general settings. The following attributes can be added to any element that Talkify is connected to. When these attributes are present, Talkify will use them as playback settings.
 
-| data-attribute | Accepted values | Example |
-|----------|:------ |:-------|
-| data-talkify-wordbreakms | [0, 10000] | data-talkify-wordbreakms="100" |
-| data-talkify-pitch | [-5, 5] | data-talkify-pitch="-2" |
-| data-talkify-rate | [-10, 10] | data-talkify-rate="-2" |
-| data-talkify-voice | Any authorized voice | data-talkify-voice="David" |
-| data-talkify-phonation | "soft", "normal" or "" | data-talkify-phonation="soft" |
-| data-talkify-whisper | "true" or "false" | data-talkify-whisper="true" |
+| data-attribute | Accepted values | Example | Remarks |
+|----------|:------ |:-------|:-------|
+| data-talkify-wordbreakms | [0, 10000] | data-talkify-wordbreakms="100" ||
+| data-talkify-pitch | [-5, 5] | data-talkify-pitch="-2" ||
+| data-talkify-rate | [-10, 10] | data-talkify-rate="-2" ||
+| data-talkify-voice | Any authorized voice | data-talkify-voice="David" ||
+| data-talkify-phonation | "soft", "normal" or "" | data-talkify-phonation="soft" ||
+| data-talkify-whisper | "true" or "false" | data-talkify-whisper="true" ||
+| data-talkify-whisper | "true" or "false" | data-talkify-whisper="true" ||
+| data-talkify-read-as-lowercase | "true" | data-talkify-read-as-lowercase="true"| Some voices spell out capital letters, which might be unwanted, this setting will read the content of the element as lower case |
 
 # Configuration
 ```javascript
