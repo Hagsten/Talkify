@@ -393,7 +393,7 @@ talkify.playlist = function () {
 
                     ssml = convertToSsml(element);
 
-                    text = element.innerText.trim();
+                    text = getTextOfElement(element);
                 }
 
                 if (text === "") {
@@ -438,6 +438,22 @@ talkify.playlist = function () {
             } else {
                 talkify.messageHub.publish(player.correlationId + ".playlist.textinteraction.disabled");
             }
+        }
+
+        function getTextOfElement(element){
+            var clone = element.cloneNode(true);
+
+            var matches = clone.querySelectorAll('[data-talkify-read-as-lowercase="true"]');
+
+            if(matches.length === 0 && clone.getAttribute('data-talkify-read-as-lowercase') === "true"){
+                matches.push(clone);
+            }
+
+            matches.forEach(function(e) {
+                e.innerText = e.innerText.toLowerCase();
+            });
+
+            return clone.innerText.trim();
         }
 
         function convertToSsml(element) {
@@ -586,7 +602,7 @@ talkify.playlist = function () {
 
             if (!playlist.queue.length) {
                 playlist.queue = elements.map(function (x) {
-                    var text = x.innerText.trim();
+                    var text = getTextOfElement(x.innerText);
                     var ssml = convertToSsml(x);
 
                     return createItems(text, ssml, x);
@@ -606,7 +622,7 @@ talkify.playlist = function () {
 
                 if (isSelectionAfterQueueItem || shouldAddToBottom) {
                     var queueItems = elements.map(function (x) {
-                        var text = x.innerText.trim();
+                        var text = getTextOfElement(x);
                         var ssml = convertToSsml(x);
 
                         return createItems(text, ssml, x);
