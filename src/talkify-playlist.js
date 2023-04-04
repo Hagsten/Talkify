@@ -453,8 +453,116 @@ talkify.playlist = function () {
                 e.innerText = e.innerText.toLowerCase();
             });
 
-            return clone.innerText.trim();
+            if(clone.nodeName === "IMG"){
+                return clone.getAttribute("alt").trim();
+            }
+
+            var childImages = clone.querySelectorAll('img');
+
+            if(childImages.length > 0){
+                const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+                    acceptNode: function (node) {
+                      return NodeFilter.FILTER_ACCEPT;
+                    },
+                  });
+
+                var result = getTextOfElementWithImages(clone, walker).flat(Infinity);//.replace(/\n\s+/g, ' ');
+
+                for(var i = 0; i < result.length; i++){
+                    var mapping = result[i];
+                    var previous = i > 0 ? result[i - 1] : {text: ''};
+            
+                    if((!previous.canTrimEnd || previous.text.length === 0) && mapping.canTrimStart){
+                        mapping.text = mapping.text.trimStart();
+                    }
+            
+                    if(mapping.canTrimEnd){
+                        mapping.text = mapping.text.trimEnd();
+                    }
+            
+                    mapping.text = mapping.text.replace(/\n\s+/g, ' ');
+                }
+
+                return result.map(x => x.text).join('');
+            }
+
+            return clone.innerText.replace(/\n\s+/g, ' ').replace(/\s+/g, ' ').trim();
         }
+
+        function getTextOfElementWithImages(element, walker) {
+            var result = [];//'';
+          
+            if (element.nodeType === Node.ELEMENT_NODE) {
+              for (var i = 0; i < element.childNodes.length; i++) {
+                var childNode = element.childNodes[i];
+          
+                if (childNode.nodeType === Node.ELEMENT_NODE) {
+                  if (childNode.nodeName === 'IMG') {
+                    var altText = childNode.getAttribute('alt');
+                    if (altText) {
+                      result.push({
+                        text: ' ' + altText + ' ',
+                        canTrimStart: false,
+                        canTrimEnd: false
+                      }) //+= ' ' + altText + ' ';
+                    }
+                  } else {
+                    result.push(getTextOfElementWithImages(childNode, walker)); //+= getTextOfElementWithImages(childNode, walker);
+                  }
+                } else if (childNode.nodeType === Node.TEXT_NODE) {
+                    walker.currentNode = childNode;
+
+                    const nextNode = walker.nextNode();
+            
+                    walker.currentNode = childNode;
+            
+                    const previousNode = walker.previousNode();
+            
+                    var previousHasTrailing = nodeContainsTrailingSpace(previousNode);
+                    var nextHasLeading = nodeContainsLeadingSpace(nextNode);
+            
+                    var text = childNode.textContent;
+
+                    var canTrimStart = previousHasTrailing || previousNode === null;
+                    var canTrimEnd = nextHasLeading || nextNode === null;
+
+                    result.push({
+                        text: text,
+                        canTrimStart: canTrimStart,
+                        canTrimEnd: canTrimEnd
+                      }) //+= text;//childNode.textContent.trim();
+                }
+              }
+            }
+          
+            return result;
+          }
+
+          function nodeContainsLeadingSpace(node) {
+            if (!node) {
+              return false;
+            }
+        
+            if (node.nodeType === Node.TEXT_NODE) {
+              return (
+                node.textContent.replace(/\n\s+/g, ' ').trimStart().length === node.textContent.replace(/\n\s+/g, ' ').length - 1
+              );
+            }
+        
+            return node.innerText.trimStart().length === node.innerText.length - 1;
+          }
+        
+          function nodeContainsTrailingSpace(node) {
+            if (!node) {
+              return false;
+            }
+        
+            if (node.nodeType === Node.TEXT_NODE) {
+              return node.textContent.replace(/\n\s+/g, ' ').trimEnd().length === node.textContent.replace(/\n\s+/g, ' ').length - 1;
+            }
+        
+            return node.innerText.trimEnd().length === node.innerText.length - 1;
+          }
 
         function convertToSsml(element) {
             if (!talkify.config.useSsml) {

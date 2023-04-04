@@ -1897,96 +1897,101 @@ talkify.KeyboardCommands = function (keyboadCommands) {
 };
 },{}],13:[function(require,module,exports){
 talkify = talkify || {};
-talkify.messageHub = function () {
-    var subscribers = {};
+talkify.messageHub = (function () {
+  var subscribers = {};
 
-    function publish(topic, message) {
-        if (topic.indexOf("timeupdate") === -1) {
-            talkify.log("Publishing", topic);
+  function publish(topic, message) {
+    if (topic.indexOf("timeupdate") === -1) {
+      talkify.log("Publishing", topic);
+    }
+
+    var topics = topic.split(".");
+    var candidates = [];
+
+    Object.keys(subscribers).forEach(function (subscriberKey) {
+      if (subscriberKey === "*") {
+        candidates.push(subscriberKey);
+        return;
+      }
+
+      var s = subscriberKey.split(".");
+
+      if (s.length != topics.length) {
+        return;
+      }
+
+      var match = true;
+
+      for (var i = 0; i < s.length; i++) {
+        if (topics[i] === "*") {
+          match = true;
+        } else if (s[i] === topics[i]) {
+          match = true;
+        } else if (s[i] === "*") {
+          match === true;
+        } else {
+          match = false;
+          break;
+        }
+      }
+
+      if (match) {
+        candidates.push(subscriberKey);
+      }
+    });
+
+    if (candidates.length === 0) {
+      if (talkify.config.debug) {
+        console.warn("No subscriber found", topic);
+      }
+    }
+
+    candidates.forEach(function (c) {
+      subscribers[c].forEach(function (subscriber) {
+        if (c.indexOf("timeupdate") === -1) {
+          talkify.log("Calling subscriber", subscriber, c, message);
         }
 
-        var topics = topic.split('.');
-        var candidates = [];
+        subscriber.fn(message, topic);
+      });
+    });
+  }
 
-        Object.keys(subscribers).forEach(function (subscriberKey) {
-            if(subscriberKey === '*'){
-                candidates.push(subscriberKey);
-                return;
-            }
+  function subscribe(key, topic, fn) {
+    topic = Array.isArray(topic) ? topic : [topic];
 
-            var s = subscriberKey.split('.');
+    for (var i = 0; i < topic.length; i++) {
+      subscribers[topic[i]] = subscribers[topic[i]] || [];
 
-            if (s.length != topics.length) {
-                return;
-            }
-
-            var match = true;
-
-            for (var i = 0; i < s.length; i++) {
-                if (topics[i] === '*') {
-                    match = true;
-                }
-                else if (s[i] === topics[i]) {
-                    match = true;
-                } else if (s[i] === "*") {
-                    match === true;
-                } else {
-                    match = false;
-                    break;
-                }
-            }
-
-            if (match) {
-                candidates.push(subscriberKey);
-            }
-        });
-
-        if (candidates.length === 0) {
-            console.warn("No subscriber found", topic)
-        }
-
-        candidates.forEach(function (c) {
-            subscribers[c].forEach(function (subscriber) {
-                if (c.indexOf("timeupdate") === -1) {
-                    talkify.log("Calling subscriber", subscriber, c, message);
-                }
-
-                subscriber.fn(message, topic);
-            });
-        })
-
+      subscribers[topic[i]].push({ key: key, fn: fn });
     }
+  }
 
-    function subscribe(key, topic, fn) {
-        topic = Array.isArray(topic) ? topic : [topic];
+  function unsubscribe(key, topic) {
+    topic = Array.isArray(topic) ? topic : [topic];
 
-        for (var i = 0; i < topic.length; i++) {
-            subscribers[topic[i]] = subscribers[topic[i]] || [];
+    talkify.log("Unsubscribing", key, topic);
 
-            subscribers[topic[i]].push({ key: key, fn: fn });
-        }
-    }
+    Object.keys(subscribers)
+      .filter(function (subscriberKey) {
+        return topic.indexOf(subscriberKey) > -1;
+      })
+      .forEach(function (subscriberKey) {
+        subscribers[subscriberKey] = subscribers[subscriberKey].filter(
+          function (subscriber) {
+            return subscriber.key !== key;
+          }
+        );
+      });
+  }
 
-    function unsubscribe(key, topic) {
-        topic = Array.isArray(topic) ? topic : [topic];
+  return {
+    publish: publish,
+    subscribe: subscribe,
+    unsubscribe: unsubscribe,
+  };
+})();
 
-        talkify.log("Unsubscribing", key, topic);
-
-        Object.keys(subscribers).filter(function (subscriberKey) {
-            return topic.indexOf(subscriberKey) > -1 ;
-        }).forEach(function (subscriberKey) {
-            subscribers[subscriberKey] = subscribers[subscriberKey].filter(function (subscriber) {
-                return subscriber.key !== key;
-            });
-        });
-    }
-
-    return {
-        publish: publish,
-        subscribe: subscribe,
-        unsubscribe: unsubscribe
-    }
-}();
 },{}],14:[function(require,module,exports){
 talkify = talkify || {};
 talkify.BasePlayer = function (_audiosource, _playbar, options) {
@@ -3114,8 +3119,116 @@ talkify.playlist = function () {
                 e.innerText = e.innerText.toLowerCase();
             });
 
-            return clone.innerText.trim();
+            if(clone.nodeName === "IMG"){
+                return clone.getAttribute("alt").trim();
+            }
+
+            var childImages = clone.querySelectorAll('img');
+
+            if(childImages.length > 0){
+                const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+                    acceptNode: function (node) {
+                      return NodeFilter.FILTER_ACCEPT;
+                    },
+                  });
+
+                var result = getTextOfElementWithImages(clone, walker).flat(Infinity);//.replace(/\n\s+/g, ' ');
+
+                for(var i = 0; i < result.length; i++){
+                    var mapping = result[i];
+                    var previous = i > 0 ? result[i - 1] : {text: ''};
+            
+                    if((!previous.canTrimEnd || previous.text.length === 0) && mapping.canTrimStart){
+                        mapping.text = mapping.text.trimStart();
+                    }
+            
+                    if(mapping.canTrimEnd){
+                        mapping.text = mapping.text.trimEnd();
+                    }
+            
+                    mapping.text = mapping.text.replace(/\n\s+/g, ' ');
+                }
+
+                return result.map(x => x.text).join('');
+            }
+
+            return clone.innerText.replace(/\n\s+/g, ' ').replace(/\s+/g, ' ').trim();
         }
+
+        function getTextOfElementWithImages(element, walker) {
+            var result = [];//'';
+          
+            if (element.nodeType === Node.ELEMENT_NODE) {
+              for (var i = 0; i < element.childNodes.length; i++) {
+                var childNode = element.childNodes[i];
+          
+                if (childNode.nodeType === Node.ELEMENT_NODE) {
+                  if (childNode.nodeName === 'IMG') {
+                    var altText = childNode.getAttribute('alt');
+                    if (altText) {
+                      result.push({
+                        text: ' ' + altText + ' ',
+                        canTrimStart: false,
+                        canTrimEnd: false
+                      }) //+= ' ' + altText + ' ';
+                    }
+                  } else {
+                    result.push(getTextOfElementWithImages(childNode, walker)); //+= getTextOfElementWithImages(childNode, walker);
+                  }
+                } else if (childNode.nodeType === Node.TEXT_NODE) {
+                    walker.currentNode = childNode;
+
+                    const nextNode = walker.nextNode();
+            
+                    walker.currentNode = childNode;
+            
+                    const previousNode = walker.previousNode();
+            
+                    var previousHasTrailing = nodeContainsTrailingSpace(previousNode);
+                    var nextHasLeading = nodeContainsLeadingSpace(nextNode);
+            
+                    var text = childNode.textContent;
+
+                    var canTrimStart = previousHasTrailing || previousNode === null;
+                    var canTrimEnd = nextHasLeading || nextNode === null;
+
+                    result.push({
+                        text: text,
+                        canTrimStart: canTrimStart,
+                        canTrimEnd: canTrimEnd
+                      }) //+= text;//childNode.textContent.trim();
+                }
+              }
+            }
+          
+            return result;
+          }
+
+          function nodeContainsLeadingSpace(node) {
+            if (!node) {
+              return false;
+            }
+        
+            if (node.nodeType === Node.TEXT_NODE) {
+              return (
+                node.textContent.replace(/\n\s+/g, ' ').trimStart().length === node.textContent.replace(/\n\s+/g, ' ').length - 1
+              );
+            }
+        
+            return node.innerText.trimStart().length === node.innerText.length - 1;
+          }
+        
+          function nodeContainsTrailingSpace(node) {
+            if (!node) {
+              return false;
+            }
+        
+            if (node.nodeType === Node.TEXT_NODE) {
+              return node.textContent.replace(/\n\s+/g, ' ').trimEnd().length === node.textContent.replace(/\n\s+/g, ' ').length - 1;
+            }
+        
+            return node.innerText.trimEnd().length === node.innerText.length - 1;
+          }
 
         function convertToSsml(element) {
             if (!talkify.config.useSsml) {
@@ -4334,7 +4447,7 @@ talkify.textextractor = function () {
     var validElements = [];
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
-    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt']; //removed br...revert?
+    var forbiddenElementsString = ['map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt']; //removed br...revert?
     var forbiddenClasses = ['talkify-tts-table']
     var userExcludedElements = [];
 
@@ -4360,12 +4473,28 @@ talkify.textextractor = function () {
         return text.replace(/(\r\n|\n|\r)/gm, "").trim();
     }
 
+    function isValidImageNode(node){
+        if (!node) {
+            return false;
+        }
+
+        if(node.nodeName === "IMG" && !!node.getAttribute("alt")){
+            return true;
+        }
+
+        return false;
+    }
+
     function isValidTextNode(node) {
         if (!node) {
             return false;
         }
 
-        if (node.nodeType === 3) {
+        if (node.nodeType === 3) {  
+            if(node.parentNode && node.parentNode.nodeName.toLowerCase() === "li"){
+                return true;
+            }
+
             return getStrippedText(node.textContent).length >= 10;
         }
 
@@ -4504,6 +4633,10 @@ talkify.textextractor = function () {
 
             if (isValidTextNode(node)) {
                 validElements.push(wrapAndReplace(node));
+            }
+
+            if(isValidImageNode(node)){
+                validElements.push(node);
             }
 
             evaluate(node.childNodes);
@@ -4645,349 +4778,671 @@ talkify.toLowerCaseKeys = function(o) {
 },{}],21:[function(require,module,exports){
 talkify = talkify || {};
 talkify.wordHighlighter = function (correlationId) {
-    var currentItem = null;
-    var currentPositions = [];
-    var currentPosition = -1;
-    var currentWordbreakMs = 0;
-    var useEnhancedView = false;
-    var enhancedView = null;
-    var currentControlcenterPosition = null;
+  var currentItem = null;
+  var currentPositions = [];
+  var currentPosition = -1;
+  var currentWordbreakMs = 0;
+  var useEnhancedView = false;
+  var enhancedView = null;
+  var currentControlcenterPosition = null;
 
-    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.seeked", setPosition);
-    talkify.messageHub.subscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed", correlationId + ".player.tts.ended"],
-        function () {
-            cancel();
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    correlationId + ".player.tts.seeked",
+    setPosition
+  );
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    [
+      correlationId + ".player.tts.loading",
+      correlationId + ".player.tts.disposed",
+      correlationId + ".player.tts.ended",
+    ],
+    function () {
+      cancel();
 
-            if (enhancedView) {
-                document.body.removeChild(enhancedView);
-                enhancedView = null;
-            }
+      if (enhancedView) {
+        document.body.removeChild(enhancedView);
+        enhancedView = null;
+      }
+    }
+  );
+
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    correlationId + ".player.tts.play",
+    function (message) {
+      setupWordHightlighting(message.item, message.positions);
+    }
+  );
+
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    correlationId + ".player.tts.wordbreakchanged",
+    function (wordbreakms) {
+      currentWordbreakMs = wordbreakms;
+    }
+  );
+
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    correlationId + ".player.tts.timeupdated",
+    function (timeInfo) {
+      if (!currentPositions.length) {
+        return;
+      }
+
+      var time = timeInfo.currentTime * 1000;
+
+      var currentPos = 0;
+
+      if (time < currentPositions[0].Position) {
+        if (currentPosition === -1) {
+          return;
+        }
+
+        currentPosition = 0;
+        highlight(
+          currentItem,
+          currentPositions[0].Word,
+          currentPositions[0].CharPosition
+        );
+        return;
+      }
+
+      for (var i = 0; i < currentPositions.length; i++) {
+        if (i === currentPositions.length - 1) {
+          currentPos = i;
+          break;
+        }
+
+        var position = currentPositions[i].Position;
+
+        if (time >= position && time <= currentPositions[i + 1].Position) {
+          currentPos = i;
+          break;
+        }
+      }
+
+      if (currentPosition === currentPos) {
+        return;
+      }
+
+      currentPosition = currentPos;
+
+      highlight(
+        currentItem,
+        currentPositions[currentPos].Word,
+        currentPositions[currentPos].CharPosition
+      );
+    }
+  );
+
+  function adjustPositionsForPrefix(item) {
+    if (!item.prefix) {
+      return;
+    }
+
+    var itemPrefix = item.prefix.replace(/\s/g, "").replace(/[.,?!。，]/g, "");
+    var prefix = "";
+
+    var lastPrefixIndex = 0;
+    var prefixEndsAtPosition = 0;
+
+    for (var i = 0; i < currentPositions.length; i++) {
+      prefix += currentPositions[i].Word;
+
+      if (prefix === itemPrefix) {
+        lastPrefixIndex = i;
+        prefixEndsAtPosition =
+          currentPositions[i].CharPosition +
+          currentPositions[i].Word.length +
+          2; //": "
+        break;
+      }
+    }
+
+    currentPositions.splice(0, lastPrefixIndex + 1);
+
+    for (var i = 0; i < currentPositions.length; i++) {
+      currentPositions[i].CharPosition -= prefixEndsAtPosition;
+    }
+  }
+
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    correlationId + ".player.tts.enhancedvisibilityset",
+    function (value) {
+      useEnhancedView = value;
+
+      if (!value && enhancedView) {
+        document.body.removeChild(enhancedView);
+        enhancedView = null;
+      }
+    }
+  );
+
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    correlationId + ".controlcenter.attached",
+    function (position) {
+      currentControlcenterPosition = position;
+
+      adjustRenderPositionToControlCenter();
+    }
+  );
+
+  talkify.messageHub.subscribe(
+    "word-highlighter",
+    correlationId + ".controlcenter.detatched",
+    function (position) {
+      currentControlcenterPosition = position;
+
+      adjustRenderPositionToControlCenter();
+    }
+  );
+
+  function adjustRenderPositionToControlCenter() {
+    if (enhancedView && currentControlcenterPosition) {
+      var enhancedViewPosition = enhancedView.getBoundingClientRect();
+
+      var hasOverlay =
+        enhancedViewPosition.y >= currentControlcenterPosition.y &&
+        enhancedViewPosition.y <=
+          currentControlcenterPosition.y + currentControlcenterPosition.height;
+
+      hasOverlay =
+        hasOverlay ||
+        (currentControlcenterPosition.y >= enhancedViewPosition.y &&
+          currentControlcenterPosition.y <=
+            enhancedViewPosition.y + enhancedViewPosition.height);
+
+      if (hasOverlay) {
+        enhancedView.style.bottom = currentControlcenterPosition.height + "px";
+      } else {
+        enhancedView.style.bottom = "";
+      }
+    }
+  }
+
+  function adjustPositionsToSsml(text, positions) {
+    var internalPos = JSON.parse(JSON.stringify(positions));
+
+    var lastFound = 0;
+
+    for (var i = 0; i < internalPos.length; i++) {
+      lastFound = text.indexOf(internalPos[i].Word, lastFound);
+      internalPos[i].CharPosition = lastFound;
+    }
+
+    return internalPos;
+  }
+
+  function highlight(item, word, charPosition) {
+    if (item.element.nodeName === "IMG") {
+      return;
+    }
+
+    resetCurrentItem();
+
+    currentItem = item;    
+
+    trimWhitespaceTextNodes([item.element]);
+
+    var sentence = findCurrentSentence(item, charPosition);
+    var mappings = findTextAndElementPairs(item.element);
+
+    highlightSentence(sentence, findElementsWitinSentence(sentence, mappings));
+    highlightWord(findTextAndElementPairs(item.element), word, charPosition);
+
+    renderEnhancedView(item.element.innerText.trim(), sentence, charPosition, word);
+  }
+
+  function highlightSentence(sentence, elementsInSentence){
+    var traversedCharacters = 0;
+    var elementsInSentenceIndex = 0;
+
+    for (var i = 0; i < elementsInSentence.length; i++) {
+      var mapping = elementsInSentence[i];
+
+      if (!mapping.element || mapping.element.nodeName === "IMG") {
+        traversedCharacters += mapping.text.length;
+        continue;
+      }
+
+      var localStartPosition = elementsInSentenceIndex === 0 ? sentence.start - traversedCharacters : 0;
+      var localEndPosition = Math.min(sentence.end - traversedCharacters ,mapping.text.length);
+
+      traversedCharacters += mapping.text.length;
+
+      let part1 = mapping.text.slice(0, localStartPosition);
+      let part2 = mapping.text.slice(localStartPosition, localEndPosition);
+      let part3 = mapping.text.slice(localEndPosition)
+
+      let newHtml =
+        part1 +
+        '<span class="talkify-sentence-highlight">' +
+        part2 +
+        "</span>" +
+        part3;
+
+      replaceHtmlOn(mapping.element, newHtml);
+
+      elementsInSentenceIndex++;
+    }
+  }
+
+  function highlightWord(mappings, word, charPosition){
+    var traversedCharacters = 0;
+
+    for (var i = 0; i < mappings.length; i++) {
+      var mapping = mappings[i];
+
+      if (charPosition >= traversedCharacters + mapping.text.length) {
+        traversedCharacters += mapping.text.length;
+        continue;
+      }
+
+      var localPosition = charPosition - traversedCharacters;
+
+      let part1 = mapping.text.slice(0, localPosition);
+      let part2 = mapping.text.slice(localPosition + word.length);
+
+      let newHtml =
+        part1 +
+        '<span class="talkify-word-highlight">' +
+        word +
+        "</span>" +
+        part2;
+
+      replaceHtmlOn(mapping.element, newHtml);
+      break;
+    }
+  }
+
+  function replaceHtmlOn(element, newHtml){
+    if (element.nodeType === Node.TEXT_NODE) {
+        var replacementNode = document.createElement("span");
+        replacementNode.innerHTML = newHtml;
+        element.parentNode.insertBefore(
+          replacementNode,
+          element
+        );
+        element.parentNode.removeChild(element);
+      } else {
+        element.innerHTML = newHtml;
+      }
+  }
+
+  function findElementsWitinSentence(sentence, mappings){
+    var elementsInSentence = [];
+    var traversedCharacters = 0;
+
+    for (var i = 0; i < mappings.length; i++) {
+      var mapping = mappings[i];
+
+      //start is within this element mapping
+      if (sentence.start >= traversedCharacters && sentence.start < traversedCharacters + mapping.text.length) {
+        elementsInSentence.push({
+          element: mapping.element,
+          text: mapping.text,
         });
 
-    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.play", function (message) {
-        setupWordHightlighting(message.item, message.positions);
-    });
+        traversedCharacters += mapping.text.length;
+        continue;
+      }
 
-    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.wordbreakchanged", function (wordbreakms) {
-        currentWordbreakMs = wordbreakms;
-    });
+      //end is within this element mapping
+      if (
+        traversedCharacters >= sentence.start &&
+        sentence.end > traversedCharacters
+      ) {
+        elementsInSentence.push({
+          element: mapping.element,
+          text: mapping.text,
+        });
+        traversedCharacters += mapping.text.length;
+        continue;
+      }
 
-    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.timeupdated", function (timeInfo) {
-        if (!currentPositions.length) {
-            return;
-        }
+      elementsInSentence.push({text: mapping.text});
 
-        var time = timeInfo.currentTime * 1000;
-
-        var currentPos = 0;
-
-        if (time < currentPositions[0].Position) {
-            if (currentPosition === -1) {
-                return;
-            }
-
-            currentPosition = 0;
-            highlight(currentItem, currentPositions[0].Word, currentPositions[0].CharPosition);
-            return;
-        }
-
-        for (var i = 0; i < currentPositions.length; i++) {
-            if (i === currentPositions.length - 1) {
-                currentPos = i;
-                break;
-            }
-
-            var position = currentPositions[i].Position;
-
-            if (time >= position && time <= currentPositions[i + 1].Position) {
-                currentPos = i;
-                break;
-            }
-        }
-
-        if (currentPosition === currentPos) {
-            return;
-        }
-
-        currentPosition = currentPos;
-
-        highlight(currentItem, currentPositions[currentPos].Word, currentPositions[currentPos].CharPosition);
-    });
-
-    function adjustPositionsForPrefix(item) {
-        if (!item.prefix) {
-            return;
-        }
-
-        var itemPrefix = item.prefix.replace(/\s/g,'').replace(/[.,?!。，]/g, '');;
-        var prefix = "";
-
-        var lastPrefixIndex = 0;
-        var prefixEndsAtPosition = 0;
-
-        for (var i = 0; i < currentPositions.length; i++) {
-            prefix += currentPositions[i].Word;
-
-            if (prefix === itemPrefix) {
-                lastPrefixIndex = i;
-                prefixEndsAtPosition = currentPositions[i].CharPosition + currentPositions[i].Word.length + 2; //": "
-                break;
-            }
-        }
-
-        currentPositions.splice(0, lastPrefixIndex + 1);
-
-        for (var i = 0; i < currentPositions.length; i++) {
-            currentPositions[i].CharPosition -= prefixEndsAtPosition;
-        }
+      traversedCharacters += mapping.text.length;
     }
 
-    talkify.messageHub.subscribe("word-highlighter", correlationId + ".player.tts.enhancedvisibilityset", function (value) {
-        useEnhancedView = value;
+    return elementsInSentence;
+  }
 
-        if (!value && enhancedView) {
+  function trimWhitespaceTextNodes(elements){
+    for(var i = 0; i < elements.length; i++){
+        var element = elements[i];
+
+        if(element.nodeType === Node.TEXT_NODE){
+            element.textContent = element.textContent.replace(/\n\s+/g, ' ').replace(/\n+/g, ' ');
+            continue;
+        }
+
+        trimWhitespaceTextNodes(element.childNodes);
+    }
+  }
+
+  function findTextAndElementPairs(element) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+
+    var result = mapTextToElement(element.childNodes, walker);
+
+    for(var i = 0; i < result.length; i++){
+        var mapping = result[i];
+        var previous = i > 0 ? result[i - 1] : { text: ''  };
+
+        if((!previous.canTrimEnd || previous.text.length === 0) && mapping.canTrimStart){
+            mapping.text = mapping.text.trimStart();
+        }
+
+        if(mapping.canTrimEnd){
+            mapping.text = mapping.text.trimEnd();
+        }
+
+        mapping.text = mapping.text.replace(/\n\s+/g, ' ');
+    }
+
+    return result;
+  }
+
+  function mapTextToElement(nodes, walker) {
+    if (nodes.length === 0) {
+      return [];
+    }
+
+    var mappings = [];
+
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        var nodeText = node.textContent;
+
+        if (nodeText !== " " && !nodeText.trim()) {
+          continue;
+        }
+
+        var text = node.textContent;
+
+        walker.currentNode = node;
+
+        const nextNode = walker.nextNode();
+
+        walker.currentNode = node;
+
+        const previousNode = walker.previousNode();
+
+        var previousHasTrailing = nodeContainsTrailingSpace(previousNode);
+        var nextHasLeading = nodeContainsLeadingSpace(nextNode);
+
+        var canTrimStart = previousHasTrailing || previousNode === null;
+        var canTrimEnd = nextHasLeading || nextNode === null;
+
+        mappings.push({
+          text: text,
+          element: node,
+          canTrimStart: canTrimStart,
+          canTrimEnd: canTrimEnd
+        });
+      } else if (node.nodeName === "IMG") {
+        var imgAltText = node.getAttribute("alt").trim();
+
+        if (!imgAltText) {
+          continue;
+        }
+
+        mappings.push({
+          text: " " + imgAltText + " ",
+          element: node,
+        });
+      } else {
+        mappings.push(mapTextToElement(node.childNodes, walker));
+      }
+    }
+
+    return mappings.flat(Infinity);
+  }
+
+  function nodeContainsLeadingSpace(node) {
+    if (!node) {
+      return false;
+    }
+
+    if (node.nodeType === Node.TEXT_NODE) {
+      return (
+        node.textContent.replace(/\n\s+/g, ' ').trimStart().length === node.textContent.replace(/\n\s+/g, ' ').length - 1
+      );
+    }
+
+    return node.innerText.trimStart().length === node.innerText.length - 1;
+  }
+
+  function nodeContainsTrailingSpace(node) {
+    if (!node) {
+      return false;
+    }
+
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent.replace(/\n\s+/g, ' ').trimEnd().length === node.textContent.replace(/\n\s+/g, ' ').length - 1;
+    }
+
+    return node.innerText.trimEnd().length === node.innerText.length - 1;
+  }
+
+  function cancel() {
+    resetCurrentItem();
+
+    currentPositions = [];
+    currentPosition = -1;
+  }
+
+  function setupWordHightlighting(item, positions, startFrom) {
+    cancel();
+
+    if (!positions.length) {
+      return;
+    }
+
+    if (item.ssml || item.wordbreakms || currentWordbreakMs) {
+      currentPositions = adjustPositionsToSsml(item.text, positions);
+    } else {
+      currentPositions = positions;
+    }
+
+    adjustPositionsForPrefix(item);
+
+    var i = startFrom || 0;
+
+    var internalCallback = function () {
+      currentItem = item;
+
+      i++;
+
+      if (i >= positions.length) {
+        window.setTimeout(function () {
+          item.element.innerHTML = item.originalElement.innerHTML;
+
+          talkify.messageHub.publish(
+            correlationId + ".wordhighlighter.complete",
+            item
+          );
+
+          if (enhancedView) {
             document.body.removeChild(enhancedView);
             enhancedView = null;
-        }
-    });
+            initialEnhancedViewPosition = null;
+          }
+        }, 1000);
 
-    talkify.messageHub.subscribe("word-highlighter", correlationId + ".controlcenter.attached", function (position) {
-        currentControlcenterPosition = position;
+        return;
+      }
+    };
 
-        adjustRenderPositionToControlCenter();
-    });
+    internalCallback();
+  }
 
-    talkify.messageHub.subscribe("word-highlighter", correlationId + ".controlcenter.detatched", function (position) {
-        currentControlcenterPosition = position;
+  function resetCurrentItem() {
+    if (currentItem) {
+      currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
+    }
+  }
 
-        adjustRenderPositionToControlCenter();
-    });
+  function setPosition(message) {
+    var diff = 0;
+    var timeInMs = message.time * 1000;
+    var nextPosition = 0;
 
-    function adjustRenderPositionToControlCenter() {
-        if (enhancedView && currentControlcenterPosition) {
-            var enhancedViewPosition = enhancedView.getBoundingClientRect();
+    for (var i = 0; i < message.positions.length; i++) {
+      var pos = message.positions[i];
 
-            var hasOverlay = enhancedViewPosition.y >= currentControlcenterPosition.y &&
-                enhancedViewPosition.y <= (currentControlcenterPosition.y + currentControlcenterPosition.height);
+      if (pos.Position < timeInMs) {
+        continue;
+      }
 
-            hasOverlay = hasOverlay || (currentControlcenterPosition.y >= enhancedViewPosition.y &&
-                currentControlcenterPosition.y <= (enhancedViewPosition.y + enhancedViewPosition.height));
+      diff = pos.Position - timeInMs;
+      nextPosition = i;
 
-            if (hasOverlay) {
-                enhancedView.style.bottom = currentControlcenterPosition.height + "px";
-            } else {
-                enhancedView.style.bottom = "";
-            }
-        }
+      break;
     }
 
-    function adjustPositionsToSsml(text, positions) {
-        var internalPos = JSON.parse(JSON.stringify(positions));
+    var item = currentItem;
+    var positions = message.positions;
 
-        var lastFound = 0;
+    cancel();
 
-        for (var i = 0; i < internalPos.length; i++) {
-            lastFound = text.indexOf(internalPos[i].Word, lastFound);
-            internalPos[i].CharPosition = lastFound
-        }
+    setTimeout(function () {
+      setupWordHightlighting(item, positions, nextPosition);
+    }, diff);
+  }
 
-        return internalPos;
+  function findCurrentSentence(item, charPosition) {
+    var text = item.text.replace(/\n\s+/g, ' ').trim();
+    var separators = [".", "?", "!", "。"];
+    var baseline = text.split(
+      new RegExp("[" + separators.join("") + "](?!\\S)", "g")
+    );
+    var result = [];
+
+    var currentSentence = "";
+
+    for (var i = 0; i < baseline.length; i++) {
+      currentSentence += baseline[i] + ".";
+
+      var isLast = i + 1 === baseline.length;
+
+      if (
+        isLast ||
+        baseline[i + 1].startsWith(" ") ||
+        baseline[i + 1].startsWith("\n")
+      ) {
+        result.push(currentSentence);
+        currentSentence = "";
+      }
     }
 
-    function highlight(item, word, charPosition) {
-        resetCurrentItem();
+    var charactersTraversed = 0;
+    var sentenceStart = 0;
+    var sentenceEnd = text.length;
 
-        currentItem = item;
-        var text = item.element.innerText.trim();
-
-        var sentence = findCurrentSentence(item, charPosition);
-
-        item.element.innerHTML =
-            text.substring(0, sentence.start) +
-            '<span class="talkify-sentence-highlight">' +
-            text.substring(sentence.start, charPosition) +
-            '<span class="talkify-word-highlight">' +
-            text.substring(charPosition, charPosition + word.length) +
-            '</span>' +
-            text.substring(charPosition + word.length, sentence.end) +
-            '</span>' +
-            text.substring(sentence.end);
-
-        renderEnhancedView(text, sentence, charPosition, word);
-    }
-
-    function cancel() {
-        resetCurrentItem();
-
-        currentPositions = [];
-        currentPosition = -1;
-    }
-
-    function setupWordHightlighting(item, positions, startFrom) {
-        cancel();
-
-        if (!positions.length) {
-            return;
+    for (var i = 0; i < result.length; i++) {
+      if (
+        charPosition >= charactersTraversed &&
+        charPosition <= charactersTraversed + result[i].length
+      ) {
+        if (charactersTraversed > 0) {
+          sentenceStart = charactersTraversed + 1;
         }
 
-        if (item.ssml || item.wordbreakms || currentWordbreakMs) {
-            currentPositions = adjustPositionsToSsml(item.text, positions);
-        } else {
-            currentPositions = positions;
-        }
+        sentenceEnd = charactersTraversed + result[i].length;
+        break;
+      }
 
-        adjustPositionsForPrefix(item);
-
-        var i = startFrom || 0;
-
-        var internalCallback = function () {
-            currentItem = item;
-
-            i++;
-
-            if (i >= positions.length) {
-                window.setTimeout(function () {
-                    item.element.innerHTML = item.originalElement.innerHTML;
-
-                    talkify.messageHub.publish(correlationId + ".wordhighlighter.complete", item);
-
-                    if (enhancedView) {
-                        document.body.removeChild(enhancedView);;
-                        enhancedView = null;
-                        initialEnhancedViewPosition = null;
-                    }
-                }, 1000);
-
-                return;
-            }
-        };
-
-        internalCallback();
-    }
-
-    function resetCurrentItem() {
-        if (currentItem) {
-            currentItem.element.innerHTML = currentItem.originalElement.innerHTML;
-        }
-    }
-
-    function setPosition(message) {
-        var diff = 0;
-        var timeInMs = message.time * 1000;
-        var nextPosition = 0;
-
-        for (var i = 0; i < message.positions.length; i++) {
-            var pos = message.positions[i];
-
-            if (pos.Position < timeInMs) {
-                continue;
-            }
-
-            diff = pos.Position - timeInMs;
-            nextPosition = i;
-
-            break;
-        }
-
-        var item = currentItem;
-        var positions = message.positions;
-
-        cancel();
-
-        setTimeout(function () {
-            setupWordHightlighting(item, positions, nextPosition);
-        }, diff);
-    }
-
-    function findCurrentSentence(item, charPosition) {
-        var text = item.element.innerText.trim();
-        var separators = ['\.', '\?', '!', '。'];
-        var baseline = text.split(new RegExp('[' + separators.join('') + '](?!\\S)', 'g'));
-        var result = [];
-
-        var currentSentence = "";
-
-        for (var i = 0; i < baseline.length; i++) {
-            currentSentence += baseline[i] + ".";
-
-            var isLast = i + 1 === baseline.length;
-
-            if (isLast || baseline[i + 1].startsWith(" ") || baseline[i + 1].startsWith("\n")) {
-                result.push(currentSentence);
-                currentSentence = "";
-            }
-        }
-
-        var charactersTraversed = 0;
-        var sentenceStart = 0;
-        var sentenceEnd = text.length;
-
-        for (var i = 0; i < result.length; i++) {
-            if (charPosition >= charactersTraversed && charPosition <= charactersTraversed + result[i].length) {
-                if (charactersTraversed > 0) {
-                    sentenceStart = charactersTraversed + 1;
-                }
-
-                sentenceEnd = charactersTraversed + result[i].length;
-                break;
-            }
-
-            charactersTraversed += result[i].length;
-        }
-
-        return {
-            start: sentenceStart,
-            end: sentenceEnd
-        };
-    }
-
-    function dispose() {
-        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.seeked");
-        talkify.messageHub.unsubscribe("word-highlighter", [correlationId + ".player.tts.loading", correlationId + ".player.tts.disposed"]);
-        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.play");
-        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.timeupdated");
-        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".player.tts.enhancedvisibilityset");
-        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".controlcenter.attached");
-        talkify.messageHub.unsubscribe("word-highlighter", correlationId + ".controlcenter.detatched");
-    }
-
-    function renderEnhancedView(text, sentence, charPosition, word) {
-        if (!useEnhancedView) {
-            return;
-        }
-
-        var html =
-            '<p><span class="talkify-sentence-highlight">' +
-            text.substring(sentence.start, charPosition) +
-            '<span class="talkify-word-highlight">' +
-            text.substring(charPosition, charPosition + word.length) +
-            '</span>' +
-            text.substring(charPosition + word.length, sentence.end) +
-            '</span></p>';
-
-        if (enhancedView) {
-            enhancedView.innerHTML = html;
-
-            return;
-        }
-
-        enhancedView = document.createElement("div");
-
-        enhancedView.classList.add("talkify-enhanced-word-highligher");
-
-        enhancedView.innerHTML = html;
-
-        document.body.appendChild(enhancedView);
-
-        adjustRenderPositionToControlCenter();
+      charactersTraversed += result[i].length;
     }
 
     return {
-        start: setupWordHightlighting,
-        highlight: highlight,
-        dispose: dispose
+      start: sentenceStart,
+      end: sentenceEnd,
     };
+  }
+
+  function dispose() {
+    talkify.messageHub.unsubscribe(
+      "word-highlighter",
+      correlationId + ".player.tts.seeked"
+    );
+    talkify.messageHub.unsubscribe("word-highlighter", [
+      correlationId + ".player.tts.loading",
+      correlationId + ".player.tts.disposed",
+    ]);
+    talkify.messageHub.unsubscribe(
+      "word-highlighter",
+      correlationId + ".player.tts.play"
+    );
+    talkify.messageHub.unsubscribe(
+      "word-highlighter",
+      correlationId + ".player.tts.timeupdated"
+    );
+    talkify.messageHub.unsubscribe(
+      "word-highlighter",
+      correlationId + ".player.tts.enhancedvisibilityset"
+    );
+    talkify.messageHub.unsubscribe(
+      "word-highlighter",
+      correlationId + ".controlcenter.attached"
+    );
+    talkify.messageHub.unsubscribe(
+      "word-highlighter",
+      correlationId + ".controlcenter.detatched"
+    );
+  }
+
+  function renderEnhancedView(text, sentence, charPosition, word) {
+    if (!useEnhancedView) {
+      return;
+    }
+
+    var html =
+      '<p><span class="talkify-sentence-highlight">' +
+      text.substring(sentence.start, charPosition) +
+      '<span class="talkify-word-highlight">' +
+      text.substring(charPosition, charPosition + word.length) +
+      "</span>" +
+      text.substring(charPosition + word.length, sentence.end) +
+      "</span></p>";
+
+    if (enhancedView) {
+      enhancedView.innerHTML = html;
+
+      return;
+    }
+
+    enhancedView = document.createElement("div");
+
+    enhancedView.classList.add("talkify-enhanced-word-highligher");
+
+    enhancedView.innerHTML = html;
+
+    document.body.appendChild(enhancedView);
+
+    adjustRenderPositionToControlCenter();
+  }
+
+  return {
+    start: setupWordHightlighting,
+    highlight: highlight,
+    dispose: dispose,
+  };
 };
+
 },{}],22:[function(require,module,exports){
 talkify = {};
 },{}]},{},[1]);
