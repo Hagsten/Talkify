@@ -3,7 +3,7 @@ talkify.textextractor = function () {
     var validElements = [];
 
     var inlineElements = ['a', 'span', 'b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'strong', 'samp', 'var', 'a', 'bdo', 'q', 'sub', 'sup', 'label'];
-    var forbiddenElementsString = ['img', 'map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt']; //removed br...revert?
+    var forbiddenElementsString = ['map', 'object', 'script', 'button', 'input', 'select', 'textarea', 'style', 'code', 'nav', '#nav', '#navigation', '.nav', '.navigation', 'footer', 'rp', 'rt']; //removed br...revert?
     var forbiddenClasses = ['talkify-tts-table']
     var userExcludedElements = [];
 
@@ -29,12 +29,28 @@ talkify.textextractor = function () {
         return text.replace(/(\r\n|\n|\r)/gm, "").trim();
     }
 
+    function isValidImageNode(node){
+        if (!node) {
+            return false;
+        }
+
+        if(node.nodeName === "IMG" && !!node.getAttribute("alt")){
+            return true;
+        }
+
+        return false;
+    }
+
     function isValidTextNode(node) {
         if (!node) {
             return false;
         }
 
-        if (node.nodeType === 3) {
+        if (node.nodeType === 3) {  
+            if(node.parentNode && node.parentNode.nodeName.toLowerCase() === "li"){
+                return true;
+            }
+
             return getStrippedText(node.textContent).length >= 10;
         }
 
@@ -173,6 +189,10 @@ talkify.textextractor = function () {
 
             if (isValidTextNode(node)) {
                 validElements.push(wrapAndReplace(node));
+            }
+
+            if(isValidImageNode(node)){
+                validElements.push(node);
             }
 
             evaluate(node.childNodes);
